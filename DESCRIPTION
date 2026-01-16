@@ -1,0 +1,30 @@
+Type: Package
+Package: discounting
+Title: Discounting of Affect
+Version: 0.1.0
+Date: 2025-12-19
+Author: person(
+    "Niels", 
+    "Vanhasbroeck", 
+    email = "niels.vanhasbroeck@gmail.com", 
+    role = c("aut", "cre"), 
+    comment = c(ORCID = 0000-0002-7423-0090))
+Maintainer: Niels Vanhasbroeck <niels.vanhasbroeck@gmail.com>
+Description: Project around the discounting of stimuli within the context
+    of affect dynamics.  Applies and compares several discounting models
+    in experimental and daily-life data.
+License: GPL-3 + file LICENSE
+URL: https://github.com/ndpvh/discounting-affect
+BugReports: https://github.com/ndpvh/discounting-affect/issues
+Imports: 
+    
+Suggests: 
+    fs,
+    testthat (>= 3.0.0)
+Remotes:
+    
+Config/testthat/edition: 3
+Encoding: UTF-8
+RoxygenNote: 7.3.2
+Collate:
+    ''
