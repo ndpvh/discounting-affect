@@ -1,0 +1,35 @@
+url: https://github.com/ndpvh/discounting-affect
+
+template:
+  bootstrap: 5
+  light-switch: true 
+  theme: github-light
+  theme-dark: github-dark
+  includes:
+    in_header: |
+      <script type="text/javascript" async="" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+authors:
+  Niels Vanhasbroeck:
+    href: https://ndpvh.github.io
+
+repo:
+  url:
+    home: https://ndpvh.github.io/discounting-affect
+    source: https://github.com/ndpvh/discounting-affect/tree/main/
+    issue: https://github.com/ndpvh/discounting-affect/issues/
+    branch: main
+
+navbar:
+  structure:
+    left: [reference, articles]
+    right: [search, github]
+  components:
+    articles:
+      text: Usage
+      menu:
+    github:
+      icon: fa-github
+      href: https://github.com/ndpvh/discounting-affect/
+      aria-label: Github
+      
