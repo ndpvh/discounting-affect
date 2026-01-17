@@ -40,6 +40,10 @@ test_that(
         expect_error(model(2, 2, parameters = list(), covariance = "cov")) 
         expect_error(model(2, 2, parameters = list(), covariance = 1)) 
         expect_error(model(2, 2, parameters = list(), covariance = TRUE)) 
+
+        # Parameters should be numeric
+        expect_error(model(2, 2, parameters = list("1", 2, 3), covariance = covariance))
+        expect_error(model(2, 2, parameters = list(TRUE, 2, 3), covariance = covariance))
     }
 )
 
@@ -95,5 +99,45 @@ test_that(
         expect_equal(tst@k, 0)
         expect_equal(tst@parameters, list())
         expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
+    }
+)
+
+test_that(
+    "Test the specialized errors for the exponential discounting model",
+    {
+        # Not all parameters are defined
+        expect_error(exponential(parameters = list("alpha" = 1, "beta" = 1)))
+        expect_error(exponential(parameters = list("beta" = 1, "gamma" = 0.5)))
+        expect_error(exponential(parameters = list("alpha" = 1, "gamma" = 0.5)))
+
+        # Not all parameters are defined
+        expect_error(exponential(parameters = list("alpha" = 1, "beta" = 1)))
+        expect_error(exponential(parameters = list("beta" = 1, "gamma" = 0.5)))
+        expect_error(exponential(parameters = list("alpha" = 1, "gamma" = 0.5)))
+
+    }
+)
+
+test_that(
+    "Test the specialized warnings for the exponential discounting model",
+    {
+        # Too many parameters are defined
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 3),
+            "gamma" = diag(2) * 0.5,
+            "tst" = diag(2)
+        )
+        expect_warning(exponential(parameters = params, covariance = diag(2)))
+
+        tst <- exponential(parameters = params, covariance = diag(2)) |>
+            suppressWarnings()
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@parameters[["alpha"]], numeric(2))
+        expect_equal(tst@parameters[["beta"]], matrix(1, nrow = 2, ncol = 3))
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 0.5)
+        expect_equal(names(tst@parameters), c("alpha", "beta", "gamma"))
+        expect_equal(tst@covariance, diag(2))
     }
 )
