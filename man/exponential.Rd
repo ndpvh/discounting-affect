@@ -5,10 +5,11 @@
 \title{Constructor for the \code{\link[discounting]{exponential-class}}}
 \usage{
 exponential(
-  d = 1,
-  k = 0,
-  parameters = list(),
-  covariance = matrix(0, nrow = d, ncol = d)
+  d = NA,
+  k = NA,
+  parameters = list(alpha = 0, beta = matrix(0, nrow = 1, ncol = 1), gamma = matrix(0,
+    nrow = 1, ncol = 1)),
+  covariance = matrix(0, nrow = 1, ncol = 1)
 )
 }
 \arguments{
@@ -72,10 +73,10 @@ where \eqn{I_d} is a \eqn{d \times d} identity matrix.
 
 To define the model, one should minimally define the parameters of the model
 through \code{parameters} and \code{covariance}. In \code{covariance}, one 
-either provides the \eqn{d \times d} residual covariance matrix 
-(\code{cholesky = FALSE}) or a lower-triangular \eqn{d \times d} matrix that
-represents part of the decomposition of this matrix (\code{cholesky = TRUE}), 
-so that we can retrieve the covariance matrix as:
+either provides the \eqn{d \times d} residual covariance matrix \eqn{\Sigma}
+(\code{cholesky = FALSE}) or a lower-triangular \eqn{d \times d} matrix 
+\eqn{G} that represents part of the decomposition of this matrix 
+(\code{cholesky = TRUE}), so that we can retrieve the covariance matrix as:
 
 \deqn{\Sigma = G G^T}
 
@@ -104,4 +105,5 @@ exponential(
 }
 \seealso{
 \code{\link[discounting]{model-class}}
+\code{\link[discounting]{exponential-class}}
 }
