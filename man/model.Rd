@@ -2,7 +2,7 @@
 % Please edit documentation in R/models.R
 \name{model}
 \alias{model}
-\title{Constructor for the \code{\link[discounting]{model}} class}
+\title{Constructor for the \code{\link[discounting]{model-class}}}
 \usage{
 model(
   d = 1,
@@ -30,7 +30,7 @@ model. Default to a matrix of \code{0}s with the dimensionality implied by
 Instance of \code{\link[discounting]{model-class}}
 }
 \description{
-Constructor for the \code{\link[discounting]{model}} class
+Constructor for the \code{\link[discounting]{model-class}}
 }
 \examples{
 model(
@@ -43,4 +43,7 @@ model(
   covariance = diag(2)
 )
 
+}
+\seealso{
+\code{\link[discounting]{exponential-class}}
 }
