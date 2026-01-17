@@ -104,7 +104,7 @@ model <- function(d = 1,
 
     # Parameters should be of the correct type
     if(length(parameters) > 0) {
-        if(!any(sapply(parameters, \(x) is.numeric(parameters[[x]])))) {
+        if(!all(sapply(parameters, \(x) is.numeric(x)))) {
             stop("Some of the provided parameters are not numeric.")
         }
     }
@@ -276,10 +276,11 @@ exponential <- function(d = NA,
                         k = NA,
                         parameters = list(
                             "alpha" = 0,
-                            "beta" = matrix(0, nrow = 1, ncol = 1)
+                            "beta" = matrix(0, nrow = 1, ncol = 1),
                             "gamma" = matrix(0, nrow = 1, ncol = 1)
                         ), 
-                        covariance = matrix(0, nrow = 1, ncol = 1)) {
+                        covariance = matrix(0, nrow = 1, ncol = 1),
+                        cholesky = FALSE) {
         
     # Check whether all parameters are defined in the list of parameters
     if(!all(c("alpha", "beta", "gamma") %in% names(parameters))) {
@@ -293,8 +294,8 @@ exponential <- function(d = NA,
 
     # Check whether too many parameters are defined in the list. If so, delete 
     # them from the list
-    if(length(parameters) > 3) {
-        warnings(
+    if(length(names(parameters)) > 3) {
+        warning(
             paste(
                 "Too many different parameters provided to `parameters`.",
                 "Deleting the redundant ones."
