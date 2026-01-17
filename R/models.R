@@ -102,6 +102,13 @@ model <- function(d = 1,
         stop("Missing values found in the defined parameters.")
     }
 
+    # Parameters should be of the correct type
+    if(length(parameters) > 0) {
+        if(!any(sapply(parameters, \(x) is.numeric(parameters[[x]])))) {
+            stop("Some of the provided parameters are not numeric.")
+        }
+    }
+
     # If the covariance is not defined, then we will assume 0 covariance
     if(is.null(covariance)) {
         warning("Covariance is left undefined. Returning empty matrix.")
@@ -299,10 +306,6 @@ exponential <- function(d = NA,
     }
 
     # Parameters should be of the correct type
-    if(!any(sapply(c("alpha", "beta", "gamma"), \(x) is.numeric(parameters[[x]])))) {
-        stop("Some of the provided parameters are not numeric.")
-    }
-
     if(!is.matrix(parameters[["gamma"]]) & length(parameters[["gamma"]]) == 1) {
         warning("The parameter \"gamma\" should be a matrix: Changing type.")
         parameters[["gamma"]] <- as.matrix(parameters[["gamma"]])
