@@ -472,11 +472,11 @@ exponential <- function(d = NA,
 #' model
 #' 
 #' @seealso 
-#' \code{\link[discounting]{quasi_hyberbolic}}
+#' \code{\link[discounting]{quasi_hyperbolic}}
 #' 
 #' @export 
 setClass(
-    "quasi_hyberbolic",
+    "quasi_hyperbolic",
     slots = c(
         d = "numeric",
         k = "numeric",
@@ -497,7 +497,7 @@ setClass(
     contains = "model"
 )
 
-#' Constructor for the \code{\link[discounting]{quasi_hyberbolic-class}}
+#' Constructor for the \code{\link[discounting]{quasi_hyperbolic-class}}
 #' 
 #' Defines an instance of the \code{\link[discounting]{quasi_hyperbolic-class}}, 
 #' that is the class defining the quasi-hyperbolic discounting model. For the 
@@ -585,10 +585,10 @@ setClass(
 #' lower-triangular decomposition matrix instead of an actual covariance matrix.
 #' Defaults to \code{FALSE}.
 #' 
-#' @return Instance of \code{\link[discounting]{quasi_hyberbolic-class}}
+#' @return Instance of \code{\link[discounting]{quasi_hyperbolic-class}}
 #' 
 #' @examples 
-#' quasi_hyberbolic(
+#' quasi_hyperbolic(
 #'   d = 2,
 #'   k = 2,
 #'   parameters = list(
@@ -606,7 +606,7 @@ setClass(
 #' \code{\link[discounting]{quasi_hyperbolic-class}}
 #' 
 #' @export 
-quasi_hyberbolic <- function(d = NA, 
+quasi_hyperbolic <- function(d = NA, 
                              k = NA,
                              parameters = list(
                                  "alpha" = 0,
@@ -722,15 +722,15 @@ quasi_hyberbolic <- function(d = NA,
         stop("The eigenvalues of \"kappa\" should lie between 0 and 1.")
     }
     
-    # Create a new model and change its class to exponential. This ensures some
-    # additional checks are performed
+    # Create a new model and change its class to quasi_hyperbolic. This ensures 
+    # some additional checks are performed
     .Object <- model(
         d = d,
         k = k,
         parameters = parameters,
         covariance = covariance
     )
-    class(.Object) <- "quasi_hyberbolic"
+    class(.Object) <- "quasi_hyperbolic"
 
     return(.Object)
 }
