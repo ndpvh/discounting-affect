@@ -149,7 +149,7 @@ model <- function(d = 1,
 #' 
 #' @param object Object of the \code{\link[discounting]{model-class}}
 #' 
-#' @noexport
+#' @noRd
 setMethod(
     "show",
     "model",
