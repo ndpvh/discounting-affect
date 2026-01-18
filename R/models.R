@@ -316,6 +316,17 @@ setClass(
 #' of the model. Note that the dimensionalities of these parameters should 
 #' match up and are actively checked when constructing this class. 
 #' 
+#' There are some important restrictions to take into account when defining the 
+#' model:
+#' \itemize{
+#'   \item{The eigenvalues \eqn{\lambda_i} of \eqn{\Gamma} should all lie 
+#'         between 0 and 1, or \eqn{\lambda_i \in [0, 1)}, a restriction
+#'         that imposes exponential decay rather than sawtooth or more complex
+#'         dynamics}
+#'   \item{The covariance matrix \eqn{\Sigma} should be positive definite, as 
+#'         explained above}
+#' }
+#' 
 #' @param d Integer denoting the number of dimensions of the model. Defaults to 
 #' \code{NA}, in which case this dimensionality is inferred from the parameters.
 #' @param k Integer denoting the number of independent variables. Defaults to 
@@ -571,6 +582,17 @@ setClass(
 #' the respective parameters \eqn{\boldsymbol{\alpha}}, \eqn{B}, \eqn{N} and 
 #' \eqn{K} of the model. Note that the dimensionalities of these parameters 
 #' should match up and are actively checked when constructing this class. 
+#' 
+#' There are some important restrictions to take into account when defining the 
+#' model:
+#' \itemize{
+#'   \item{The eigenvalues \eqn{\lambda_i} of \eqn{N} and \eqn{K} should
+#'         all lie between 0 and 1, or \eqn{\lambda_i \in [0, 1)}, a restriction
+#'         that imposes exponential decay rather than sawtooth or more complex
+#'         dynamics}
+#'   \item{The covariance matrix \eqn{\Sigma} should be positive definite, as 
+#'         explained above}
+#' }
 #' 
 #' @param d Integer denoting the number of dimensions of the model. Defaults to 
 #' \code{NA}, in which case this dimensionality is inferred from the parameters.
