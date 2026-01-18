@@ -26,4 +26,4 @@ Encoding: UTF-8
 RoxygenNote: 7.3.2
 Collate:
     'models.R'
-    'data.R'
+    'dataset.R'
