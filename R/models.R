@@ -145,6 +145,82 @@ model <- function(d = 1,
     return(.Object)
 }
 
+#' Show method for the \code{\link[discounting]{model-class}}
+#' 
+#' @param object Object of the \code{\link[discounting]{model-class}}
+#' 
+#' @noexport
+setMethod(
+    "show",
+    "model",
+    function(object) {
+        # Which model is it exactly?
+        cat(
+            "Model of class \"", 
+            class(object), 
+            "\":\n\n"
+        )
+
+        # What is its dimensionality?
+        cat("Dimension: ", object@d, "\n")
+        cat("Number of predictors: ", object@k, "\n\n")
+
+        # What are its parameters?
+        cat("Parameters:\n")
+        params <- object@parameters
+        for(i in seq_along(params)) {
+            # Print parameter names
+            cat("  ", names(params)[i], ": ")
+
+            # Print the content of the parameters. Differs between matrices and
+            # numerics
+            if(!is.matrix(params[[i]])) {
+                cat(params[[i]], "\n")
+
+            } else {
+                # Get the amount of whitespace that we need per parameter
+                len_white <- nchar(names(params)[i]) + 3 + 3
+                whitespace <- paste(
+                    rep(" ", each = len_white),
+                    collapse = ""
+                )
+
+                # Loop over each of the rows in the matrix
+                for(j in seq_len(nrow(params[[i]]))) {
+                    if(j != 1) {
+                        cat(whitespace)
+                    }
+
+                    cat(params[[i]][j, ], "\n")
+                }
+            }
+        }
+        cat("\n")
+
+        # What is its covariance?
+        cat("Covariance: ")
+        covariance <- object@covariance
+
+        if(!is.matrix(covariance)) {
+            cat(covariance, "\n")
+
+        } else {
+            whitespace <- paste(
+                rep(" ", each = 12),
+                collapse = ""
+            )
+
+            for(i in seq_len(nrow(covariance))) {
+                if(i != 1) {
+                    cat(whitespace)
+                }
+
+                cat(covariance[i, ], "\n")
+            }
+        }
+    }
+)
+
 #' Exponential Class
 #' 
 #' Class for the exponential discounting model. Follows a similar structure to
