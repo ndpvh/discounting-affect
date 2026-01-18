@@ -323,7 +323,7 @@ exponential <- function(d = NA,
             )
         )
 
-        parameters[["beta"]] <- matrix(parameters[["beta"]], ncol = 1)
+        parameters[["beta"]] <- matrix(parameters[["beta"]], nrow = 1)
     }
 
     if(!is.matrix(covariance) & length(covariance) == 1) {
