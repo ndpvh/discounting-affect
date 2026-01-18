@@ -331,3 +331,288 @@ test_that(
         expect_equal(class(tst), "exponential")
     }
 )
+
+test_that(
+    "Test the specialized errors for the quasi hyperbolic discounting model",
+    {
+        # Not all parameters are defined
+        expect_error(quasi_hyperbolic(parameters = list("alpha" = 1, "beta" = 1, "nu" = 0.5)))
+        expect_error(quasi_hyperbolic(parameters = list("alpha" = 1, "beta" = 1, "kappa" = 0.5)))
+        expect_error(quasi_hyperbolic(parameters = list("alpha" = 1, "nu" = 0.5, "kappa" = 0.5)))
+        expect_error(quasi_hyperbolic(parameters = list("beta" = 1, "nu" = 0.5, "kappa" = 0.5)))
+
+        # N and K should be a matrix and cannot be corrected to one
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 1),
+            "nu" = c(0.5, 0.5),
+            "kappa" = diag(2) * 0.5
+        )
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 1),
+            "nu" = diag(2) * 0.5,
+            "kappa" = c(0.5, 0.5)
+        )
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        # Covariance should be a matrix and cannot be corrected to one
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = diag(2),
+            "nu" = diag(2) * 0.5,
+            "kappa" = diag(2) * 0.5
+        )
+        expect_error(quasi_hyperbolic(parameters = params, covariance = c(1, 1)))
+
+        # Dimensionality doesn't match up with the parameters: Error in d, k
+        correct <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 5),
+            "nu" = diag(2) * 0.5,
+            "kappa" = diag(2) * 0.5
+        )
+
+        params <- correct
+        expect_error(quasi_hyperbolic(d = 1, parameters = params, covariance = diag(2)))
+        expect_error(quasi_hyperbolic(k = 4, parameters = params, covariance = diag(2)))
+
+        # Dimensionality doesn't match up with parameters: Error in parameters
+        params[["alpha"]] <- numeric(1)
+        expect_error(quasi_hyperbolic(d = 2, parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["beta"]] <- matrix(1, nrow = 1, ncol = 5)
+        expect_error(quasi_hyperbolic(d = 2, k = 5, parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["beta"]] <- matrix(1, nrow = 2, ncol = 4)
+        expect_error(quasi_hyperbolic(d = 2, k = 5, parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["nu"]] <- diag(1) * 0.5
+        expect_error(quasi_hyperbolic(d = 2, k = 5, parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["kappa"]] <- diag(1) * 0.5
+        expect_error(quasi_hyperbolic(d = 2, k = 5, parameters = params, covariance = diag(2)))
+
+        params <- correct
+        expect_error(quasi_hyperbolic(d = 2, k = 5, parameters = params, covariance = diag(1)))
+
+        # Dimensionality doesn't match up with parameters: Error in inconsistency
+        params <- correct
+        params[["alpha"]] <- numeric(1)
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["beta"]] <- matrix(1, nrow = 1, ncol = 5)
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["nu"]] <- diag(1) * 0.5
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["kappa"]] <- diag(1) * 0.5
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params <- correct
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(1)))
+
+        # Eigenvalues of N and K should lie between 0 and 1
+        params <- correct
+        params[["nu"]] <- diag(2) * -0.5
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params[["nu"]] <- diag(2) * 1.5
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params[["nu"]] <- c(0.5, 075, 0.75, 0.5) |>
+            matrix(nrow = 2, ncol = 2)
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["kappa"]] <- diag(2) * -0.5
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params[["kappa"]] <- diag(2) * 1.5
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        params[["kappa"]] <- c(0.5, 075, 0.75, 0.5) |>
+            matrix(nrow = 2, ncol = 2)
+        expect_error(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+    }
+)
+
+test_that(
+    "Test the specialized warnings for the quasi_hyperbolic discounting model",
+    {
+        # Too many parameters are defined
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 3),
+            "nu" = diag(2) * 0.5,
+            "kappa" = diag(2) * 0.75,
+            "tst" = diag(2)
+        )
+        expect_warning(quasi_hyperbolic(parameters = params, covariance = diag(2)))
+
+        tst <- quasi_hyperbolic(parameters = params, covariance = diag(2)) |>
+            suppressWarnings()
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@parameters[["alpha"]], numeric(2))
+        expect_equal(tst@parameters[["beta"]], matrix(1, nrow = 2, ncol = 3))
+        expect_equal(tst@parameters[["nu"]], diag(2) * 0.5)
+        expect_equal(tst@parameters[["kappa"]], diag(2) * 0.75)
+        expect_equal(names(tst@parameters), c("alpha", "beta", "nu", "kappa"))
+        expect_equal(tst@covariance, diag(2))
+
+        # N or K should be a matrix, but only one value is defined
+        params <- list(
+            "alpha" = numeric(1),
+            "beta" = matrix(1, nrow = 1, ncol = 1),
+            "nu" = 0.5,
+            "kappa" = matrix(0.75, nrow = 1, ncol = 1)
+        )
+        expect_warning(quasi_hyperbolic(parameters = params, covariance = diag(1)))
+
+        tst <- quasi_hyperbolic(parameters = params, covariance = diag(1)) |>
+            suppressWarnings()
+        expect_equal(tst@d, 1)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@parameters[["nu"]], matrix(0.5, nrow = 1, ncol = 1))
+
+        params <- list(
+            "alpha" = numeric(1),
+            "beta" = matrix(1, nrow = 1, ncol = 1),
+            "nu" = matrix(0.5, nrow = 1, ncol = 1),
+            "kappa" = 0.75
+        )
+        expect_warning(quasi_hyperbolic(parameters = params, covariance = diag(1)))
+
+        tst <- quasi_hyperbolic(parameters = params, covariance = diag(1)) |>
+            suppressWarnings()
+        expect_equal(tst@d, 1)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@parameters[["kappa"]], matrix(0.75, nrow = 1, ncol = 1))
+
+        # Beta should be a matrix, but can have one column
+        params <- list(
+            "alpha" = numeric(1),
+            "beta" = numeric(10),
+            "nu" = matrix(0.5, nrow = 1, ncol = 1),
+            "kappa" = matrix(0.75, nrow = 1, ncol = 1)
+        )
+        expect_warning(quasi_hyperbolic(parameters = params, covariance = diag(1)))
+
+        tst <- quasi_hyperbolic(parameters = params, covariance = diag(1)) |>
+            suppressWarnings()
+        expect_equal(tst@d, 1)
+        expect_equal(tst@k, 10)
+        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 1, ncol = 10))
+
+        # Covariance should be a matrix, but one value is defined
+        params <- list(
+            "alpha" = numeric(1),
+            "beta" = diag(1),
+            "nu" = diag(1) * 0.5,
+            "kappa" = diag(1) * 0.75
+        )
+        expect_warning(quasi_hyperbolic(parameters = params, covariance = 1))
+
+        tst <- quasi_hyperbolic(parameters = params, covariance = 1) |>
+            suppressWarnings()
+        expect_equal(tst@d, 1)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@covariance, diag(1))
+    }
+)
+
+test_that(
+    "Check properties of the quasi hyperbolic discounting model when constructed", 
+    {
+        # Check the prototype
+        tst <- new("quasi_hyperbolic")
+        ref <- list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1),
+            "nu" = matrix(0, nrow = 1, ncol = 1),
+            "kappa" = matrix(0, nrow = 1, ncol = 1)
+        )
+        expect_equal(tst@d, 1)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@parameters, ref)
+        expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
+
+        # Check one that is created by the user
+        ref <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(5, nrow = 2, ncol = 5),
+            "nu" = diag(2) * 0.5,
+            "kappa" = diag(2) * 0.75
+        )
+        tst <- quasi_hyperbolic(
+            d = 2, 
+            k = 5,
+            parameters = ref,
+            covariance = diag(2)
+        )
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 5)
+        expect_equal(tst@parameters, ref)
+        expect_equal(tst@covariance, diag(2))
+
+        # Check the implied one by the defaults of the function
+        tst <- quasi_hyperbolic()
+        ref <- list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1),
+            "nu" = matrix(0, nrow = 1, ncol = 1),
+            "kappa" = matrix(0, nrow = 1, ncol = 1)
+        )
+        expect_equal(tst@d, 1)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@parameters, ref)
+        expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
+
+        # Dimensionality can be correctly inferred from the parameters
+        params <- list(
+            "alpha" = numeric(10),
+            "beta" = matrix(1, nrow = 10, ncol = 3),
+            "nu" = diag(10) * 0.5,
+            "kappa" = diag(10) * 0.75
+        )
+        covariance <- diag(10)
+
+        tst <- quasi_hyperbolic(parameters = params, covariance = covariance)
+        expect_equal(tst@d, 10)
+        expect_equal(tst@k, 3)
+
+        # Check whether the Cholesky decomposition works
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 3),
+            "nu" = diag(2) * 0.5,
+            "kappa" = diag(2) * 0.75
+        )
+        ref <- diag(2)
+        ref[c(2, 3)] <- 0.25
+
+        G <- chol(ref) |>
+            t()
+
+        tst <- quasi_hyperbolic(parameters = params, covariance = G, cholesky = TRUE)
+        expect_equal(
+            tst@covariance, 
+            ref,
+            tolerance = 1e-2
+        )
+
+        # Check the class of the model
+        expect_equal(class(tst), "quasi_hyperbolic")
+    }
+)
