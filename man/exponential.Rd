@@ -9,7 +9,8 @@ exponential(
   k = NA,
   parameters = list(alpha = 0, beta = matrix(0, nrow = 1, ncol = 1), gamma = matrix(0,
     nrow = 1, ncol = 1)),
-  covariance = matrix(0, nrow = 1, ncol = 1)
+  covariance = matrix(0, nrow = 1, ncol = 1),
+  cholesky = FALSE
 )
 }
 \arguments{
