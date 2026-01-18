@@ -366,7 +366,7 @@ exponential <- function(d = NA,
 
     # Check eigenvalues of Gamma
     decomposed <- eigen(parameters[["gamma"]])
-    if(any(decomposed$values <= 0) | any(decomposed$values >= 1)) {
+    if(any(decomposed$values < 0) | any(decomposed$values >= 1)) {
         stop("The eigenvalues of \"gamma\" should lie between 0 and 1.")
     }
     
