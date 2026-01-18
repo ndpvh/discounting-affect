@@ -77,7 +77,8 @@ setClass(
 #' @export 
 dataset <- function(data = NULL,
                     y_cols = NULL,
-                    x_cols = NULL) {
+                    x_cols = NULL,
+                    sorting_variable = NULL) {
     
     # Check if data is NULL. If so, return the empty prototype
     if(is.null(data)) {
@@ -110,6 +111,12 @@ dataset <- function(data = NULL,
     check <- sapply(c(y_cols, x_cols), function(x) is.numeric(data[, x]))
     if(!all(check)) {
         stop("Some of the provided variables are not numeric.")        
+    }
+
+    # Check whether the data should be sorted. If so, then sort the data 
+    # according to the specified variable
+    if(!is.null(sorting_variable)) {
+        data <- data[order(data[, sorting_variable]), ]
     }
 
     # Extract the information from the data.frame

@@ -97,5 +97,48 @@ test_that(
             matrix(4:6, nrow = 10, ncol = 3, byrow = TRUE) |>
                 `colnames<-` (c("x_1", "x_2", "x_3"))
         )
+
+        # Test whether the sorting works
+        data <- data.frame(
+            time = 10:1,
+            y_1 = 1:10, 
+            y_2 = 1:10, 
+            x_1 = 1:10,
+            x_2 = 1:10
+        )
+        
+        tst <- dataset(
+            data, 
+            y_cols = "y_1",
+            x_cols = "x_1",
+            sorting_variable = "time"
+        )
+        expect_equal(
+            tst@Y, 
+            matrix(10:1, nrow = 10, ncol = 1) |>
+                `colnames<-` ("y_1")
+        )
+        expect_equal(
+            tst@X, 
+            matrix(10:1, nrow = 10, ncol = 1) |>
+                `colnames<-` ("x_1")
+        )
+
+        tst <- dataset(
+            data,
+            y_cols = c("y_1", "y_2"),
+            x_cols = c("x_1", "x_2"),
+            sorting_variable = "time"
+        )
+        expect_equal(
+            tst@Y, 
+            matrix(10:1, nrow = 10, ncol = 2) |>
+                `colnames<-` (c("y_1", "y_2"))
+        )
+        expect_equal(
+            tst@X, 
+            matrix(10:1, nrow = 10, ncol = 2) |>
+                `colnames<-` (c("x_1", "x_2"))
+        )
     }
 )
