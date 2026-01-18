@@ -308,6 +308,25 @@ test_that(
         expect_equal(tst@d, 10)
         expect_equal(tst@k, 3)
 
+        # Check whether the Cholesky decomposition works
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 3),
+            "gamma" = diag(2) * 0.5
+        )
+        ref <- diag(2)
+        ref[c(2, 3)] <- 0.25
+
+        G <- chol(ref) |>
+            t()
+
+        tst <- exponential(parameters = params, covariance = G, cholesky = TRUE)
+        expect_equal(
+            tst@covariance, 
+            ref,
+            tolerance = 1e-2
+        )
+
         # Check the class of the model
         expect_equal(class(tst), "exponential")
     }
