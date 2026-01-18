@@ -516,7 +516,7 @@ setClass(
 #' 
 #' where \eqn{i} is an indicator function that is \eqn{0} when \eqn{j = 0} and 
 #' \eqn{1} otherwise, \eqn{\boldsymbol{\alpha}} is a \eqn{d}-dimensional vector 
-#' representing the mean of the process \eqn{\boldsymbol{y}}, \eqn{\N} and 
+#' representing the mean of the process \eqn{\boldsymbol{y}}, \eqn{N} and 
 #' \eqn{K} are \eqn{d \times d} matrices containing the forgetting factors, 
 #' determining how long the effect of the independent variables 
 #' \eqn{\boldsymbol{x}} on the process \eqn{\boldsymbol{y}} lingers on and 
@@ -731,6 +731,302 @@ quasi_hyperbolic <- function(d = NA,
         covariance = covariance
     )
     class(.Object) <- "quasi_hyperbolic"
+
+    return(.Object)
+}
+
+#' Double-exponential Class
+#' 
+#' Class for the double-exponential discounting model. Follows a similar 
+#' structure to the \code{\link[discounting]{model-class}}.
+#' 
+#' @slot d Integer denoting the number of dimensions of the model
+#' @slot k Integer denoting the number of independent variables
+#' @slot parameters List containing the parameters relevant to a particular 
+#' model instance
+#' @slot covariance Numeric matrix denoting the residual covariance of the 
+#' model
+#' 
+#' @seealso 
+#' \code{\link[discounting]{double_exponential}}
+#' 
+#' @export 
+setClass(
+    "double_exponential",
+    slots = c(
+        d = "numeric",
+        k = "numeric",
+        parameters = "list",
+        covariance = "matrix"
+    ),
+    prototype = list(
+        d = as.integer(1),
+        k = as.integer(1), 
+        parameters = list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1),
+            "omega" = 0.5,
+            "gamma" = matrix(0, nrow = 1, ncol = 1),
+            "nu" = matrix(0, nrow = 1, ncol = 1)
+        ),
+        covariance = matrix(0, nrow = 1, ncol = 1)
+    ),
+    contains = "model"
+)
+
+#' Constructor for the \code{\link[discounting]{double_exponential-class}}
+#' 
+#' Defines an instance of the \code{\link[discounting]{double_exponential-class}}, 
+#' that is the class defining the double-exponential discounting model. For the 
+#' mathematical equations and how to specify them in this constructor, users can 
+#' look at the details. For more information on the model itself, see the 
+#' vignette on the model definitions.
+#' 
+#' @details 
+#' The double-exponential discounting model assumes that the effect of stimuli on 
+#' affect fades away at an exponential rate as constructed through two processes,
+#' one representing longer and the other slower discounting rates, where each 
+#' process' effect is accounted for through a weighted sum. The model can be 
+#' defined as:
+#' 
+#' \deqn{\boldsymbol{y}_t = \boldsymbol{\alpha} + \sum_{j = 0}^t \left( 
+#' \omega \Gamma^j + (1 - \omega) N^j \right) B \boldsymbol{x}_{t - j} + 
+#' \boldsymbol{\epsilon}_t}
+#' 
+#' where \eqn{\boldsymbol{\alpha}} is a \eqn{d}-dimensional vector 
+#' representing the mean of the process \eqn{\boldsymbol{y}}, \eqn{\Gamma} and 
+#' \eqn{N} are \eqn{d \times d} matrices containing the forgetting factors, 
+#' determining how long the effect of the independent variables 
+#' \eqn{\boldsymbol{x}} on the process \eqn{\boldsymbol{y}} lingers on and 
+#' therefore determining the dynamics of the system, \eqn{\omega \in [0, 0.5]}
+#' determines the strength with which \eqn{\Gamma} and \eqn{N} influence the 
+#' discounting process, \eqn{B} is a \eqn{d \times k}matrix containing the 
+#' slopes of the independent variables \eqn{\boldsymbol{x}}, and 
+#' \eqn{\boldsymbol{\epsilon}} represents the residuals of the system. 
+#' Within this package, we assume that:
+#' 
+#' \deqn{\boldsymbol{\epsilon} \overset{iid}{\sim} N(\boldsymbol{0}, \Sigma)}
+#' 
+#' where \eqn{\Sigma} is a \eqn{d \times d} matrix representing the residual 
+#' covariance matrix. 
+#' 
+#' To define the model, one should minimally define the parameters of the model
+#' through \code{parameters} and \code{covariance}. In \code{covariance}, one 
+#' either provides the \eqn{d \times d} residual covariance matrix \eqn{\Sigma}
+#' (\code{cholesky = FALSE}) or a lower-triangular \eqn{d \times d} matrix 
+#' \eqn{G} that represents part of the decomposition of this matrix 
+#' (\code{cholesky = TRUE}), so that we can retrieve the covariance matrix as:
+#' 
+#' \deqn{\Sigma = G G^T}
+#' 
+#' The latter option ensures that the covariance matrix \eqn{\Sigma} defined 
+#' within the model is positive-definite, but may require some additional 
+#' thinking on the side of the user.
+#' 
+#' In \code{parameters}, one should provide a named list with instances 
+#' \code{"alpha"}, \code{"beta"}, \code{"omega"}, \code{"gamma"}, and 
+#' \code{"nu"}, each defining the respective parameters 
+#' \eqn{\boldsymbol{\alpha}}, \eqn{B}, \eqn{\omega}, \eqn{\Gamma} and \eqn{N} 
+#' of the model. Note that the dimensionalities of these parameters should match 
+#' up and are actively checked when constructing this class. 
+#' 
+#' There are some important restrictions to take into account when defining the 
+#' model:
+#' \itemize{
+#'   \item{The eigenvalues \eqn{\lambda_i} of \eqn{\Gamma} and \eqn{N} should
+#'         all lie between 0 and 1, or \eqn{\lambda_i \in [0, 1)}, a restriction
+#'         that imposes exponential decay rather than sawtooth or more complex
+#'         dynamics}
+#'   \item{The weight \eqn{\omega} should lie between 0 and 0.5, or 
+#'         \eqn{\omega \in [0, 0.5]}, a restriction that is imposed to ensure 
+#'         recoverability of the model}
+#'   \item{The covariance matrix \eqn{\Sigma} should be positive definite, as 
+#'         explained above}
+#' }
+#' 
+#' @param d Integer denoting the number of dimensions of the model. Defaults to 
+#' \code{NA}, in which case this dimensionality is inferred from the parameters.
+#' @param k Integer denoting the number of independent variables. Defaults to 
+#' \code{NA}, in which case this dimensionality is inferred from the parameters.
+#' @param parameters List containing the parameters relevant to a particular 
+#' model instance. Defaults to an empty model with \eqn{d = 1} and \eqn{k = 1}.
+#' @param covariance Numeric matrix denoting the residual covariance of the 
+#' model. Default to a matrix of \code{0}s with the dimensionality implied by 
+#' \code{d}.
+#' @param cholesky Logical denoting whether \code{covariance} is a 
+#' lower-triangular decomposition matrix instead of an actual covariance matrix.
+#' Defaults to \code{FALSE}.
+#' 
+#' @return Instance of \code{\link[discounting]{double_exponential-class}}
+#' 
+#' @examples 
+#' double_exponential(
+#'   d = 2,
+#'   k = 2,
+#'   parameters = list(
+#'     "alpha" = numeric(2),
+#'     "beta" = diag(2) * 2,
+#'     "omega" = 0.25,
+#'     "gamma" = diag(2) * 0.75,
+#'     "nu" = diag(2) * 0.5
+#'   ),
+#'   covariance = diag(2)
+#' )
+#' 
+#' @seealso 
+#' \code{\link[discounting]{model-class}}
+#' \code{\link[discounting]{exponential-class}}
+#' \code{\link[discounting]{quasi_hyperbolic-class}}
+#' \code{\link[discounting]{double_exponential-class}}
+#' 
+#' @export 
+double_exponential <- function(d = NA, 
+                               k = NA,
+                               parameters = list(
+                                   "alpha" = 0,
+                                   "beta" = matrix(0, nrow = 1, ncol = 1),
+                                   "omega" = 0.5,
+                                   "gamma" = matrix(0, nrow = 1, ncol = 1),
+                                   "nu" = matrix(0, nrow = 1, ncol = 1)
+                               ), 
+                               covariance = matrix(0, nrow = 1, ncol = 1),
+                               cholesky = FALSE) {
+        
+    # Check whether all parameters are defined in the list of parameters
+    if(!all(c("alpha", "beta", "omega", "gamma", "nu") %in% names(parameters))) {
+        stop(
+            paste(
+                "Not all parameters are defined in the list.",
+                "Ensure that the list contains slots",
+                "\"alpha\", \"beta\", \"omega\", \"gamma\", and \"nu\"."
+            )
+        )
+    }
+
+    # Check whether too many parameters are defined in the list. If so, delete 
+    # them from the list
+    if(length(names(parameters)) > 5) {
+        warning(
+            paste(
+                "Too many different parameters provided to `parameters`.",
+                "Deleting the redundant ones."
+            )
+        )
+
+        idx <- names(parameters) %in% c("alpha", "beta", "omega", "gamma", "nu")
+        parameters <- parameters[idx]
+    }
+
+    # Parameters should be of the correct type
+    if(!is.numeric(parameters[["omega"]])) {
+        stop("The parameter \"omega\" should be numeric.")
+    }
+
+    if(length(parameters[["omega"]]) > 1) {
+        warning(
+            paste(
+                "The parameter \"omega\" has received too many values.",
+                "Using the first one in the vector."
+            )
+        )
+
+        parameters[["omega"]] <- parameters[["omega"]][1]
+    }
+
+    if(!is.matrix(parameters[["gamma"]]) & length(parameters[["gamma"]]) == 1) {
+        warning("The parameter \"gamma\" should be a matrix: Changing type.")
+        parameters[["gamma"]] <- as.matrix(parameters[["gamma"]])
+
+    } else if(!is.matrix(parameters[["gamma"]])) {
+        stop("The parameter \"gamma\" should be a matrix.")
+    }
+
+    if(!is.matrix(parameters[["nu"]]) & length(parameters[["nu"]]) == 1) {
+        warning("The parameter \"nu\" should be a matrix: Changing type.")
+        parameters[["nu"]] <- as.matrix(parameters[["nu"]])
+
+    } else if(!is.matrix(parameters[["nu"]])) {
+        stop("The parameter \"nu\" should be a matrix.")
+    }
+
+    if(!is.matrix(parameters[["beta"]])) {
+        warning(
+            paste(
+                "The parameter \"beta\" should be a matrix:",
+                "Changing type assuming a single independent variable."
+            )
+        )
+
+        parameters[["beta"]] <- matrix(parameters[["beta"]], nrow = 1)
+    }
+
+    if(!is.matrix(covariance) & length(covariance) == 1) {
+        warning("The argument \"covariance\" should be a matrix: Changing type.")
+        covariance <- as.matrix(covariance)
+
+    } else if(!is.matrix(covariance)) {
+        stop("The argument \"covariance\" should be a matrix.")
+    }
+
+    # If the dimensionalities d and/or k are not defined, try to derive them 
+    # from the parameters that were given.
+    if(is.na(d)) {
+        d <- length(parameters[["alpha"]])
+    }
+
+    if(is.na(k)) {
+        k <- ncol(parameters[["beta"]])
+    }
+
+    # Check for inconsistencies in the parameter dimensions and whatever 
+    # dimensionalities have been provided.
+    if(length(parameters[["alpha"]]) != d) {
+        stop("Dimensionality d is not in accord with the dimensionality of \"alpha\".")
+    } 
+
+    if(any(dim(parameters[["gamma"]]) != d)) {
+        stop("Dimensionality d is not in accord with the dimensionality of \"gamma\".")
+    }
+
+    if(any(dim(parameters[["nu"]]) != d)) {
+        stop("Dimensionality d is not in accord with the dimensionality of \"nu\".")
+    }
+
+    if(any(dim(parameters[["beta"]]) != c(d, k))) {
+        stop("Dimensionalities d and/or k are not in accord with the dimensionalilty of \"beta\".")
+    }
+
+    # Check whether the covariance matrix needs to be derived through the 
+    # Cholesky decomposition
+    if(cholesky) {
+        covariance <- covariance %*% t(covariance)
+    }
+
+    # Check eigenvalues of \Gamma and N
+    decomposed <- eigen(parameters[["gamma"]])
+    if(any(decomposed$values < 0) | any(decomposed$values >= 1)) {
+        stop("The eigenvalues of \"gamma\" should lie between 0 and 1.")
+    }
+
+    decomposed <- eigen(parameters[["nu"]])
+    if(any(decomposed$values < 0) | any(decomposed$values >= 1)) {
+        stop("The eigenvalues of \"nu\" should lie between 0 and 1.")
+    }
+
+    # Check whether \omega falls within bounds
+    if(parameters[["omega"]] < 0 | parameters[["omega"]] > 0.5) {
+        stop("The parameter \"omega\" should lie between 0 and 0.5.")
+    }
+    
+    # Create a new model and change its class to double_exponential. This ensures 
+    # some additional checks are performed
+    .Object <- model(
+        d = d,
+        k = k,
+        parameters = parameters,
+        covariance = covariance
+    )
+    class(.Object) <- "double_exponential"
 
     return(.Object)
 }
