@@ -84,6 +84,35 @@ setMethod(
     "quasi_hyperbolic",
     function(object, 
              data) {
+        
+        # Extract the values of the independent variables
+        X <- data@X
 
+        # Extract the parameters
+        params <- object@parameters
+
+        # Reserve memory for the output variable Y
+        Y <- matrix(0, nrow = data@N, ncol = object@d)
+
+        # Reserve memory for the temporary output of the cumulative sum. We 
+        # distinguish between the intermediate value and the sum in which the 
+        # discounting effect of K has already been accounted for
+        S <- numeric(object@d)
+        KS <- numeric(object@d)
+
+        # Loop over the values of X and define compute the values of Y
+        for(i in seq_len(data@N)) {
+            # Define the new instance of the sum
+            S[] <- params[["beta"]] %*% X[i, ] + params[["nu"]] %*% KS[]
+            KS[] <- params[["kappa"]] %*% params[["beta"]] %*% X[i, ] + params[["nu"]] %*% KS[]
+
+            # Create the value for the ouput variable Y
+            Y[i, ] <- params[["alpha"]] + S
+        }
+
+        # Update the slot Y in the `dataset` class
+        data@Y <- Y 
+
+        return(data)
     }
 )
