@@ -27,3 +27,4 @@ RoxygenNote: 7.3.2
 Collate:
     'models.R'
     'dataset.R'
+    'predict.R'
