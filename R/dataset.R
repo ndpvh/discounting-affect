@@ -16,11 +16,13 @@ setClass(
     "dataset",
     slots = c(
         Y = "matrix",
-        X = "matrix"
+        X = "matrix",
+        N = "numeric"
     ),
     prototype = list(
         Y = matrix(0, nrow = 0, ncol = 0),
-        X = matrix(0, nrow = 0, ncol = 0)
+        X = matrix(0, nrow = 0, ncol = 0),
+        N = 0
     )
 )
 
@@ -193,7 +195,8 @@ dataset <- function(data = NULL,
         new(
             "dataset",
             Y = Y,
-            X = X
+            X = X,
+            N = nrow(Y)
         )
     )
 }
