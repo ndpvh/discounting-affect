@@ -78,58 +78,115 @@ setClass(
 dataset <- function(data = NULL,
                     y_cols = NULL,
                     x_cols = NULL,
+                    Y = NULL,
+                    X = NULL,
                     sorting_variable = NULL) {
     
     # Check if data is NULL. If so, return the empty prototype
-    if(is.null(data)) {
+    if(is.null(data) & is.null(Y) & is.null(X)) {
         warning("No data provided: Returning an empty instance of the dataset-class.")
 
         return(new("dataset"))
     }
 
-    # If either y_cols or x_cols is NULL, ask for more information
-    if(is.null(y_cols)) {
-        stop(
-            paste(
-                "No dependent variables are specified in \"y_cols\".",
-                "Please provide these to the constructor \`dataset\`."
+    # Dispatch on whether data are provided or not. If so, we have to check the 
+    # data-relevant columns, otherwise we have to check the raw arguments
+    # Y and X
+    if(!is.null(data)) {
+        # If either y_cols or x_cols is NULL, ask for more information
+        if(is.null(y_cols)) {
+            stop(
+                paste(
+                    "No dependent variables are specified in \"y_cols\".",
+                    "Please provide these to the constructor \`dataset\`."
+                )
             )
-        )
-    }
+        }
 
-    if(is.null(x_cols)) {
-        stop(
-            paste(
-                "No independent variables are specified in \"x_cols\".",
-                "Please provide these to the constructor \`dataset\`."
+        if(is.null(x_cols)) {
+            stop(
+                paste(
+                    "No independent variables are specified in \"x_cols\".",
+                    "Please provide these to the constructor \`dataset\`."
+                )
             )
-        )
-    }
+        }
 
-    # For each of the relevant columns, check whether they are numeric or not.
-    # If not, then throw an error
-    check <- sapply(c(y_cols, x_cols), function(x) is.numeric(data[, x]))
-    if(!all(check)) {
-        stop("Some of the provided variables are not numeric.")        
-    }
+        # For each of the relevant columns, check whether they are numeric or not.
+        # If not, then throw an error
+        check <- sapply(c(y_cols, x_cols), function(x) is.numeric(data[, x]))
+        if(!all(check)) {
+            stop("Some of the provided variables are not numeric.")        
+        }
 
-    # Check whether the data should be sorted. If so, then sort the data 
-    # according to the specified variable
-    if(!is.null(sorting_variable)) {
-        data <- data[order(data[, sorting_variable]), ]
-    }
+        # Check whether the data should be sorted. If so, then sort the data 
+        # according to the specified variable
+        if(!is.null(sorting_variable)) {
+            data <- data[order(data[, sorting_variable]), ]
+        }
 
-    # Extract the information from the data.frame
-    Y <- data[, y_cols] |>
-        unlist() |>
-        matrix(ncol = length(y_cols)) |>
-        `names<-` (NULL) |>
-        `colnames<-` (y_cols)
-    X <- data[, x_cols] |>
-        unlist() |>
-        matrix(ncol = length(x_cols)) |>
-        `names<-` (NULL) |>
-        `colnames<-` (x_cols)
+        # Extract the information from the data.frame
+        Y <- data[, y_cols] |>
+            unlist() |>
+            matrix(ncol = length(y_cols)) |>
+            `names<-` (NULL) |>
+            `colnames<-` (y_cols)
+        X <- data[, x_cols] |>
+            unlist() |>
+            matrix(ncol = length(x_cols)) |>
+            `names<-` (NULL) |>
+            `colnames<-` (x_cols)
+
+    } else {
+        # Check whether X is provided: If not, throw an error
+        if(is.null(X)) {
+            stop("No value for \"data\" nor \"X\" is provided. Cannot proceed.")
+        }
+
+        # Check whether X is of the correct type. If not then we need to make it 
+        # so
+        if(!is.numeric(X)) {
+            stop("Provided value for \"X\" is not numeric.")
+        }
+
+        if(!is.matrix(X)) {
+            warning(
+                paste(
+                    "Provided value for \"X\" is not a matrix.",
+                    "Transforming in a matrix with 1 column."
+                )
+            )
+
+            X <- matrix(X, ncol = 1)
+        }
+
+        # Check whether Y is defined. If not, make an empty value for Y. 
+        # Otherwise perform the same checks as for X
+        if(is.null(Y)) {
+            Y <- matrix(0, nrow = nrow(X), ncol = 1)
+
+        } else {
+            if(!is.numeric(Y)) {
+                stop("Provided value for \"Y\" is not numeric.")
+            }
+
+            if(!is.matrix(Y)) {
+                warning(
+                    paste(
+                        "Provided value for \"Y\" is not a matrix.",
+                        "Transforming in a matrix with 1 column."
+                    )
+                )
+
+                Y <- matrix(Y, ncol = 1)
+            }
+
+            # Check whether the sizes of Y and X correspond
+            if(nrow(Y) != nrow(X)) {
+                stop("Number of rows in \"Y\" and \"X\" are not the same.")
+            }
+        }
+    }
 
     # If they are provided and correctly typed, then construct the dataset class
     return(

@@ -36,6 +36,24 @@ test_that(
         data$x_1 <- as.logical(data$x_1)
         expect_error(dataset(data, y_cols = "y_1", x_cols = "x_1"))
         expect_error(dataset(data, y_cols = c("y_1", "y_2"), x_cols = c("x_1", "x_2")))
+
+        # X is not provided but Y is
+        expect_error(dataset(Y = rep(10, each = 10)))
+
+        # X is not numeric
+        matrix_num <- matrix(1, nrow = 10, ncol = 1)
+        matrix_log <- matrix(FALSE, nrow = 10, ncol = 1)
+        matrix_char <- matrix("1", nrow = 10, ncol = 1)
+
+        expect_error(dataset(X = matrix_log))
+        expect_error(dataset(X = matrix_char))
+
+        # Y is not numeric
+        expect_error(dataset(Y = matrix_log, X = matrix_num))
+        expect_error(dataset(Y = matrix_char, X = matrix_num))
+
+        # Y and X do not have the same number of rows
+        expect_error(dataset(Y = matrix_num, X = matrix(1, nrow = 20, ncol = 1)))
     }
 )
 
@@ -140,5 +158,21 @@ test_that(
             matrix(10:1, nrow = 10, ncol = 2) |>
                 `colnames<-` (c("x_1", "x_2"))
         )
+
+        # Test whether using Y and X instead of data works
+        Y <- matrix(1:10, nrow = 5, ncol = 2)
+        X <- matrix(1:15, nrow = 5, ncol = 3)
+
+        tst <- dataset(
+            Y = Y, 
+            X = X
+        )
+        expect_equal(tst@Y, Y)
+        expect_equal(tst@X, X)
+
+        # Test whether having no Y works
+        tst <- dataset(X = X)
+        expect_equal(tst@Y, matrix(0, nrow = nrow(X), ncol = 1))
+        expect_equal(tst@X, X)
     }
 )
