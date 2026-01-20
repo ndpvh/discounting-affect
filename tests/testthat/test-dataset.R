@@ -77,6 +77,7 @@ test_that(
         tst <- new("dataset")
         expect_equal(tst@Y, matrix(0, nrow = 0, ncol = 0))
         expect_equal(tst@X, matrix(0, nrow = 0, ncol = 0))
+        expect_equal(tst@N, 0)
 
         # Check the slots
         data <- data.frame(
@@ -115,6 +116,7 @@ test_that(
             matrix(4:6, nrow = 10, ncol = 3, byrow = TRUE) |>
                 `colnames<-` (c("x_1", "x_2", "x_3"))
         )
+        expect_equal(tst@N, 10)
 
         # Test whether the sorting works
         data <- data.frame(
@@ -141,6 +143,7 @@ test_that(
             matrix(10:1, nrow = 10, ncol = 1) |>
                 `colnames<-` ("x_1")
         )
+        expect_equal(tst@N, 10)
 
         tst <- dataset(
             data,
@@ -158,6 +161,7 @@ test_that(
             matrix(10:1, nrow = 10, ncol = 2) |>
                 `colnames<-` (c("x_1", "x_2"))
         )
+        expect_equal(tst@N, 10)
 
         # Test whether using Y and X instead of data works
         Y <- matrix(1:10, nrow = 5, ncol = 2)
@@ -169,10 +173,12 @@ test_that(
         )
         expect_equal(tst@Y, Y)
         expect_equal(tst@X, X)
+        expect_equal(tst@N, 5)
 
         # Test whether having no Y works
         tst <- dataset(X = X)
         expect_equal(tst@Y, matrix(0, nrow = nrow(X), ncol = 1))
         expect_equal(tst@X, X)
+        expect_equal(tst@N, 5)
     }
 )
