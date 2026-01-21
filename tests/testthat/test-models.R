@@ -79,7 +79,7 @@ test_that(
             ),
             covariance = diag(3)
         )
-        expect_equal(tst@n, 10 + 2 * 5 + 3 * 3)
+        expect_equal(tst@n, 10 + 2 * 5 + 6)
 
         # Check whether the constructor ignores the parameters when n is provided
         tst <- model(
@@ -306,7 +306,7 @@ test_that(
         )
         expect_equal(tst@d, 2)
         expect_equal(tst@k, 5)
-        expect_equal(tst@n, 2 + 2 * 5 + 2^3)
+        expect_equal(tst@n, 2 + 2 * 5 + 2^2 + 3)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, diag(2))
 
@@ -334,7 +334,7 @@ test_that(
         tst <- exponential(parameters = params, covariance = covariance)
         expect_equal(tst@d, 10)
         expect_equal(tst@k, 3)
-        expect_equal(tst@n, 10 + 10 * 3 + 2 * 10^2)
+        expect_equal(tst@n, 10 + 10 * 3 + 10^2 + 110 / 2)
 
         # Check whether the Cholesky decomposition works
         params <- list(
@@ -602,7 +602,7 @@ test_that(
         )
         expect_equal(tst@d, 2)
         expect_equal(tst@k, 5)
-        expect_equal(tst@n, 2 + 2 * 5 + 3 * 2^2)
+        expect_equal(tst@n, 2 + 2 * 5 + 2 * 2^2 + 3)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, diag(2))
 
@@ -632,7 +632,7 @@ test_that(
         tst <- quasi_hyperbolic(parameters = params, covariance = covariance)
         expect_equal(tst@d, 10)
         expect_equal(tst@k, 3)
-        expect_equal(tst@n, 10 + 10 * 3 + 3 * 10^2)
+        expect_equal(tst@n, 10 + 10 * 3 + 2 * 10^2 + 110 / 2)
 
         # Check whether the Cholesky decomposition works
         params <- list(
@@ -950,7 +950,7 @@ test_that(
         )
         expect_equal(tst@d, 2)
         expect_equal(tst@k, 5)
-        expect_equal(tst@n, 2 + 2 * 5 + 1 + 3 * 2^2)
+        expect_equal(tst@n, 2 + 2 * 5 + 1 + 2 * 2^2 + 3)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, diag(2))
 
@@ -982,7 +982,7 @@ test_that(
         tst <- double_exponential(parameters = params, covariance = covariance)
         expect_equal(tst@d, 10)
         expect_equal(tst@k, 3)
-        expect_equal(tst@n, 10 + 10 * 3 + 1 + 3 * 10^2)
+        expect_equal(tst@n, 10 + 10 * 3 + 1 + 2 * 10^2 + 110 / 2)
 
         # Check whether the Cholesky decomposition works
         params <- list(

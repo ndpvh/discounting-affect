@@ -144,7 +144,7 @@ model <- function(d = 1,
         n <- sapply(parameters, length) |> 
             as.numeric() |>
             sum() 
-        n <- n + length(covariance)
+        n <- n + d * (d + 1) / 2
     }
     
     # Add the dimensionality to the object. Default dimensionality 
@@ -534,7 +534,7 @@ exponential <- function(d = NA,
     .Object <- model(
         d = d,
         k = k,
-        n = d + d * k + 2 * d^2,
+        n = d + d * k + d^2 + d * (d + 1) / 2,
         parameters = parameters,
         covariance = covariance
     )
@@ -828,7 +828,7 @@ quasi_hyperbolic <- function(d = NA,
     .Object <- model(
         d = d,
         k = k,
-        n = d + d * k + 3 * d^2,
+        n = d + d * k + 2 * d^2 + d * (d + 1) / 2,
         parameters = parameters,
         covariance = covariance
     )
@@ -1131,7 +1131,7 @@ double_exponential <- function(d = NA,
     .Object <- model(
         d = d,
         k = k,
-        n = d + d * k + 1 + 3 * d^2,
+        n = d + d * k + 1 + 2 * d^2 + d * (d + 1) / 2,
         parameters = parameters,
         covariance = covariance
     )
