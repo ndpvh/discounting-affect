@@ -116,3 +116,43 @@ setMethod(
         return(data)
     }
 )
+
+#' @rdname predict
+#' @export 
+setMethod(
+    "predict",
+    "double_exponential",
+    function(object, 
+             data) {
+        
+        # Extract the values of the independent variables
+        X <- data@X
+
+        # Extract the parameters
+        params <- object@parameters
+
+        # Reserve memory for the output variable Y
+        Y <- matrix(0, nrow = data@N, ncol = object@d)
+
+        # Reserve memory for the temporary output of the cumulative sum
+        GS <- numeric(object@d)
+        NS <- numeric(object@d)
+
+        # Loop over the values of X and define compute the values of Y
+        for(i in seq_len(data@N)) {
+            # Define the new instance of the sum for \Gamma and N
+            GS[] <- params[["beta"]] %*% X[i, ] + params[["gamma"]] %*% GS
+            NS[] <- params[["beta"]] %*% X[i, ] + params[["nu"]] %*% NS 
+
+            # Create the value for the output variable Y
+            Y[i, ] <- params[["alpha"]] + 
+                params[["omega"]] * GS + 
+                (1 - params[["omega"]]) * NS
+        }
+
+        # Update the slot Y in the `dataset` class
+        data@Y <- Y 
+
+        return(data)
+    }
+)
