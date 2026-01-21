@@ -28,3 +28,4 @@ Collate:
     'models.R'
     'dataset.R'
     'predict.R'
+    'simulate.R'
