@@ -30,5 +30,7 @@ Collate:
     'discounting-package.R'
     'models.R'
     'dataset.R'
+    'utils.R'
     'predict.R'
     'simulate.R'
+    'fit.R'
