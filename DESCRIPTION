@@ -17,6 +17,8 @@ License: GPL-3 + file LICENSE
 URL: https://github.com/ndpvh/discounting-affect
 BugReports: https://github.com/ndpvh/discounting-affect/issues
 Imports: 
+    MASS,
+    methods
 Suggests: 
     fs,
     testthat (>= 3.0.0)
@@ -25,6 +27,7 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
 Collate:
+    'discounting-package.R'
     'models.R'
     'dataset.R'
     'predict.R'

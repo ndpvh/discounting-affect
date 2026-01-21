@@ -16,6 +16,10 @@ variables}
 
 \item{\code{X}}{Numeric matrix of the stimuli that should be related to \code{Y}, 
 that is the independent variables}
+
+\item{\code{N}}{Integer denoting the number of datapoints contained in \code{Y} and
+\code{X}. This value is automatically generated in the constructor of the 
+dataset (see \code{\link[discounting]{dataset}}).}
 }}
 
 \seealso{

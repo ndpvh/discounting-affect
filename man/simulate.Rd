@@ -28,8 +28,6 @@ the list will be bound together in a matrix. Defaults to \code{NULL}.}
 
 \item{N}{Number of datapoints to simulate. Passed on to \code{Xfun} when 
 defined. Defaults to \code{NULL}.}
-
-\item{...}{Arguments passed on to the implemented methods.}
 }
 \value{
 An instance of the \code{\link[discounting]{dataset-class}} containing
