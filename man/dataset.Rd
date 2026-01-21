@@ -26,6 +26,20 @@ be thrown asking for more information.}
 \item{x_cols}{A character vector denoting the names of the columns for the 
 independent variables. Defaults to \code{NULL}, in which case an error will 
 be thrown asking for more information.}
+
+\item{Y}{Numeric vector or numeric matrix containing the values for the 
+dependent variable(s). Defaults to \code{NULL}, in which case it will 
+become an empty matrix of length \eqn{N x 1}. Ignored if \code{data} is 
+specified instead.}
+
+\item{X}{Numeric vector or numeric matrix containing the values for the 
+independent variable(s). Defaults to \code{NULL}, in which case the 
+\code{data} should be specified instead.}
+
+\item{sorting_variable}{Character denoting the columnn name of a variable 
+in the \code{data} according to which the values for \code{Y} and \code{X}
+should be sorted. Defaults to \code{NULL}, meaning that no sorting should 
+happen.}
 }
 \value{
 Instance of the \code{\link[discounting]{dataset-class}}.
