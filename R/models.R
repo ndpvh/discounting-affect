@@ -158,51 +158,91 @@ setMethod(
         cat(
             "Model of class \"", 
             class(object), 
-            "\":\n\n"
+            "\":\n\n",
+            sep = ""
         )
 
         # What is its dimensionality?
-        cat("Dimension: ", object@d, "\n")
-        cat("Number of predictors: ", object@k, "\n\n")
+        cat("Dimension: ", object@d, "\n", sep = "")
+        cat("Number of predictors: ", object@k, "\n\n", sep = "")
 
         # What are its parameters?
         cat("Parameters:\n")
         params <- object@parameters
         for(i in seq_along(params)) {
             # Print parameter names
-            cat("  ", names(params)[i], ": ")
+            cat("  ", names(params)[i], ": ", sep = "")
+
+            # Get the amount of whitespace that we need for this parameter
+            len_white <- nchar(names(params)[i]) + 2 + 1
+            whitespace <- paste(
+                rep(" ", each = len_white),
+                collapse = ""
+            )
 
             # Print the content of the parameters. Differs between matrices and
             # numerics
             if(!is.matrix(params[[i]])) {
-                cat(params[[i]], "\n")
+                sapply(
+                    seq_along(params[[i]]),
+                    function(x) {
+                        if(x == 1) {
+                            out <- paste(
+                                "| ", 
+                                format(params[[i]][x], nsmall = 2),
+                                " |\n",
+                                collapse = ""
+                            )
+                        } else {
+                            out <- paste(
+                                whitespace,
+                                "| ", 
+                                format(params[[i]][x], nsmall = 2),
+                                " |\n",
+                                collapse = ""
+                            )
+                        }
+
+                        return(out)
+                    }
+                ) |>
+                    paste(collapse = "") |>
+                    cat(sep = "")
 
             } else {
-                # Get the amount of whitespace that we need per parameter
-                len_white <- nchar(names(params)[i]) + 3 + 3
-                whitespace <- paste(
-                    rep(" ", each = len_white),
-                    collapse = ""
-                )
-
                 # Loop over each of the rows in the matrix
                 for(j in seq_len(nrow(params[[i]]))) {
                     if(j != 1) {
-                        cat(whitespace)
+                        cat(whitespace, " ", sep = "")
                     }
 
-                    cat(params[[i]][j, ], "\n")
+                    cat(
+                        "| ",
+                        sapply(
+                            params[[i]][j, ],
+                            \(x) format(x, nsmall = 2) 
+                        ) |>
+                            paste(collapse = "  "),
+                        " |\n",
+                        sep = ""
+                    )
                 }
             }
+            cat("\n")
         }
-        cat("\n")
+        cat("\n", sep = "")
 
         # What is its covariance?
-        cat("Covariance: ")
+        cat("Covariance: ", sep = "")
         covariance <- object@covariance
 
         if(!is.matrix(covariance)) {
-            cat(covariance, "\n")
+            cat(
+                "| ",
+                covariance, 
+                " |\n", 
+                sep = ""
+            )
 
         } else {
             whitespace <- paste(
@@ -212,10 +252,19 @@ setMethod(
 
             for(i in seq_len(nrow(covariance))) {
                 if(i != 1) {
-                    cat(whitespace)
+                    cat(whitespace, sep = "")
                 }
 
-                cat(covariance[i, ], "\n")
+                cat(
+                    "| ",
+                    sapply(
+                        covariance[i, ],
+                        \(x) format(x, nsmall = 2) 
+                    ) |>
+                        paste(collapse = "  "),
+                    " |\n",
+                    sep = ""
+                )
             }
         }
     }
