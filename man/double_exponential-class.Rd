@@ -15,6 +15,8 @@ structure to the \code{\link[discounting]{model-class}}.
 
 \item{\code{k}}{Integer denoting the number of independent variables}
 
+\item{\code{n}}{Integer denoting the number of parameters}
+
 \item{\code{parameters}}{List containing the parameters relevant to a particular 
 model instance}
 

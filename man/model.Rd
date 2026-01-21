@@ -7,6 +7,7 @@
 model(
   d = 1,
   k = 0,
+  n = NA,
   parameters = list(),
   covariance = matrix(0, nrow = d, ncol = d)
 )
@@ -17,6 +18,10 @@ model(
 
 \item{k}{Integer denoting the number of independent variables. Defaults to 
 \code{0}.}
+
+\item{n}{Integer denoting the number of parameters in the model. Defaults to
+\code{NA}, in which case the number of parameters in the model will be 
+counted.}
 
 \item{parameters}{List containing the parameters relevant to a particular 
 model instance. Defaults to an empty list, meaning the model cannot be 
