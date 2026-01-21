@@ -5,6 +5,7 @@
 #' 
 #' @slot d Integer denoting the number of dimensions of the model
 #' @slot k Integer denoting the number of independent variables
+#' @slot n Integer denoting the number of parameters in the model
 #' @slot parameters List containing the parameters relevant to a particular 
 #' model instance
 #' @slot covariance Numeric matrix denoting the residual covariance of the 
@@ -19,12 +20,14 @@ setClass(
     slots = c(
         d = "numeric",
         k = "numeric",
+        n = "numeric",
         parameters = "list",
         covariance = "matrix"
     ),
     prototype = list(
         d = as.integer(1),
         k = as.integer(0), 
+        n = 0,
         parameters = list(),
         covariance = matrix(0, nrow = 1, ncol = 1)
     )
@@ -36,6 +39,9 @@ setClass(
 #' \code{1}.
 #' @param k Integer denoting the number of independent variables. Defaults to 
 #' \code{0}.
+#' @param n Integer denoting the number of parameters in the model. Defaults to
+#' \code{NA}, in which case the number of parameters in the model will be 
+#' counted.
 #' @param parameters List containing the parameters relevant to a particular 
 #' model instance. Defaults to an empty list, meaning the model cannot be 
 #' properly used.
@@ -62,6 +68,7 @@ setClass(
 #' @export 
 model <- function(d = 1, 
                   k = 0,
+                  n = NA,
                   parameters = list(), 
                   covariance = matrix(0, nrow = d, ncol = d)) {
         
@@ -131,6 +138,14 @@ model <- function(d = 1,
 
     # Check positive definiteness of covariance matrix
     # <TO DO>
+
+    # Find out how many parameters are in the model
+    if(is.na(n)) {
+        n <- sapply(parameters, length) |> 
+            as.numeric() |>
+            sum() 
+        n <- n + length(covariance)
+    }
     
     # Add the dimensionality to the object. Default dimensionality 
     # corresponds to a mean model
@@ -138,6 +153,7 @@ model <- function(d = 1,
         "model",
         d = d,
         k = k,
+        n = n,
         parameters = parameters,
         covariance = covariance
     )
@@ -164,7 +180,8 @@ setMethod(
 
         # What is its dimensionality?
         cat("Dimension: ", object@d, "\n", sep = "")
-        cat("Number of predictors: ", object@k, "\n\n", sep = "")
+        cat("Number of predictors: ", object@k, "\n", sep = "")
+        cat("Number of parameters: ", object@n, "\n\n", sep = "")
 
         # What are its parameters?
         cat("Parameters:\n")
@@ -277,6 +294,7 @@ setMethod(
 #' 
 #' @slot d Integer denoting the number of dimensions of the model
 #' @slot k Integer denoting the number of independent variables
+#' @slot n Integer denoting the number of parameters
 #' @slot parameters List containing the parameters relevant to a particular 
 #' model instance
 #' @slot covariance Numeric matrix denoting the residual covariance of the 
@@ -291,12 +309,14 @@ setClass(
     slots = c(
         d = "numeric",
         k = "numeric",
+        n = "numeric",
         parameters = "list",
         covariance = "matrix"
     ),
     prototype = list(
         d = as.integer(1),
         k = as.integer(1), 
+        n = 4,
         parameters = list(
             "alpha" = 0,
             "beta" = matrix(0, nrow = 1, ncol = 1),
@@ -514,6 +534,7 @@ exponential <- function(d = NA,
     .Object <- model(
         d = d,
         k = k,
+        n = d + d * k + 2 * d^2,
         parameters = parameters,
         covariance = covariance
     )
@@ -529,6 +550,7 @@ exponential <- function(d = NA,
 #' 
 #' @slot d Integer denoting the number of dimensions of the model
 #' @slot k Integer denoting the number of independent variables
+#' @slot n Integer denoting the number of parameters
 #' @slot parameters List containing the parameters relevant to a particular 
 #' model instance
 #' @slot covariance Numeric matrix denoting the residual covariance of the 
@@ -543,12 +565,14 @@ setClass(
     slots = c(
         d = "numeric",
         k = "numeric",
+        n = "numeric",
         parameters = "list",
         covariance = "matrix"
     ),
     prototype = list(
         d = as.integer(1),
         k = as.integer(1), 
+        n = 5, 
         parameters = list(
             "alpha" = 0,
             "beta" = matrix(0, nrow = 1, ncol = 1),
@@ -804,6 +828,7 @@ quasi_hyperbolic <- function(d = NA,
     .Object <- model(
         d = d,
         k = k,
+        n = d + d * k + 3 * d^2,
         parameters = parameters,
         covariance = covariance
     )
@@ -819,6 +844,7 @@ quasi_hyperbolic <- function(d = NA,
 #' 
 #' @slot d Integer denoting the number of dimensions of the model
 #' @slot k Integer denoting the number of independent variables
+#' @slot n Integer denoting the number of parameters
 #' @slot parameters List containing the parameters relevant to a particular 
 #' model instance
 #' @slot covariance Numeric matrix denoting the residual covariance of the 
@@ -833,12 +859,14 @@ setClass(
     slots = c(
         d = "numeric",
         k = "numeric",
+        n = "numeric",
         parameters = "list",
         covariance = "matrix"
     ),
     prototype = list(
         d = as.integer(1),
         k = as.integer(1), 
+        n = 6,
         parameters = list(
             "alpha" = 0,
             "beta" = matrix(0, nrow = 1, ncol = 1),
@@ -1103,6 +1131,7 @@ double_exponential <- function(d = NA,
     .Object <- model(
         d = d,
         k = k,
+        n = d + d * k + 1 + 3 * d^2,
         parameters = parameters,
         covariance = covariance
     )

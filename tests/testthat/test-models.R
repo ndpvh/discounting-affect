@@ -68,6 +68,30 @@ test_that(
     {
         expect_no_error(model(1, 0, parameters = list(), covariance = as.matrix(0)))
         expect_no_error(model())
+
+        # Check whether the constructor can find out the correct number of 
+        # parameters if not provided to the constructor
+        tst <- model(
+            d = 3,
+            parameters = list(
+                "parameter_1" = numeric(10), 
+                "parameter_2" = matrix(0, nrow = 2, ncol = 5)
+            ),
+            covariance = diag(3)
+        )
+        expect_equal(tst@n, 10 + 2 * 5 + 3 * 3)
+
+        # Check whether the constructor ignores the parameters when n is provided
+        tst <- model(
+            d = 3,
+            n = 10,
+            parameters = list(
+                "parameter_1" = numeric(10), 
+                "parameter_2" = matrix(0, nrow = 2, ncol = 5)
+            ),
+            covariance = diag(3)
+        )
+        expect_equal(tst@n, 10)
     }
 )
 
@@ -264,6 +288,7 @@ test_that(
         )
         expect_equal(tst@d, 1)
         expect_equal(tst@k, 1)
+        expect_equal(tst@n, 4)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
 
@@ -281,6 +306,7 @@ test_that(
         )
         expect_equal(tst@d, 2)
         expect_equal(tst@k, 5)
+        expect_equal(tst@n, 2 + 2 * 5 + 2^3)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, diag(2))
 
@@ -293,6 +319,7 @@ test_that(
         )
         expect_equal(tst@d, 1)
         expect_equal(tst@k, 1)
+        expect_equal(tst@n, 4)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
 
@@ -307,6 +334,7 @@ test_that(
         tst <- exponential(parameters = params, covariance = covariance)
         expect_equal(tst@d, 10)
         expect_equal(tst@k, 3)
+        expect_equal(tst@n, 10 + 10 * 3 + 2 * 10^2)
 
         # Check whether the Cholesky decomposition works
         params <- list(
@@ -555,6 +583,7 @@ test_that(
         )
         expect_equal(tst@d, 1)
         expect_equal(tst@k, 1)
+        expect_equal(tst@n, 5)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
 
@@ -573,6 +602,7 @@ test_that(
         )
         expect_equal(tst@d, 2)
         expect_equal(tst@k, 5)
+        expect_equal(tst@n, 2 + 2 * 5 + 3 * 2^2)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, diag(2))
 
@@ -586,6 +616,7 @@ test_that(
         )
         expect_equal(tst@d, 1)
         expect_equal(tst@k, 1)
+        expect_equal(tst@n, 5)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
 
@@ -601,6 +632,7 @@ test_that(
         tst <- quasi_hyperbolic(parameters = params, covariance = covariance)
         expect_equal(tst@d, 10)
         expect_equal(tst@k, 3)
+        expect_equal(tst@n, 10 + 10 * 3 + 3 * 10^2)
 
         # Check whether the Cholesky decomposition works
         params <- list(
@@ -898,6 +930,7 @@ test_that(
         )
         expect_equal(tst@d, 1)
         expect_equal(tst@k, 1)
+        expect_equal(tst@n, 6)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
 
@@ -917,6 +950,7 @@ test_that(
         )
         expect_equal(tst@d, 2)
         expect_equal(tst@k, 5)
+        expect_equal(tst@n, 2 + 2 * 5 + 1 + 3 * 2^2)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, diag(2))
 
@@ -931,6 +965,7 @@ test_that(
         )
         expect_equal(tst@d, 1)
         expect_equal(tst@k, 1)
+        expect_equal(tst@n, 6)
         expect_equal(tst@parameters, ref)
         expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
 
@@ -947,6 +982,7 @@ test_that(
         tst <- double_exponential(parameters = params, covariance = covariance)
         expect_equal(tst@d, 10)
         expect_equal(tst@k, 3)
+        expect_equal(tst@n, 10 + 10 * 3 + 1 + 3 * 10^2)
 
         # Check whether the Cholesky decomposition works
         params <- list(
