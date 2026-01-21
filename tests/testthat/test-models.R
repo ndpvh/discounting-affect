@@ -329,6 +329,16 @@ test_that(
 
         # Check the class of the model
         expect_equal(class(tst), "exponential")
+
+        # Check whether parameters are put in the correct order
+        params <- list(
+            "beta" = as.matrix(1),
+            "gamma" = as.matrix(0.75),
+            "alpha" = 1
+        )
+
+        tst <- exponential(parameters = params, covariance = as.matrix(1))
+        expect_equal(names(tst@parameters), c("alpha", "beta", "gamma"))
     }
 )
 
@@ -614,6 +624,17 @@ test_that(
 
         # Check the class of the model
         expect_equal(class(tst), "quasi_hyperbolic")
+
+        # Check whether parameters are put in the correct order
+        params <- list(
+            "beta" = as.matrix(1),
+            "nu" = as.matrix(0.75),
+            "alpha" = 1,
+            "kappa" = as.matrix(0.5)
+        )
+
+        tst <- quasi_hyperbolic(parameters = params, covariance = as.matrix(1))
+        expect_equal(names(tst@parameters), c("alpha", "beta", "nu", "kappa"))
     }
 )
 
@@ -950,5 +971,20 @@ test_that(
 
         # Check the class of the model
         expect_equal(class(tst), "double_exponential")
+
+        # Check whether parameters are put in the correct order
+        params <- list(
+            "beta" = as.matrix(1),
+            "nu" = as.matrix(0.75),
+            "alpha" = 1,
+            "gamma" = as.matrix(0.5),
+            "omega" = 0.5
+        )
+
+        tst <- double_exponential(parameters = params, covariance = as.matrix(1))
+        expect_equal(
+            names(tst@parameters), 
+            c("alpha", "beta", "omega", "gamma", "nu")
+        )
     }
 )

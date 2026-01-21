@@ -505,6 +505,9 @@ exponential <- function(d = NA,
     if(any(decomposed$values < 0) | any(decomposed$values >= 1)) {
         stop("The eigenvalues of \"gamma\" should lie between 0 and 1.")
     }
+
+    # Move the parameters around so that they follow a fixed structure
+    parameters <- parameters[c("alpha", "beta", "gamma")]
     
     # Create a new model and change its class to exponential. This ensures some
     # additional checks are performed
@@ -792,6 +795,9 @@ quasi_hyperbolic <- function(d = NA,
     if(any(decomposed$values < 0) | any(decomposed$values >= 1)) {
         stop("The eigenvalues of \"kappa\" should lie between 0 and 1.")
     }
+
+    # Move the parameters around so that they follow a fixed structure
+    parameters <- parameters[c("alpha", "beta", "nu", "kappa")]
     
     # Create a new model and change its class to quasi_hyperbolic. This ensures 
     # some additional checks are performed
@@ -1088,6 +1094,9 @@ double_exponential <- function(d = NA,
     if(parameters[["omega"]] < 0 | parameters[["omega"]] > 0.5) {
         stop("The parameter \"omega\" should lie between 0 and 0.5.")
     }
+
+    # Move the parameters around so that they follow a fixed structure
+    parameters <- parameters[c("alpha", "beta", "omega", "gamma", "nu")]
     
     # Create a new model and change its class to double_exponential. This ensures 
     # some additional checks are performed
