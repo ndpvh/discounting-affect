@@ -23,7 +23,6 @@
 #' the list will be bound together in a matrix. Defaults to \code{NULL}.
 #' @param N Number of datapoints to simulate. Passed on to \code{Xfun} when 
 #' defined. Defaults to \code{NULL}.
-#' @param ... Arguments passed on to the implemented methods.
 #' 
 #' @return An instance of the \code{\link[discounting]{dataset-class}} containing
 #' the simulated data.
@@ -54,13 +53,6 @@
 #' 
 #' @rdname simulate
 #' @export
-# setGeneric(
-#     "simulate",
-#     function(object, ...) standardGeneric("simulate")
-# )
-
-# #' @rdname simulate
-# #' @export
 setMethod(
     "simulate",
     "model",
