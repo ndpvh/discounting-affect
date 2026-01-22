@@ -11,7 +11,7 @@ count_parameters(model, ...)
   model,
   dynamics = "isotropic",
   covariance = "symmetric",
-  count_covariance = TRUE
+  parameters_only = FALSE
 )
 }
 \arguments{
@@ -31,8 +31,10 @@ double-exponential discounting model. Defaults to \code{"isotropic"}.}
 Can either be \code{"symmetric"} (symmetric around the diagonal) or 
 \code{"isotropic"} (diagonal). Defaults to \code{"isotropic"}.}
 
-\item{count_covariance}{Logical denoting whether to count the parameters of
-the covariance matrix to the total. Defaults to \code{TRUE}.}
+\item{parameters_only}{Logical denoting whether to only count the number of 
+parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
+count the number of parameters in the covariance matrix as well 
+(\code{FALSE}). Defaults to \code{FALSE}.}
 }
 \value{
 Integer denoting the number of parameters the model contains within
