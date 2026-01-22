@@ -955,7 +955,7 @@ get_bounds_covariance <- function(d,
 #' @return List containing the corrected lower and upper bounds (in that order)
 #' 
 #' @rdname check_bound_length
-#' @internal
+#' @keywords internal
 check_bound_length <- function(n, 
                                lower, 
                                upper){

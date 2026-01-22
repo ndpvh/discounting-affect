@@ -5,6 +5,8 @@
 \alias{fill,exponential-method}
 \alias{fill,quasi_hyperbolic-method}
 \alias{fill,double_exponential-method}
+\alias{get_bounds}
+\alias{get_bounds,exponential-method}
 \title{Change model parameters}
 \usage{
 fill(model, parameters, ...)
@@ -32,9 +34,21 @@ fill(model, parameters, ...)
   covariance = "symmetric",
   parameters_only = TRUE
 )
+
+get_bounds(model, parameters, ...)
+
+\S4method{get_bounds}{exponential}(
+  model,
+  parameters,
+  dynamics = "isotropic",
+  covariance = "symmetric",
+  parameters_only = TRUE,
+  lower = NULL,
+  upper = NULL
+)
 }
 \arguments{
-\item{model}{Instance of the \code{\link[discounting]{model-class}}}
+\item{model}{Instance of the \code{\link[discounting]{model-class}}.}
 
 \item{parameters}{Numeric vector containing the values of the parameters 
 that should be assigned to the model. Importantly, the number of parameters
@@ -59,10 +73,26 @@ Can either be \code{"symmetric"} (symmetric around the diagonal) or
 \item{parameters_only}{Logical denoting whether to only fill the 
 parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
 fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.}
+
+\item{lower}{Numeric vector of the same length as the substantive parameters
+in the model, denoting the lower bounds for each one. For the exponential
+discounting model, for example, a value of `c(0, 0, 0, 0)` would denote a 
+minimal value of 0 for all values in \eqn{\bm{\alpha}}, \eqn{B}, \eqn{\Gamma},
+and \eqn{\Sigma}. Defaults depend on the model itself and have been chosen 
+while accounting for natural bounds in the data used in this project. Note
+that if \code{parameters_only = TRUE}, there is no need to specify a bound 
+for the covariances.}
+
+\item{upper}{Numeric vector that functions the same as \code{lower}, but 
+specifying the upper bounds instead.}
 }
 \value{
 Instance of the \code{\link[discounting]{model-class}} containing 
 the values \code{parameters} in its \code{parameter}-slot.
+
+Named list containing numeric vectors denoting the lower and upper 
+bounds for the parameters (under \code{"lower"} and \code{"upper"} resp.).
+The order maintained in this
 }
 \description{
 Fill the model parameters of a particular instance of the 
@@ -80,6 +110,28 @@ my_model <- exponential()
 fill(
   my_model,
   c(1, 2, 0.5)
+)
+
+# Create an empty instance of the exponential discounting model
+my_model <- exponential()
+
+# Get the bounds for the model
+get_bounds(
+  my_model,
+  dynamics = "anisotropic",
+  covariance = "isotropic",
+  parameters_only = FALSE
+)
+
+# Get the bounds for the model when specifying your personal lower and upper
+# bounds
+get_bounds(
+  my_model,
+  dynamics = "anisotropic",
+  covariance = "isotropic",
+  parameters_only = FALSE,
+  lower = c(0, -100, 0, 0.01),
+  upper = c(1, 100, 0.5, 1)
 )
 
 }
