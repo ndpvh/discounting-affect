@@ -67,6 +67,21 @@ test_that(
             suppressWarnings()
         expect_equal(tst@Y, matrix(0, nrow = 0, ncol = 0))
         expect_equal(tst@X, matrix(0, nrow = 0, ncol = 0))
+
+        # When X is provided and is not a matrix, we should transform it to one
+        expect_warning(dataset(X = 1:10))
+
+        tst <- dataset(X = 1:10) |>
+            suppressWarnings()
+        expect_equal(tst@X, matrix(1:10, nrow = 10, ncol = 1))
+
+        # When Y is provided and is not a matrix, we should transform it to one
+        expect_warning(dataset(X = matrix(1:10, nrow = 10, ncol = 1), Y = 10:1))
+
+        tst <- dataset(X = matrix(1:10, nrow = 10, ncol = 1), Y = 10:1) |>
+            suppressWarnings()
+        expect_equal(tst@X, matrix(1:10, nrow = 10, ncol = 1))
+        expect_equal(tst@Y, matrix(10:1, nrow = 10, ncol = 1))
     }
 )
 
