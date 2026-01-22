@@ -1,3 +1,6 @@
+################################################################################
+# FILL
+
 #' Change model parameters
 #' 
 #' Fill the model parameters of a particular instance of the 
@@ -116,6 +119,11 @@ setMethod(
         return(model)
     }
 )
+
+
+
+################################################################################
+# COUNT_PARAMETERS
 
 #' Count number of parameters for a model
 #' 
