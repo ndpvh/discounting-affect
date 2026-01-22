@@ -1623,3 +1623,59 @@ parameter_names_covariance <- function(d,
 
     return(names)
 }
+
+
+
+################################################################################
+# GENERATE_PARAMETERS
+
+#' Generate model parameters
+#' 
+#' Generation of model parameters within this function always occurs according 
+#' to a uniform distribution within the bounds defined for the models.
+#' 
+#' @param model Instance of the \code{\link[discounting]{model-class}}
+#' @param ... Additional arguments passed on to 
+#' \code{\link[discounting]{get_bounds}}
+#' 
+#' @return Numeric vector of parameters for the model.
+#' 
+#' @examples 
+#' generate_parameters(
+#'   double_exponential(d = 2, k = 3),
+#'   dynamics = "isotropic",
+#'   covariance = "isotropic",
+#'   parameters_only = FALSE
+#' )
+#' 
+#' @rdname generate_parameters
+#' @export 
+setGeneric(
+    "generate_parameters",
+    function(model, ...) standardGeneric("generate_parameters")
+)
+
+#' @rdname generate_parameters
+#' @export 
+setMethod(
+    "generate_parameters",
+    "model",
+    function(model,
+             ...) {
+        
+        # Extract the bounds of the model
+        bounds <- get_bounds(
+            model,
+            ...
+        )
+
+        # Sample parameters from a uniform distribution and return
+        parameters <- runif(
+            length(bounds$lower),
+            min = bounds$lower,
+            max = bounds$upper
+        )
+        
+        return(parameters)
+    }
+)
