@@ -277,10 +277,14 @@ setMethod(
             parameters <- c(parameters, v[lower.tri(v, diag = TRUE)])
 
         } else if(covariance == "isotropic") {
-            v <- sapply(
-                seq_len(ncol(residuals)),
-                var
-            )
+            if(is.matrix(residuals)) {
+                v <- sapply(
+                    seq_len(ncol(residuals)),
+                    \(i) var(residuals[, i])
+                )
+            } else {
+                v <- var(residuals)
+            }
 
             diag(model@covariance) <- v
             parameters <- c(parameters, v)
