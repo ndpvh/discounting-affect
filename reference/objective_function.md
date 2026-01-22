@@ -37,6 +37,16 @@ objective_function(model, data, parameters, dynamics = "isotropic")
 
   Additional arguments passed on to the methods.
 
+- dynamics:
+
+  Character denoting the structure of the dynamical matrices. Can either
+  be `"anisotropic"` (completely free), `"symmetric"` (symmetric around
+  the diagonal), and `"isotropic"` (diagonal). Note that this influences
+  different parameters for different models, namely \\\Gamma\\ for the
+  exponential discounting model, \\N\\ and \\K\\ for the
+  quasi-hyperbolic discounting model, and \\\Gamma\\ and \\N\\ for the
+  double-exponential discounting model. Defaults to `"isotropic"`.
+
 ## Value
 
 The sum of squared error or \\SSE\\, quantifying misfit of the model to
