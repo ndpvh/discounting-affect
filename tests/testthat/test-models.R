@@ -370,6 +370,10 @@ test_that(
 
         # Check the empty version of the models for a specified dimensionality
         tst <- exponential(d = 2, k = 3)
+        
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@n, 2 + 2 * 3 + 2^2 + 3)
         expect_equal(tst@parameters[["alpha"]], numeric(2))
         expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 2, ncol = 3))
         expect_equal(tst@parameters[["gamma"]], matrix(0, nrow = 2, ncol = 2))
@@ -677,6 +681,10 @@ test_that(
 
         # Check the empty version of the models for a specified dimensionality
         tst <- quasi_hyperbolic(d = 2, k = 3)
+        
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@n, 2 + 2 * 3 + 2 * 2^2 + 3)
         expect_equal(tst@parameters[["alpha"]], numeric(2))
         expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 2, ncol = 3))
         expect_equal(tst@parameters[["nu"]], matrix(0, nrow = 2, ncol = 2))
@@ -1040,6 +1048,10 @@ test_that(
 
         # Check the empty version of the models for a specified dimensionality
         tst <- double_exponential(d = 2, k = 3)
+
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@n, 2 + 2 * 3 + 2 * 2^2 + 1 + 3)
         expect_equal(tst@parameters[["alpha"]], numeric(2))
         expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 2, ncol = 3))
         expect_equal(tst@parameters[["omega"]], 0)
