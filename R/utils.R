@@ -362,27 +362,27 @@ setMethod(
             idx_1 <- (d + d * k + 1 + 1):(d + d * k + d + 1)
             idx_2 <- (d + d * k + d + 1 + 1):(d + d * k + 2 * d + 1)
 
-            diag(params[["nu"]]) <- parameters[idx_1]
-            diag(params[["kappa"]]) <- parameters[idx_2]
+            diag(params[["gamma"]]) <- parameters[idx_1]
+            diag(params[["nu"]]) <- parameters[idx_2]
         
         } else if(dynamics == "symmetric") {
             idx_1 <- (d + d * k + 1 + 1):(d + d * k + 1 + d * (d + 1) / 2)
             idx_2 <- (d + d * k + 1 + d * (d + 1) / 2 + 1):(d + d * k + 1 + 2 * d * (d + 1) / 2)
 
             idy <- lower.tri(params[["nu"]], diag = TRUE)
-            params[["nu"]][idy] <- parameters[idx_1]
-            params[["kappa"]][idy] <- parameters[idx_2]
+            params[["gamma"]][idy] <- parameters[idx_1]
+            params[["nu"]][idy] <- parameters[idx_2]
 
-            idy <- upper.tri(params[["nu"]], diag = FALSE)
+            idy <- upper.tri(params[["gamma"]], diag = FALSE)
+            params[["gamma"]][idy] <- t(params[["gamma"]])[idy]
             params[["nu"]][idy] <- t(params[["nu"]])[idy]
-            params[["kappa"]][idy] <- t(params[["kappa"]])[idy]
 
         } else if(dynamics == "anisotropic") {
             idx_1 <- (d + d * k + 1 + 1):(d + d * k + 1 + d^2)
             idx_2 <- (d + d * k + 1 + d^2 + 1):(d + d * k + 1 + 2 * d^2)
 
-            params[["nu"]][] <- parameters[idx_1]
-            params[["kappa"]][] <- parameters[idx_2]
+            params[["gamma"]][] <- parameters[idx_1]
+            params[["nu"]][] <- parameters[idx_2]
 
         } 
 
