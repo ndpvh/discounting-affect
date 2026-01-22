@@ -80,10 +80,16 @@ setMethod(
     c("model", "dataset"),
     function(model, 
              data,
-             parameters) {
+             parameters,
+             dynamics = "isotropic") {
         
         # Put the parameters inside the model format
-        model <- fill(model, parameters)
+        model <- fill(
+            model, 
+            parameters, 
+            dynamics = dynamics, 
+            parameters_only = TRUE
+        )
 
         # Use the model to predict what the data should look like according to 
         # the model
@@ -94,7 +100,15 @@ setMethod(
 
         # Compute the sum squared error and return
         SSE <- sum(residuals^2)
-        
+
         return(SSE)
     }
 )
+
+
+#' @param covariance Character denoting the structure of covariance matrix.
+#' Can either by \code{"symmetric"} (symmetric around the diagonal) and 
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
+# , 
+#              covariance = "symmetric"
+# ALSO CHANGE PARAMETER NUMBER DEPENDING ON THE DYNAMICS + COVARIANCE
