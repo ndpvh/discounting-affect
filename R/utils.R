@@ -737,7 +737,7 @@ count_covariance <- function(d,
 #' @param covariance Character denoting the structure of the covariance matrix.
 #' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
 #' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
-#' @param parameters_only Logical denoting whether to only fill the 
+#' @param parameters_only Logical denoting whether to only get bounds for the 
 #' parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
 #' fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.
 #' @param lower Numeric vector of the same length as the substantive parameters
@@ -783,7 +783,7 @@ count_covariance <- function(d,
 #' @export 
 setGeneric(
     "get_bounds",
-    function(model, parameters, ...) standardGeneric("get_bounds")
+    function(model, ...) standardGeneric("get_bounds")
 )
 
 #' @rdname get_bounds
@@ -792,7 +792,6 @@ setMethod(
     "get_bounds",
     "exponential",
     function(model,
-             parameters,
              dynamics = "isotropic",
              covariance = "symmetric",
              parameters_only = TRUE,
@@ -893,7 +892,6 @@ setMethod(
     "get_bounds",
     "quasi_hyperbolic",
     function(model,
-             parameters,
              dynamics = "isotropic",
              covariance = "symmetric",
              parameters_only = TRUE,
@@ -997,7 +995,6 @@ setMethod(
     "get_bounds",
     "double_exponential",
     function(model,
-             parameters,
              dynamics = "isotropic",
              covariance = "symmetric",
              parameters_only = TRUE,
@@ -1111,14 +1108,14 @@ setMethod(
 #' covariance matrix in that order.
 #' 
 #' @examples 
-#' count_covariance(
+#' get_bounds_covariance(
 #'   2, 
 #'   0,
 #'   1,
 #'   covariance = "symmetric"
 #' )
 #' 
-#' count_covariance(
+#' get_bounds_covariance(
 #'   2,
 #'   0, 
 #'   1,
@@ -1205,4 +1202,203 @@ check_bound_length <- function(n,
             upper
         )
     )
+}
+
+
+
+################################################################################
+# PARAMETER_NAMES
+
+#' Name the relevant parameters of the model
+#' 
+#' @param model Instance of the \code{\link[discounting]{model-class}}.
+#' @param dynamics Character denoting the structure of the dynamical matrices.
+#' Can either be \code{"anisotropic"} (completely free), \code{"symmetric"}
+#' (symmetric around the diagonal), and \code{"isotropic"} (diagonal). Note that
+#' this influences different parameters for different models, namely 
+#' \eqn{\Gamma} for the exponential discounting model, \eqn{N} and \eqn{K} for
+#' the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
+#' double-exponential discounting model. Defaults to \code{"isotropic"}.
+#' @param covariance Character denoting the structure of the covariance matrix.
+#' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
+#' @param parameters_only Logical denoting whether to only name the 
+#' parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
+#' fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.
+#' @param ... Additional arguments passed on to the methods.
+#' 
+#' @return Character vector containing the names for the parameters in the 
+#' model. The order corresponds to the assumptions of 
+#' \code{\link[discounting]{get_bounds}} and \code{\link[discounting]{fill}}.
+#' 
+#' @examples 
+#' # Create an empty instance of the exponential discounting model
+#' my_model <- exponential()
+#' 
+#' # Get the names for the model, once with and once without the covariances 
+#' # included
+#' parameter_names(
+#'   my_model,
+#'   dynamics = "anisotropic",
+#'   covariance = "isotropic",
+#'   parameters_only = FALSE
+#' )
+#' 
+#' parameter_names(
+#'   my_model,
+#'   dynamics = "anisotropic",
+#'   covariance = "isotropic",
+#'   parameters_only = TRUE
+#' )
+#' 
+#' @rdname parameter_names
+#' @export 
+setGeneric(
+    "parameter_names",
+    function(model, ...) standardGeneric("parameter_names")
+)
+
+#' @rdname parameter_names
+#' @export 
+setMethod(
+    "parameter_names",
+    "exponential",
+    function(model,
+             dynamics = "isotropic", 
+             covariance = "symmetric",
+             parameters_only = TRUE) {
+        
+        # Get the dimensionality of the model
+        d <- model@d 
+        k <- model@k 
+
+        # Generate the names for "alpha"
+        alpha <- paste(
+            "alpha_",
+            1:d, 
+            sep = ""
+        )
+
+        # Generate the names for "beta"
+        rows <- matrix(1:d, nrow = d, ncol = k) |>
+            as.numeric()
+        columns <- matrix(1:k, nrow = d, ncol = k, byrow = TRUE) |>
+            as.numeric()
+
+        beta <- paste(
+            "beta_", 
+            rows, 
+            columns,
+            sep = ""
+        )
+
+        # Generate the names for "gamma". Here, we need to take the structure 
+        # of the matrix into account
+        rows <- matrix(1:d, nrow = d, ncol = d)
+        columns <- matrix(1:d, nrow = d, ncol = d, byrow = TRUE) 
+
+        if(dynamics == "isotropic") {
+            gamma <- paste(
+                "gamma_",
+                1:d,
+                1:d,
+                sep = ""
+            )
+
+        } else if(dynamics == "symmetric") {
+            gamma <- paste(
+                "gamma_",
+                rows[lower.tri(rows, diag = TRUE)],
+                columns[lower.tri(columns, diag = TRUE)],
+                sep = ""
+            )
+
+        } else if(dynamics == "anisotropic") {
+            gamma <- paste(
+                "gamma_",
+                as.numeric(rows),
+                as.numeric(columns),
+                sep = ""
+            )
+
+        } else {
+            stop(
+                paste(
+                    "Structure for the forgetting matrix is not know.",
+                    "Please use \"isotropic\", \"symmetric\", or \"anisotropic\"."
+                )
+            )
+
+        }
+
+        # Check whether the covariances should be given a name as well.
+        if(parameters_only) {
+            names <- c(alpha, beta, gamma)
+
+        } else {
+            names <- c(
+                alpha, 
+                beta,
+                gamma,
+                parameter_names_covariance(d, covariance = covariance)
+            )
+
+        }
+
+        return(names)        
+    }
+)
+
+#' Get the names for the parameters in the covariance matrix
+#' 
+#' @param d Integer denoting the dimensionality of the model.
+#' @param covariance Character denoting the structure of the covariance matrix.
+#' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
+#' 
+#' @return Character vector containing the names for all parameters in the 
+#' covariance matrix. The order corresponds to the assumptions of 
+#' \code{\link[discounting]{get_bounds}} and \code{\link[discounting]{fill}}.
+#' 
+#' @examples 
+#' parameter_names_covariance(2, covariance = "symmetric")
+#' 
+#' parameter_names_covariance(2, covariance = "isotropic")
+#' 
+#' @rdname parameter_names_covariance
+#' @export 
+parameter_names_covariance <- function(d, 
+                                       covariance = "symmetric") {
+    
+    # Dimensionality as rows and columns in a matrix
+    rows <- matrix(1:d, nrow = d, ncol = d)
+    columns <- matrix(1:d, nrow = d, ncol = d, byrow = TRUE)
+
+    # Dispatch on structure
+    if(covariance == "symmetric") {
+        names <- paste(
+            "sigma_",
+            rows[lower.tri(rows, diag = TRUE)],
+            columns[lower.tri(columns, diag = TRUE)],
+            sep = ""
+        )
+
+    } else if(covariance == "isotropic") {
+        names <- paste(
+            "sigma_",
+            diag(rows),
+            diag(columns),
+            sep = ""
+        )
+
+    } else {
+        stop(
+            paste(
+                "Structure for covariance is not know.",
+                "Please use \"isotropic\" or \"symmetric\"."
+            )
+        )
+    }
+
+    return(names)
 }
