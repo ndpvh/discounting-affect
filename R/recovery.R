@@ -48,7 +48,7 @@
 #'   iterations = 10,
 #'   fx = list(
 #'     "aic" = function(x) 
-#'       (length(x$residuals) * log(x$objective / length(x$residuals)) + 2 * length(x$parameters)
+#'       (length(x$residuals) * log(x$objective) / length(x$residuals) + 2 * length(x$parameters))
 #'   ),
 #' 
 #'   # Arguments for simulate
@@ -68,25 +68,39 @@
 #' @export 
 setGeneric(
     "recovery",
-    function(sim_model, fit_model, ...) standardGeneric("recovery")
+    function(sim_model, ...) standardGeneric("recovery")
 )
 
 #' @rdname recovery
 #' @export
 setMethod(
     "recovery",
-    c("model", "model"),
+    "model",
     function(sim_model,
-             fit_model = sim_model,
+             fit_model = NULL,
              iterations = 100,
              fx = list(),
              X = NULL,
              Xfun = NULL,
              N = NULL,
+             sim_dynamics = "isotropic",
+             sim_covariance = "symmetric",
+             fit_dynamics = "isotropic",
+             fit_covariance = "symmetric",
              ...) {
+
+        # If fit_model is NULL, we will assign it the same model as sim_model
+        if(is.null(fit_model)) {
+            fit_model <- sim_model
+        }
         
-        # Ensure the sim_model and est_model have a same dimensionality
-        if(sim_model@d != est_model@d | sim_model@k != est_model@k) {
+        # Ensure that fit_model is an instance of the model-class
+        if(!inherits(fit_model, "model")) {
+            stop("\"fit_model\" should be an instance of the model class.")
+        }
+
+        # Ensure the sim_model and fit_model have a same dimensionality
+        if(sim_model@d != fit_model@d | sim_model@k != fit_model@k) {
             stop(
                 paste(
                     "The simulation model and the model to be estimated should",
@@ -153,7 +167,8 @@ setMethod(
             parameters <- generate_parameters(
                 sim_model,
                 dynamics = sim_dynamics,
-                covariance = sim_covariance
+                covariance = sim_covariance,
+                parameters_only = FALSE
             )
             sim_model <- fill(
                 sim_model,
@@ -174,7 +189,7 @@ setMethod(
 
             # Estimate the model back using the simulated data
             fitobj <- fit(
-                est_model,
+                fit_model,
                 data, 
                 dynamics = fit_dynamics,
                 covariance = fit_covariance,

@@ -2,19 +2,23 @@
 % Please edit documentation in R/recovery.R
 \name{recovery}
 \alias{recovery}
-\alias{recovery,model,model-method}
+\alias{recovery,model-method}
 \title{Simulate and estimate a model}
 \usage{
-recovery(sim_model, fit_model, ...)
+recovery(sim_model, ...)
 
-\S4method{recovery}{model,model}(
+\S4method{recovery}{model}(
   sim_model,
-  fit_model = sim_model,
+  fit_model = NULL,
   iterations = 100,
   fx = list(),
   X = NULL,
   Xfun = NULL,
   N = NULL,
+  sim_dynamics = "isotropic",
+  sim_covariance = "symmetric",
+  fit_dynamics = "isotropic",
+  fit_covariance = "symmetric",
   ...
 )
 }
@@ -23,12 +27,12 @@ recovery(sim_model, fit_model, ...)
 with which the data will be generated/simulated. Note that this model can 
 be empty: Parameters will be simulated automatically within this function.}
 
+\item{...}{Arguments passed on to \code{\link[discounting]{fit}}.}
+
 \item{fit_model}{An instance of the \code{\link[discounting]{model-class}}
 that will be estimated on the simulated data. Note that this model can be 
 empty, but should have a same dimensionality (that is, \code{d} and \code{k})
 as \code{sim_model}. By default, \code{fit_model} is equal to \code{sim_model}}
-
-\item{...}{Arguments passed on to \code{\link[discounting]{fit}}.}
 
 \item{iterations}{Integer denoting the number of iterations to run for the 
 recovery/distinguishability study. Defaults to \code{100}.}
@@ -92,7 +96,7 @@ recovery(
   iterations = 10,
   fx = list(
     "aic" = function(x) 
-      (length(x$residuals) * log(x$objective / length(x$residuals)) + 2 * length(x$parameters)
+      (length(x$residuals) * log(x$objective) / length(x$residuals) + 2 * length(x$parameters))
   ),
 
   # Arguments for simulate
