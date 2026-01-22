@@ -22,12 +22,14 @@
 #' single argument, it being the output of\code{\link[discounting]{fit}}, and 
 #' should return a single value. Examples of functions that may be useful to 
 #' include are estimates of \eqn{AIC} and \eqn{BIC}. Defaults to an empty list. 
-#' @param sim_dynamics,fit_dynamics Character denoting the structure of the 
-#' dynamic parameters of the models. See \code{\link[discounting]{fill}} for 
-#' guidance on their potential values.
-#' @param sim_covariance,fit_covariance Character denoting the structure of the
-#' covariance matrix for the models. See \code{\link[discounting]{fill}} for 
-#' guidance on their potential values.
+#' @param dynamics,sim_dynamics,fit_dynamics Character denoting the structure of 
+#' the dynamic parameters of the models. See \code{\link[discounting]{fill}} for 
+#' guidance on their potential values. By default, both the simulation and 
+#' fitting model are \code{"isotropic"}.
+#' @param covariance,sim_covariance,fit_covariance Character denoting the 
+#' structure of the covariance matrix for the models. See 
+#' \code{\link[discounting]{fill}} for guidance on their potential values. By
+#' default, both the simulation and fitting model are \code{"symmetric"}.
 #' @param ... Arguments passed on to \code{\link[discounting]{fit}}.
 #' @inheritParams fit
 #' @inheritParams simulate,model-method
@@ -83,10 +85,12 @@ setMethod(
              X = NULL,
              Xfun = NULL,
              N = NULL,
-             sim_dynamics = "isotropic",
-             sim_covariance = "symmetric",
-             fit_dynamics = "isotropic",
-             fit_covariance = "symmetric",
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             sim_dynamics = dynamics,
+             sim_covariance = covariance,
+             fit_dynamics = dynamics,
+             fit_covariance = covariance,
              ...) {
 
         # If fit_model is NULL, we will assign it the same model as sim_model

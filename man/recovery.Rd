@@ -15,10 +15,12 @@ recovery(sim_model, ...)
   X = NULL,
   Xfun = NULL,
   N = NULL,
-  sim_dynamics = "isotropic",
-  sim_covariance = "symmetric",
-  fit_dynamics = "isotropic",
-  fit_covariance = "symmetric",
+  dynamics = "isotropic",
+  covariance = "symmetric",
+  sim_dynamics = dynamics,
+  sim_covariance = covariance,
+  fit_dynamics = dynamics,
+  fit_covariance = covariance,
   ...
 )
 }
@@ -62,13 +64,15 @@ the list will be bound together in a matrix. Defaults to \code{NULL}.}
 \item{N}{Number of datapoints to simulate. Passed on to \code{Xfun} when 
 defined. Defaults to \code{NULL}.}
 
-\item{sim_dynamics, fit_dynamics}{Character denoting the structure of the 
-dynamic parameters of the models. See \code{\link[discounting]{fill}} for 
-guidance on their potential values.}
+\item{dynamics, sim_dynamics, fit_dynamics}{Character denoting the structure of 
+the dynamic parameters of the models. See \code{\link[discounting]{fill}} for 
+guidance on their potential values. By default, both the simulation and 
+fitting model are \code{"isotropic"}.}
 
-\item{sim_covariance, fit_covariance}{Character denoting the structure of the
-covariance matrix for the models. See \code{\link[discounting]{fill}} for 
-guidance on their potential values.}
+\item{covariance, sim_covariance, fit_covariance}{Character denoting the 
+structure of the covariance matrix for the models. See 
+\code{\link[discounting]{fill}} for guidance on their potential values. By
+default, both the simulation and fitting model are \code{"symmetric"}.}
 }
 \value{
 Named list containing a \code{data.frame} with simulated parameters
