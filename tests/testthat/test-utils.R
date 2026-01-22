@@ -1672,7 +1672,57 @@ test_that(
 test_that(
     "Test known warnings for get_bounds and get_bounds_covariance",
     {
+        # Too many parameters provided
+        expect_warning(
+            get_bounds(
+                exponential(),
+                lower = 1:20,
+                upper = 1:20,
+                parameters_only = FALSE
+            )
+        )
+        expect_warning(
+            get_bounds(
+                exponential(),
+                lower = 1:20,
+                upper = 1:20,
+                parameters_only = TRUE
+            )
+        )
 
+        expect_warning(
+            get_bounds(
+                quasi_hyperbolic(),
+                lower = 1:20,
+                upper = 1:20,
+                parameters_only = FALSE
+            )
+        )
+        expect_warning(
+            get_bounds(
+                quasi_hyperbolic(),
+                lower = 1:20,
+                upper = 1:20,
+                parameters_only = TRUE
+            )
+        )
+
+        expect_warning(
+            get_bounds(
+                double_exponential(),
+                lower = 1:20,
+                upper = 1:20,
+                parameters_only = FALSE
+            )
+        )
+        expect_warning(
+            get_bounds(
+                double_exponential(),
+                lower = 1:20,
+                upper = 1:20,
+                parameters_only = TRUE
+            )
+        )
     }
 )
 
@@ -2010,6 +2060,628 @@ test_that(
             list(
                 "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -3, -3, -4, -4, -4),
                 "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4)
+            )
+        )
+    }
+)
+
+test_that(
+    "Check the output of get_bounds: Quasi-hyperbolic discounting",
+    {
+        # One dimension, one predictor
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 1, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 2, 3, 4),
+                "upper" = c(1, 2, 3, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 1, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 2, 3, 4, 5),
+                "upper" = c(1, 2, 3, 4, 5)
+            )
+        )
+
+        # One dimension, two predictors
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 1, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 2, 2, 3, 4),
+                "upper" = c(1, 2, 2, 3, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 1, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 2, 2, 3, 4, 5),
+                "upper" = c(1, 2, 2, 3, 4, 5)
+            )
+        )
+
+        # Two dimension, one predictor
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 3, 4, 4),
+                "upper" = c(1, 1, 2, 2, 3, 3, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5),
+                "upper" = c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 3, 3, 4, 4, 4),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 4, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5)
+            )
+        )
+
+        # Two dimension, two predictors
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 3, 4, 4),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 5, 5),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 5, 5, 5)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                quasi_hyperbolic(d = 2, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5)
+            )
+        )
+    }
+)
+
+test_that(
+    "Check the output of get_bounds: Double exponential discounting",
+    {
+        # One dimension, one predictor
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 1, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 2, 3, 4, 5),
+                "upper" = c(1, 2, 3, 4, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 1, k = 1),
+                lower = -(1:6),
+                upper = 1:6,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 2, 3, 4, 5, 6),
+                "upper" = c(1, 2, 3, 4, 5, 6)
+            )
+        )
+
+        # One dimension, two predictors
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 1, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 2, 2, 3, 4, 5),
+                "upper" = c(1, 2, 2, 3, 4, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 1, k = 2),
+                lower = -(1:6),
+                upper = 1:6,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 2, 2, 3, 4, 5, 6),
+                "upper" = c(1, 2, 2, 3, 4, 5, 6)
+            )
+        )
+
+        # Two dimension, one predictor
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 4, 4, 5, 5),
+                "upper" = c(1, 1, 2, 2, 3, 4, 4, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 1),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6),
+                "upper" = c(1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 1),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6, 6),
+                "upper" = c(1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6, 6)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 1),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6),
+                "upper" = c(1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 1),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6),
+                "upper" = c(1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 1),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 1),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6),
+                "upper" = c(1, 1, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 1),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6),
+                "upper" = c(1, 1, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6)
+            )
+        )
+
+        # Two dimension, two predictors
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 2),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 2),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 6),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 4, 4, 5, 5, 6, 6, 6)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 5, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 2),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 2),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 2),
+                lower = -(1:5),
+                upper = 1:5,
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 2),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                double_exponential(d = 2, k = 2),
+                lower = -(1:6),
+                upper = 1:6,
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = -c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6)
             )
         )
     }

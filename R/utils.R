@@ -779,14 +779,14 @@ count_covariance <- function(d,
 #'   upper = c(1, 100, 0.5, 1)
 #' )
 #' 
-#' @rdname fill
+#' @rdname get_bounds
 #' @export 
 setGeneric(
     "get_bounds",
     function(model, parameters, ...) standardGeneric("get_bounds")
 )
 
-#' @rdname fill
+#' @rdname get_bounds
 #' @export 
 setMethod(
     "get_bounds",
@@ -880,6 +880,217 @@ setMethod(
             bounds <- list(
                 "lower" = c(alpha_lb, beta_lb, gamma_lb),
                 "upper" = c(alpha_ub, beta_ub, gamma_ub)
+            )
+        }
+
+        return(bounds)
+    }
+)
+
+#' @rdname get_bounds
+#' @export 
+setMethod(
+    "get_bounds",
+    "quasi_hyperbolic",
+    function(model,
+             parameters,
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             parameters_only = TRUE,
+             lower = NULL,
+             upper = NULL) {
+
+        # Check whether the bounds are specified by the user, or whether we 
+        # should use the defaults instead
+        if(is.null(lower)) {
+            if(parameters_only) {
+                lower <- c(-1, -5, 0, 0)
+            } else {
+                lower <- c(-1, -5, 0, 0, 10^(-5))
+            }
+        }
+
+        if(is.null(upper)) {
+            if(parameters_only) {
+                upper <- c(1, 5, 1, 1)
+            } else {
+                upper <- c(1, 5, 1, 1, 1)
+            }
+        }
+
+        # Check whether enough lower and upper bounds are provided. If too few,
+        # throw an error. If too many, only use the first few. Note that the 
+        # correct specification depends on whether the bounds of the covariances
+        # are also needed.
+        if(parameters_only) {
+            bounds <- check_bound_length(4, lower, upper)
+
+        } else {
+            bounds <- check_bound_length(5, lower, upper)
+
+        }
+
+        lower <- bounds[[1]]
+        upper <- bounds[[2]]
+        
+        # Extract relevant dimensionalities from the model
+        d <- model@d 
+        k <- model@k
+
+        # Assign the lower and upper bounds to the particular values of the 
+        # parameters, which also depends on the structure of the model.
+        alpha_lb <- rep(lower[1], each = d)
+        alpha_ub <- rep(upper[1], each = d)
+
+        beta_lb <- rep(lower[2], each = d * k)
+        beta_ub <- rep(upper[2], each = d * k)
+
+        repetition <- ifelse(
+            dynamics == "anisotropic",
+            d^2,
+            ifelse(
+                dynamics == "symmetric",
+                d * (d + 1) / 2,
+                ifelse(
+                    dynamics == "isotropic",
+                    d,
+                    stop("Structure of the dynamics is not recognized.")
+                )
+            )
+        )
+
+        nu_lb <- rep(lower[3], each = repetition)
+        nu_ub <- rep(upper[3], each = repetition)
+
+        kappa_lb <- rep(lower[4], each = repetition)
+        kappa_ub <- rep(upper[4], each = repetition)
+
+        # If we need to fill the covariance as well, then do so. Additionally, 
+        # create the list that we will return to the user
+        if(!parameters_only) {
+            v <- get_bounds_covariance(
+                d,
+                lower[5],
+                upper[5],
+                covariance = covariance
+            )
+
+            bounds <- list(
+                "lower" = c(alpha_lb, beta_lb, nu_lb, kappa_lb, v[[1]]),
+                "upper" = c(alpha_ub, beta_ub, nu_ub, kappa_ub, v[[2]])
+            )
+
+        } else {
+            bounds <- list(
+                "lower" = c(alpha_lb, beta_lb, nu_lb, kappa_lb),
+                "upper" = c(alpha_ub, beta_ub, nu_ub, kappa_ub)
+            )
+        }
+
+        return(bounds)
+    }
+)
+
+#' @rdname get_bounds
+#' @export 
+setMethod(
+    "get_bounds",
+    "double_exponential",
+    function(model,
+             parameters,
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             parameters_only = TRUE,
+             lower = NULL,
+             upper = NULL) {
+
+        # Check whether the bounds are specified by the user, or whether we 
+        # should use the defaults instead
+        if(is.null(lower)) {
+            if(parameters_only) {
+                lower <- c(-1, -5, 0, 0, 0)
+            } else {
+                lower <- c(-1, -5, 0, 0, 0, 10^(-5))
+            }
+        }
+
+        if(is.null(upper)) {
+            if(parameters_only) {
+                upper <- c(1, 5, 0.5, 1, 1)
+            } else {
+                upper <- c(1, 5, 0.5, 1, 1, 1)
+            }
+        }
+
+        # Check whether enough lower and upper bounds are provided. If too few,
+        # throw an error. If too many, only use the first few. Note that the 
+        # correct specification depends on whether the bounds of the covariances
+        # are also needed.
+        if(parameters_only) {
+            bounds <- check_bound_length(5, lower, upper)
+
+        } else {
+            bounds <- check_bound_length(6, lower, upper)
+
+        }
+
+        lower <- bounds[[1]]
+        upper <- bounds[[2]]
+        
+        # Extract relevant dimensionalities from the model
+        d <- model@d 
+        k <- model@k
+
+        # Assign the lower and upper bounds to the particular values of the 
+        # parameters, which also depends on the structure of the model.
+        alpha_lb <- rep(lower[1], each = d)
+        alpha_ub <- rep(upper[1], each = d)
+
+        beta_lb <- rep(lower[2], each = d * k)
+        beta_ub <- rep(upper[2], each = d * k)
+
+        repetition <- ifelse(
+            dynamics == "anisotropic",
+            d^2,
+            ifelse(
+                dynamics == "symmetric",
+                d * (d + 1) / 2,
+                ifelse(
+                    dynamics == "isotropic",
+                    d,
+                    stop("Structure of the dynamics is not recognized.")
+                )
+            )
+        )
+
+        omega_lb <- lower[3]
+        omega_ub <- upper[3]
+
+        gamma_lb <- rep(lower[4], each = repetition)
+        gamma_ub <- rep(upper[4], each = repetition)
+
+        nu_lb <- rep(lower[5], each = repetition)
+        nu_ub <- rep(upper[5], each = repetition)
+
+        # If we need to fill the covariance as well, then do so. Additionally, 
+        # create the list that we will return to the user
+        if(!parameters_only) {
+            v <- get_bounds_covariance(
+                d,
+                lower[6],
+                upper[6],
+                covariance = covariance
+            )
+
+            bounds <- list(
+                "lower" = c(alpha_lb, beta_lb, omega_lb, gamma_lb, nu_lb, v[[1]]),
+                "upper" = c(alpha_ub, beta_ub, omega_ub, gamma_ub, nu_ub, v[[2]])
+            )
+
+        } else {
+            bounds <- list(
+                "lower" = c(alpha_lb, beta_lb, omega_lb, gamma_lb, nu_lb),
+                "upper" = c(alpha_ub, beta_ub, omega_ub, gamma_ub, nu_ub)
             )
         }
 
