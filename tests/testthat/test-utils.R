@@ -1599,3 +1599,418 @@ test_that(
         )
     }
 )
+
+
+
+################################################################################
+# GET_BOUNDS
+
+test_that(
+    "Test known errors for get_bounds and get_bounds_covariance",
+    {
+        # Dynamics not defined
+        expect_error(get_bounds(exponential(), dynamics = "test"))
+        expect_error(get_bounds(quasi_hyperbolic(), dynamics = "test"))
+        expect_error(get_bounds(double_exponential(), dynamics = "test"))
+
+        # Covariance not defined
+        expect_error(get_bounds(exponential(), covariance = "test", parameters_only = FALSE))
+        expect_error(get_bounds_covariance(2, covariance = "test"))
+
+        # Too few parameters
+        expect_error(
+            get_bounds(
+                exponential(),
+                lower = 1:2, 
+                upper = 1:2,
+                dynamics = "anisotropic"
+            )
+        )
+        expect_error(
+            get_bounds(
+                exponential(),
+                lower = 1:2, 
+                upper = 1:2,
+                parameters_only = FALSE
+            )
+        )
+        expect_error(
+            get_bounds(
+                quasi_hyperbolic(),
+                lower = 1:2, 
+                upper = 1:2,
+                dynamics = "anisotropic"
+            )
+        )
+        expect_error(
+            get_bounds(
+                quasi_hyperbolic(),
+                lower = 1:2, 
+                upper = 1:2,
+                parameters_only = FALSE
+            )
+        )
+        expect_error(
+            get_bounds(
+                double_exponential(),
+                lower = 1:2, 
+                upper = 1:2,
+                dynamics = "anisotropic"
+            )
+        )
+        expect_error(
+            get_bounds(
+                double_exponential(),
+                lower = 1:2, 
+                upper = 1:2,
+                parameters_only = FALSE
+            )
+        )
+    }
+)
+
+test_that(
+    "Test known warnings for get_bounds and get_bounds_covariance",
+    {
+
+    }
+)
+
+test_that(
+    "Check the output of get_bounds_covariance",
+    {
+        expect_equal(
+            get_bounds_covariance(1, 0, 1),
+            list(0, 1)
+        )
+
+        expect_equal(
+            get_bounds_covariance(2, 0, 1, covariance = "symmetric"),
+            list(rep(0, 3), rep(1, 3))
+        )
+        expect_equal(
+            get_bounds_covariance(2, 0, 1, covariance = "isotropic"),
+            list(rep(0, 2), rep(1, 2))
+        )
+
+        expect_equal(
+            get_bounds_covariance(3, 0, 1, covariance = "symmetric"),
+            list(rep(0, 6), rep(1, 6))
+        )
+        expect_equal(
+            get_bounds_covariance(3, 0, 1, covariance = "isotropic"),
+            list(rep(0, 3), rep(1, 3))
+        )
+    }
+)
+
+test_that(
+    "Check the output of get_bounds: Exponential discounting",
+    {
+        # One dimension, one predictor
+        expect_equal(
+            get_bounds(
+                exponential(d = 1, k = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -2, -3),
+                "upper" = c(1, 2, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 1, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -2, -3, -4),
+                "upper" = c(1, 2, 3, 4)
+            )
+        )
+
+        # One dimension, two predictors
+        expect_equal(
+            get_bounds(
+                exponential(d = 1, k = 2),
+                lower = -(1:3),
+                upper = 1:3,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -2, -2, -3),
+                "upper" = c(1, 2, 2, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 1, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -2, -2, -3, -4),
+                "upper" = c(1, 2, 2, 3, 4)
+            )
+        )
+
+        # Two dimension, one predictor
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3),
+                "upper" = c(1, 1, 2, 2, 3, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3, -4, -4),
+                "upper" = c(1, 1, 2, 2, 3, 3, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3, -4, -4, -4),
+                "upper" = c(1, 1, 2, 2, 3, 3, 4, 4, 4)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3, -3),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3, -3, -4, -4),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3, -3, -4, -4, -4),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 4, 4, 4)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3, -3, -3),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3, -3, -3, -4, -4),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 3, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 1),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3, -3, -3, -4, -4, -4),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4)
+            )
+        )
+
+        # Two dimension, two predictors
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 2),
+                lower = -(1:3),
+                upper = 1:3,
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -4, -4),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -4, -4, -4),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 4)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 2),
+                lower = -(1:3),
+                upper = 1:3,
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -3),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -3, -4, -4),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -3, -4, -4, -4),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4)
+            )
+        )
+
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 2),
+                lower = -(1:3),
+                upper = 1:3,
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -3, -3),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -3, -3, -4, -4),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                exponential(d = 2, k = 2),
+                lower = -(1:4),
+                upper = 1:4,
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -3, -3, -4, -4, -4),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4)
+            )
+        )
+    }
+)

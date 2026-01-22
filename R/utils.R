@@ -718,3 +718,280 @@ count_covariance <- function(d,
 
     return(n)
 }
+
+
+
+################################################################################
+# GET_BOUNDS
+
+#' Get bounds of the parameters of a model
+#' 
+#' @param model Instance of the \code{\link[discounting]{model-class}}.
+#' @param dynamics Character denoting the structure of the dynamical matrices.
+#' Can either be \code{"anisotropic"} (completely free), \code{"symmetric"}
+#' (symmetric around the diagonal), and \code{"isotropic"} (diagonal). Note that
+#' this influences different parameters for different models, namely 
+#' \eqn{\Gamma} for the exponential discounting model, \eqn{N} and \eqn{K} for
+#' the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
+#' double-exponential discounting model. Defaults to \code{"isotropic"}.
+#' @param covariance Character denoting the structure of the covariance matrix.
+#' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
+#' @param parameters_only Logical denoting whether to only fill the 
+#' parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
+#' fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.
+#' @param lower Numeric vector of the same length as the substantive parameters
+#' in the model, denoting the lower bounds for each one. For the exponential
+#' discounting model, for example, a value of `c(0, 0, 0, 0)` would denote a 
+#' minimal value of 0 for all values in \eqn{\bm{\alpha}}, \eqn{B}, \eqn{\Gamma},
+#' and \eqn{\Sigma}. Defaults depend on the model itself and have been chosen 
+#' while accounting for natural bounds in the data used in this project. Note
+#' that if \code{parameters_only = TRUE}, there is no need to specify a bound 
+#' for the covariances.
+#' @param upper Numeric vector that functions the same as \code{lower}, but 
+#' specifying the upper bounds instead.
+#' @param ... Additional arguments passed on to the methods.
+#' 
+#' @return Named list containing numeric vectors denoting the lower and upper 
+#' bounds for the parameters (under \code{"lower"} and \code{"upper"} resp.).
+#' The order maintained in this 
+#' 
+#' @examples 
+#' # Create an empty instance of the exponential discounting model
+#' my_model <- exponential()
+#' 
+#' # Get the bounds for the model
+#' get_bounds(
+#'   my_model,
+#'   dynamics = "anisotropic",
+#'   covariance = "isotropic",
+#'   parameters_only = FALSE
+#' )
+#' 
+#' # Get the bounds for the model when specifying your personal lower and upper
+#' # bounds
+#' get_bounds(
+#'   my_model,
+#'   dynamics = "anisotropic",
+#'   covariance = "isotropic",
+#'   parameters_only = FALSE,
+#'   lower = c(0, -100, 0, 0.01),
+#'   upper = c(1, 100, 0.5, 1)
+#' )
+#' 
+#' @rdname fill
+#' @export 
+setGeneric(
+    "get_bounds",
+    function(model, parameters, ...) standardGeneric("get_bounds")
+)
+
+#' @rdname fill
+#' @export 
+setMethod(
+    "get_bounds",
+    "exponential",
+    function(model,
+             parameters,
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             parameters_only = TRUE,
+             lower = NULL,
+             upper = NULL) {
+
+        # Check whether the bounds are specified by the user, or whether we 
+        # should use the defaults instead
+        if(is.null(lower)) {
+            if(parameters_only) {
+                lower <- c(-1, -5, 0)
+            } else {
+                lower <- c(-1, -5, 0, 10^(-5))
+            }
+        }
+
+        if(is.null(upper)) {
+            if(parameters_only) {
+                upper <- c(1, 5, 1)
+            } else {
+                upper <- c(1, 5, 1, 1)
+            }
+        }
+
+        # Check whether enough lower and upper bounds are provided. If too few,
+        # throw an error. If too many, only use the first few. Note that the 
+        # correct specification depends on whether the bounds of the covariances
+        # are also needed.
+        if(parameters_only) {
+            bounds <- check_bound_length(3, lower, upper)
+
+        } else {
+            bounds <- check_bound_length(4, lower, upper)
+
+        }
+
+        lower <- bounds[[1]]
+        upper <- bounds[[2]]
+        
+        # Extract relevant dimensionalities from the model
+        d <- model@d 
+        k <- model@k
+
+        # Assign the lower and upper bounds to the particular values of the 
+        # parameters, which also depends on the structure of the model.
+        alpha_lb <- rep(lower[1], each = d)
+        alpha_ub <- rep(upper[1], each = d)
+
+        beta_lb <- rep(lower[2], each = d * k)
+        beta_ub <- rep(upper[2], each = d * k)
+
+        repetition <- ifelse(
+            dynamics == "anisotropic",
+            d^2,
+            ifelse(
+                dynamics == "symmetric",
+                d * (d + 1) / 2,
+                ifelse(
+                    dynamics == "isotropic",
+                    d,
+                    stop("Structure of the dynamics is not recognized.")
+                )
+            )
+        )
+
+        gamma_lb <- rep(lower[3], each = repetition)
+        gamma_ub <- rep(upper[3], each = repetition)
+
+        # If we need to fill the covariance as well, then do so. Additionally, 
+        # create the list that we will return to the user
+        if(!parameters_only) {
+            v <- get_bounds_covariance(
+                d,
+                lower[4],
+                upper[4],
+                covariance = covariance
+            )
+
+            bounds <- list(
+                "lower" = c(alpha_lb, beta_lb, gamma_lb, v[[1]]),
+                "upper" = c(alpha_ub, beta_ub, gamma_ub, v[[2]])
+            )
+
+        } else {
+            bounds <- list(
+                "lower" = c(alpha_lb, beta_lb, gamma_lb),
+                "upper" = c(alpha_ub, beta_ub, gamma_ub)
+            )
+        }
+
+        return(bounds)
+    }
+)
+
+#' Get bounds for the parameters in the covariance matrix
+#' 
+#' @param d Integer denoting the dimensionality of the model.
+#' @param lower,upper Numeric value containing the value of the lower and 
+#' upper bounds for the covariance matrix.
+#' @param covariance Character denoting the structure of the covariance matrix.
+#' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
+#' 
+#' @return List containing two numeric vectors of lower and upper bounds for the 
+#' covariance matrix in that order.
+#' 
+#' @examples 
+#' count_covariance(
+#'   2, 
+#'   0,
+#'   1,
+#'   covariance = "symmetric"
+#' )
+#' 
+#' count_covariance(
+#'   2,
+#'   0, 
+#'   1,
+#'   covariance = "isotropic"
+#' )
+#' 
+#' @rdname get_bounds_covariance
+#' @export 
+get_bounds_covariance <- function(d, 
+                                  lower,
+                                  upper,
+                                  covariance = "symmetric") {
+
+    # Dispatch on structure
+    if(covariance == "symmetric") {
+        bounds <- list(
+            rep(lower, each = d * (d + 1) / 2),
+            rep(upper, each = d * (d + 1) / 2)
+        )
+
+    } else if(covariance == "isotropic") {
+        bounds <- list(
+            rep(lower, each = d),
+            rep(upper, each = d)
+        )
+
+    } else {
+        stop(
+            paste(
+                "Structure for covariance is not know.",
+                "Please use \"isotropic\" or \"symmetric\"."
+            )
+        )
+    }
+
+    return(bounds)
+}
+
+#' Check performed within the \code{\link[discounting]{get_bounds}} function
+#' 
+#' @param n Integer denoting the needed length of the bounds
+#' @param lower,upper Numeric vector containing the user-specified lower and 
+#' upper bounds for which the length should be checked.
+#' 
+#' @return List containing the corrected lower and upper bounds (in that order)
+#' 
+#' @rdname check_bound_length
+#' @internal
+check_bound_length <- function(n, 
+                               lower, 
+                               upper){
+
+    # If there are fewer than n values in lower or upper, we should throw an 
+    # error
+    if(length(lower) < n | length(upper) < n) {
+        stop(
+            paste(
+                "Too few values for the lower and/or upper bound are given.",
+                "To proceed, please specify",
+                n, 
+                "values for \"lower\" and \"upper\"."
+            )
+        )
+
+    # If there are more than n values, we throw a warning and change the values
+    # of lower and upper
+    } else if(length(lower) > n | length(upper) > n) {
+        warning(
+            paste(
+                "Too many values for the lower and/or upper bounds are given.",
+                "Only using the first",
+                n,
+                "values."
+            )
+        )
+
+        lower <- lower[1:n]
+        upper <- upper[1:n]
+    }
+
+    return(
+        list(
+            lower, 
+            upper
+        )
+    )
+}
