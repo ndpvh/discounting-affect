@@ -7,25 +7,28 @@
 quasi_hyperbolic(
   d = NA,
   k = NA,
-  parameters = list(alpha = 0, beta = matrix(0, nrow = 1, ncol = 1), nu = matrix(0, nrow
-    = 1, ncol = 1), kappa = matrix(0, nrow = 1, ncol = 1)),
-  covariance = matrix(0, nrow = 1, ncol = 1),
+  parameters = NULL,
+  covariance = NULL,
   cholesky = FALSE
 )
 }
 \arguments{
 \item{d}{Integer denoting the number of dimensions of the model. Defaults to 
-\code{NA}, in which case this dimensionality is inferred from the parameters.}
+\code{NA}, in which case this dimensionality is inferred from the parameters.
+Note that if \code{d} and \code{k} are both defined while \code{parameters}
+is left unspecified, then the model will automatically create an empty 
+model of the specified dimensionality.}
 
 \item{k}{Integer denoting the number of independent variables. Defaults to 
 \code{NA}, in which case this dimensionality is inferred from the parameters.}
 
 \item{parameters}{List containing the parameters relevant to a particular 
-model instance. Defaults to an empty model with \eqn{d = 1} and \eqn{k = 1}.}
+model instance. Defaults to \code{NULL}, creating an empty model with 
+\eqn{d = 1} and \eqn{k = 1} (unless \code{d} and \code{k} are specified).}
 
 \item{covariance}{Numeric matrix denoting the residual covariance of the 
-model. Default to a matrix of \code{0}s with the dimensionality implied by 
-\code{d}.}
+model. Default to \code{NULL}, creating a matrix of \code{0}s with the 
+dimensionality implied by \code{d}.}
 
 \item{cholesky}{Logical denoting whether \code{covariance} is a 
 lower-triangular decomposition matrix instead of an actual covariance matrix.
@@ -130,6 +133,11 @@ quasi_hyperbolic(
     "kappa" = diag(2) * 0.75
   ),
   covariance = diag(2)
+)
+
+quasi_hyperbolic(
+  d = 2,
+  k = 2
 )
 
 }
