@@ -2960,3 +2960,461 @@ test_that(
         )
     }
 )
+
+test_that(
+    "Check output of parameter_names: Quasi-hyperbolic discounting model",
+    {
+        # One dimension, one predictor
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 1, k = 1),
+                parameters_only = TRUE
+            ),
+            c("alpha_1", "beta_11", "nu_11", "kappa_11")
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 1, k = 1),
+                parameters_only = FALSE
+            ),
+            c("alpha_1", "beta_11", "nu_11", "kappa_11", "sigma_11")
+        )
+
+        # One dimension, two predictors
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 1, k = 2),
+                parameters_only = TRUE
+            ),
+            c("alpha_1", "beta_11", "beta_12", "nu_11", "kappa_11")
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 1, k = 2),
+                parameters_only = FALSE
+            ),
+            c("alpha_1", "beta_11", "beta_12", "nu_11", "kappa_11", "sigma_11")
+        )
+
+        # Two dimensions, one predictor
+        iso <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", 
+            "nu_11", "nu_22", "kappa_11", "kappa_22"
+        )
+        sym <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", 
+            "nu_11", "nu_21", "nu_22", "kappa_11", "kappa_21", "kappa_22"
+        )
+        ani <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", 
+            "nu_11", "nu_21", "nu_12", "nu_22",
+            "kappa_11", "kappa_21", "kappa_12", "kappa_22"
+        )
+
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 1),
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            iso
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 1),
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(iso, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 1),
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(iso, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 1),
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            sym
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 1),
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(sym, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 1),
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(sym, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 1),
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            ani
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 1),
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(ani, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 1),
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(ani, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        # Two dimensions, two predictors
+        iso <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", "beta_12", "beta_22",
+            "nu_11", "nu_22", "kappa_11", "kappa_22"
+        )
+        sym <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", "beta_12", "beta_22",
+            "nu_11", "nu_21", "nu_22", "kappa_11", "kappa_21", "kappa_22"
+        )
+        ani <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", "beta_12", "beta_22",
+            "nu_11", "nu_21", "nu_12", "nu_22",
+            "kappa_11", "kappa_21", "kappa_12", "kappa_22"
+        )
+
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 2),
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            iso
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 2),
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(iso, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 2),
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(iso, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 2),
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            sym
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 2),
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(sym, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 2),
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(sym, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 2),
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            ani
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 2),
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(ani, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                quasi_hyperbolic(d = 2, k = 2),
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(ani, "sigma_11", "sigma_21", "sigma_22")
+        )
+    }
+)
+
+test_that(
+    "Check output of parameter_names: Double exponential discounting model",
+    {
+        # One dimension, one predictor
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 1, k = 1),
+                parameters_only = TRUE
+            ),
+            c("alpha_1", "beta_11", "omega", "gamma_11", "nu_11")
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 1, k = 1),
+                parameters_only = FALSE
+            ),
+            c("alpha_1", "beta_11", "omega", "gamma_11", "nu_11", "sigma_11")
+        )
+
+        # One dimension, two predictors
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 1, k = 2),
+                parameters_only = TRUE
+            ),
+            c("alpha_1", "beta_11", "beta_12", "omega", "gamma_11", "nu_11")
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 1, k = 2),
+                parameters_only = FALSE
+            ),
+            c("alpha_1", "beta_11", "beta_12", "omega", "gamma_11", "nu_11", "sigma_11")
+        )
+
+        # Two dimensions, one predictor
+        iso <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", "omega",
+            "gamma_11", "gamma_22", "nu_11", "nu_22"
+        )
+        sym <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", "omega", 
+            "gamma_11", "gamma_21", "gamma_22", "nu_11", "nu_21", "nu_22"
+        )
+        ani <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", "omega", 
+            "gamma_11", "gamma_21", "gamma_12", "gamma_22",
+            "nu_11", "nu_21", "nu_12", "nu_22"
+        )
+
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 1),
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            iso
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 1),
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(iso, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 1),
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(iso, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 1),
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            sym
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 1),
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(sym, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 1),
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(sym, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 1),
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            ani
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 1),
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(ani, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 1),
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(ani, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        # Two dimensions, two predictors
+        iso <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", "beta_12", "beta_22",
+            "omega", "gamma_11", "gamma_22", "nu_11", "nu_22"
+        )
+        sym <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", "beta_12", "beta_22",
+            "omega", "gamma_11", "gamma_21", "gamma_22", "nu_11", "nu_21", "nu_22"
+        )
+        ani <- c(
+            "alpha_1", "alpha_2", "beta_11", "beta_21", "beta_12", "beta_22",
+            "omega", "gamma_11", "gamma_21", "gamma_12", "gamma_22",
+            "nu_11", "nu_21", "nu_12", "nu_22"
+        )
+
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 2),
+                dynamics = "isotropic",
+                parameters_only = TRUE
+            ),
+            iso
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 2),
+                dynamics = "isotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(iso, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 2),
+                dynamics = "isotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(iso, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 2),
+                dynamics = "symmetric",
+                parameters_only = TRUE
+            ),
+            sym
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 2),
+                dynamics = "symmetric",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(sym, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 2),
+                dynamics = "symmetric",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(sym, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 2),
+                dynamics = "anisotropic",
+                parameters_only = TRUE
+            ),
+            ani
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 2),
+                dynamics = "anisotropic",
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(ani, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                double_exponential(d = 2, k = 2),
+                dynamics = "anisotropic",
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(ani, "sigma_11", "sigma_21", "sigma_22")
+        )
+    }
+)

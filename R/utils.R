@@ -1349,6 +1349,227 @@ setMethod(
     }
 )
 
+#' @rdname parameter_names
+#' @export 
+setMethod(
+    "parameter_names",
+    "quasi_hyperbolic",
+    function(model,
+             dynamics = "isotropic", 
+             covariance = "symmetric",
+             parameters_only = TRUE) {
+        
+        # Get the dimensionality of the model
+        d <- model@d 
+        k <- model@k 
+
+        # Generate the names for "alpha"
+        alpha <- paste(
+            "alpha_",
+            1:d, 
+            sep = ""
+        )
+
+        # Generate the names for "beta"
+        rows <- matrix(1:d, nrow = d, ncol = k) |>
+            as.numeric()
+        columns <- matrix(1:k, nrow = d, ncol = k, byrow = TRUE) |>
+            as.numeric()
+
+        beta <- paste(
+            "beta_", 
+            rows, 
+            columns,
+            sep = ""
+        )
+
+        # Generate the names for "nu" and "kappa". Here, we need to take the 
+        # structure of the matrix into account
+        rows <- matrix(1:d, nrow = d, ncol = d)
+        columns <- matrix(1:d, nrow = d, ncol = d, byrow = TRUE) 
+
+        if(dynamics == "isotropic") {
+            nu <- paste(
+                "nu_",
+                1:d,
+                1:d,
+                sep = ""
+            )
+            kappa <- paste(
+                "kappa_",
+                1:d,
+                1:d,
+                sep = ""
+            )
+
+        } else if(dynamics == "symmetric") {
+            nu <- paste(
+                "nu_",
+                rows[lower.tri(rows, diag = TRUE)],
+                columns[lower.tri(columns, diag = TRUE)],
+                sep = ""
+            )
+            kappa <- paste(
+                "kappa_",
+                rows[lower.tri(rows, diag = TRUE)],
+                columns[lower.tri(columns, diag = TRUE)],
+                sep = ""
+            )
+
+        } else if(dynamics == "anisotropic") {
+            nu <- paste(
+                "nu_",
+                as.numeric(rows),
+                as.numeric(columns),
+                sep = ""
+            )
+            kappa <- paste(
+                "kappa_",
+                as.numeric(rows),
+                as.numeric(columns),
+                sep = ""
+            )
+
+        } else {
+            stop(
+                paste(
+                    "Structure for the forgetting matrices is not know.",
+                    "Please use \"isotropic\", \"symmetric\", or \"anisotropic\"."
+                )
+            )
+
+        }
+
+        # Check whether the covariances should be given a name as well.
+        if(parameters_only) {
+            names <- c(alpha, beta, nu, kappa)
+
+        } else {
+            names <- c(
+                alpha, 
+                beta,
+                nu,
+                kappa,
+                parameter_names_covariance(d, covariance = covariance)
+            )
+
+        }
+
+        return(names)        
+    }
+)
+
+#' @rdname parameter_names
+#' @export 
+setMethod(
+    "parameter_names",
+    "double_exponential",
+    function(model,
+             dynamics = "isotropic", 
+             covariance = "symmetric",
+             parameters_only = TRUE) {
+        
+        # Get the dimensionality of the model
+        d <- model@d 
+        k <- model@k 
+
+        # Generate the names for "alpha"
+        alpha <- paste(
+            "alpha_",
+            1:d, 
+            sep = ""
+        )
+
+        # Generate the names for "beta"
+        rows <- matrix(1:d, nrow = d, ncol = k) |>
+            as.numeric()
+        columns <- matrix(1:k, nrow = d, ncol = k, byrow = TRUE) |>
+            as.numeric()
+
+        beta <- paste(
+            "beta_", 
+            rows, 
+            columns,
+            sep = ""
+        )
+
+        # Generate the names for "nu" and "kappa". Here, we need to take the 
+        # structure of the matrix into account
+        rows <- matrix(1:d, nrow = d, ncol = d)
+        columns <- matrix(1:d, nrow = d, ncol = d, byrow = TRUE) 
+
+        if(dynamics == "isotropic") {
+            gamma <- paste(
+                "gamma_",
+                1:d,
+                1:d,
+                sep = ""
+            )
+            nu <- paste(
+                "nu_",
+                1:d,
+                1:d,
+                sep = ""
+            )
+
+        } else if(dynamics == "symmetric") {
+            gamma <- paste(
+                "gamma_",
+                rows[lower.tri(rows, diag = TRUE)],
+                columns[lower.tri(columns, diag = TRUE)],
+                sep = ""
+            )
+            nu <- paste(
+                "nu_",
+                rows[lower.tri(rows, diag = TRUE)],
+                columns[lower.tri(columns, diag = TRUE)],
+                sep = ""
+            )
+
+        } else if(dynamics == "anisotropic") {
+            gamma <- paste(
+                "gamma_",
+                as.numeric(rows),
+                as.numeric(columns),
+                sep = ""
+            )
+            nu <- paste(
+                "nu_",
+                as.numeric(rows),
+                as.numeric(columns),
+                sep = ""
+            )
+
+        } else {
+            stop(
+                paste(
+                    "Structure for the forgetting matrices is not know.",
+                    "Please use \"isotropic\", \"symmetric\", or \"anisotropic\"."
+                )
+            )
+
+        }
+
+        # Check whether the covariances should be given a name as well.
+        if(parameters_only) {
+            names <- c(alpha, beta, "omega", gamma, nu)
+
+        } else {
+            names <- c(
+                alpha, 
+                beta,
+                "omega",
+                gamma,
+                nu,
+                parameter_names_covariance(d, covariance = covariance)
+            )
+
+        }
+
+        return(names)        
+    }
+)
+
 #' Get the names for the parameters in the covariance matrix
 #' 
 #' @param d Integer denoting the dimensionality of the model.
