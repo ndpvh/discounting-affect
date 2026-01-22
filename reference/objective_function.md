@@ -11,7 +11,7 @@ least-squares procedure.
 objective_function(model, data, parameters, ...)
 
 # S4 method for class 'model,dataset'
-objective_function(model, data, parameters)
+objective_function(model, data, parameters, dynamics = "isotropic")
 ```
 
 ## Arguments
