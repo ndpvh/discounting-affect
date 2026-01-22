@@ -46,6 +46,9 @@
 - [`fit()`](https://github.com/ndpvh/discounting-affect/reference/fit.md)
   : Fit a model to data
 
+- [`generate_parameters()`](https://github.com/ndpvh/discounting-affect/reference/generate_parameters.md)
+  : Generate model parameters
+
 - [`get_bounds()`](https://github.com/ndpvh/discounting-affect/reference/get_bounds.md)
   : Get bounds of the parameters of a model
 
@@ -83,6 +86,9 @@
 
   Constructor for the
   [`quasi_hyperbolic-class`](https://rdrr.io/pkg/discounting/man/quasi_hyperbolic-class.html)
+
+- [`recovery()`](https://github.com/ndpvh/discounting-affect/reference/recovery.md)
+  : Simulate and estimate a model
 
 - [`simulate(`*`<model>`*`)`](https://github.com/ndpvh/discounting-affect/reference/simulate.md)
   : Method for simulating from a model
