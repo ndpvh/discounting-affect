@@ -14,5 +14,6 @@
 #' @import nloptr
 #' @importFrom methods new
 #' @importFrom utils head
+#' @importFrom stats cov runif var
 ## usethis namespace: end
 NULL
