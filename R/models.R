@@ -398,13 +398,17 @@ setClass(
 #' 
 #' @param d Integer denoting the number of dimensions of the model. Defaults to 
 #' \code{NA}, in which case this dimensionality is inferred from the parameters.
+#' Note that if \code{d} and \code{k} are both defined while \code{parameters}
+#' is left unspecified, then the model will automatically create an empty 
+#' model of the specified dimensionality.
 #' @param k Integer denoting the number of independent variables. Defaults to 
 #' \code{NA}, in which case this dimensionality is inferred from the parameters.
 #' @param parameters List containing the parameters relevant to a particular 
-#' model instance. Defaults to an empty model with \eqn{d = 1} and \eqn{k = 1}.
+#' model instance. Defaults to \code{NULL}, creating an empty model with 
+#' \eqn{d = 1} and \eqn{k = 1} (unless \code{d} and \code{k} are specified).
 #' @param covariance Numeric matrix denoting the residual covariance of the 
-#' model. Default to a matrix of \code{0}s with the dimensionality implied by 
-#' \code{d}.
+#' model. Default to \code{NULL}, creating a matrix of \code{0}s with the 
+#' dimensionality implied by \code{d}.
 #' @param cholesky Logical denoting whether \code{covariance} is a 
 #' lower-triangular decomposition matrix instead of an actual covariance matrix.
 #' Defaults to \code{FALSE}.
@@ -423,6 +427,11 @@ setClass(
 #'   covariance = diag(2)
 #' )
 #' 
+#' exponential(
+#'   d = 2,
+#'   k = 2
+#' )
+#' 
 #' @seealso 
 #' \code{\link[discounting]{model-class}}
 #' \code{\link[discounting]{exponential-class}}
@@ -430,14 +439,48 @@ setClass(
 #' @export 
 exponential <- function(d = NA, 
                         k = NA,
-                        parameters = list(
-                            "alpha" = 0,
-                            "beta" = matrix(0, nrow = 1, ncol = 1),
-                            "gamma" = matrix(0, nrow = 1, ncol = 1)
-                        ), 
-                        covariance = matrix(0, nrow = 1, ncol = 1),
+                        parameters = NULL, 
+                        covariance = NULL,
                         cholesky = FALSE) {
+
+    # If the parameters and covariances are NULL, and if the dimensionalities
+    # are provided, then we return an empty exponential model of the speciifed
+    # size.
+    if(!is.na(d) & !is.na(k) & is.null(parameters) & is.null(covariance)) {
+        # Create a new model and change its class to exponential. This ensures some
+        # additional checks are performed
+        .Object <- model(
+            d = d,
+            k = k,
+            n = d + d * k + d^2 + d * (d + 1) / 2,
+            parameters = list(
+                "alpha" = numeric(d),
+                "beta" = matrix(0, nrow = d, ncol = k),
+                "gamma" = matrix(0, nrow = d, ncol = d)
+            ),
+            covariance = matrix(0, nrow = d, ncol = d)
+        )
+        class(.Object) <- "exponential"
+
+        return(.Object)
+    }
         
+    # Check if the parameters are NULL. If so, then we invoke the default 
+    # parameter set
+    if(is.null(parameters)) {
+        parameters <- list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1),
+            "gamma" = matrix(0, nrow = 1, ncol = 1)
+        )
+    }
+
+    # Check if the covariances are NULL. If so, then we invoke the default 
+    # covariances
+    if(is.null(covariance)) {
+        covariance <- matrix(0, nrow = 1, ncol = 1)
+    }
+
     # Check whether all parameters are defined in the list of parameters
     if(!all(c("alpha", "beta", "gamma") %in% names(parameters))) {
         stop(
@@ -672,13 +715,17 @@ setClass(
 #' 
 #' @param d Integer denoting the number of dimensions of the model. Defaults to 
 #' \code{NA}, in which case this dimensionality is inferred from the parameters.
+#' Note that if \code{d} and \code{k} are both defined while \code{parameters}
+#' is left unspecified, then the model will automatically create an empty 
+#' model of the specified dimensionality.
 #' @param k Integer denoting the number of independent variables. Defaults to 
 #' \code{NA}, in which case this dimensionality is inferred from the parameters.
 #' @param parameters List containing the parameters relevant to a particular 
-#' model instance. Defaults to an empty model with \eqn{d = 1} and \eqn{k = 1}.
+#' model instance. Defaults to \code{NULL}, creating an empty model with 
+#' \eqn{d = 1} and \eqn{k = 1} (unless \code{d} and \code{k} are specified).
 #' @param covariance Numeric matrix denoting the residual covariance of the 
-#' model. Default to a matrix of \code{0}s with the dimensionality implied by 
-#' \code{d}.
+#' model. Default to \code{NULL}, creating a matrix of \code{0}s with the 
+#' dimensionality implied by \code{d}.
 #' @param cholesky Logical denoting whether \code{covariance} is a 
 #' lower-triangular decomposition matrix instead of an actual covariance matrix.
 #' Defaults to \code{FALSE}.
@@ -698,6 +745,11 @@ setClass(
 #'   covariance = diag(2)
 #' )
 #' 
+#' quasi_hyperbolic(
+#'   d = 2,
+#'   k = 2
+#' )
+#' 
 #' @seealso 
 #' \code{\link[discounting]{model-class}}
 #' \code{\link[discounting]{exponential-class}}
@@ -706,14 +758,49 @@ setClass(
 #' @export 
 quasi_hyperbolic <- function(d = NA, 
                              k = NA,
-                             parameters = list(
-                                 "alpha" = 0,
-                                 "beta" = matrix(0, nrow = 1, ncol = 1),
-                                 "nu" = matrix(0, nrow = 1, ncol = 1),
-                                 "kappa" = matrix(0, nrow = 1, ncol = 1)
-                             ), 
-                             covariance = matrix(0, nrow = 1, ncol = 1),
+                             parameters = NULL, 
+                             covariance = NULL,
                              cholesky = FALSE) {
+
+    # If the parameters and covariances are NULL, and if the dimensionalities
+    # are provided, then we return an empty exponential model of the speciifed
+    # size.
+    if(!is.na(d) & !is.na(k) & is.null(parameters) & is.null(covariance)) {
+        # Create a new model and change its class to exponential. This ensures some
+        # additional checks are performed
+        .Object <- model(
+            d = d,
+            k = k,
+            n = d + d * k + 2 * d^2 + d * (d + 1) / 2,
+            parameters = list(
+                "alpha" = numeric(d),
+                "beta" = matrix(0, nrow = d, ncol = k),
+                "nu" = matrix(0, nrow = d, ncol = d),
+                "kappa" = matrix(0, nrow = d, ncol = d)
+            ),
+            covariance = matrix(0, nrow = d, ncol = d)
+        )
+        class(.Object) <- "quasi_hyperbolic"
+
+        return(.Object)
+    }
+        
+    # Check if the parameters are NULL. If so, then we invoke the default 
+    # parameter set
+    if(is.null(parameters)) {
+        parameters <- list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1),
+            "nu" = matrix(0, nrow = 1, ncol = 1),
+            "kappa" = matrix(0, nrow = 1, ncol = 1)
+        )
+    }
+
+    # Check if the covariances are NULL. If so, then we invoke the default 
+    # covariances
+    if(is.null(covariance)) {
+        covariance <- matrix(0, nrow = 1, ncol = 1)
+    }
         
     # Check whether all parameters are defined in the list of parameters
     if(!all(c("alpha", "beta", "nu", "kappa") %in% names(parameters))) {
@@ -951,13 +1038,17 @@ setClass(
 #' 
 #' @param d Integer denoting the number of dimensions of the model. Defaults to 
 #' \code{NA}, in which case this dimensionality is inferred from the parameters.
+#' Note that if \code{d} and \code{k} are both defined while \code{parameters}
+#' is left unspecified, then the model will automatically create an empty 
+#' model of the specified dimensionality.
 #' @param k Integer denoting the number of independent variables. Defaults to 
 #' \code{NA}, in which case this dimensionality is inferred from the parameters.
 #' @param parameters List containing the parameters relevant to a particular 
-#' model instance. Defaults to an empty model with \eqn{d = 1} and \eqn{k = 1}.
+#' model instance. Defaults to \code{NULL}, creating an empty model with 
+#' \eqn{d = 1} and \eqn{k = 1} (unless \code{d} and \code{k} are specified).
 #' @param covariance Numeric matrix denoting the residual covariance of the 
-#' model. Default to a matrix of \code{0}s with the dimensionality implied by 
-#' \code{d}.
+#' model. Default to \code{NULL}, creating a matrix of \code{0}s with the 
+#' dimensionality implied by \code{d}.
 #' @param cholesky Logical denoting whether \code{covariance} is a 
 #' lower-triangular decomposition matrix instead of an actual covariance matrix.
 #' Defaults to \code{FALSE}.
@@ -978,6 +1069,11 @@ setClass(
 #'   covariance = diag(2)
 #' )
 #' 
+#' double_exponential(
+#'   d = 2,
+#'   k = 2
+#' )
+#' 
 #' @seealso 
 #' \code{\link[discounting]{model-class}}
 #' \code{\link[discounting]{exponential-class}}
@@ -987,16 +1083,52 @@ setClass(
 #' @export 
 double_exponential <- function(d = NA, 
                                k = NA,
-                               parameters = list(
-                                   "alpha" = 0,
-                                   "beta" = matrix(0, nrow = 1, ncol = 1),
-                                   "omega" = 0.5,
-                                   "gamma" = matrix(0, nrow = 1, ncol = 1),
-                                   "nu" = matrix(0, nrow = 1, ncol = 1)
-                               ), 
-                               covariance = matrix(0, nrow = 1, ncol = 1),
+                               parameters = NULL, 
+                               covariance = NULL,
                                cholesky = FALSE) {
+    
+    # If the parameters and covariances are NULL, and if the dimensionalities
+    # are provided, then we return an empty exponential model of the speciifed
+    # size.
+    if(!is.na(d) & !is.na(k) & is.null(parameters) & is.null(covariance)) {
+        # Create a new model and change its class to exponential. This ensures some
+        # additional checks are performed
+        .Object <- model(
+            d = d,
+            k = k,
+            n = d + d * k + 2 * d^2 + d * (d + 1) / 2,
+            parameters = list(
+                "alpha" = numeric(d),
+                "beta" = matrix(0, nrow = d, ncol = k),
+                "omega" = 0,
+                "gamma" = matrix(0, nrow = d, ncol = d),
+                "nu" = matrix(0, nrow = d, ncol = d)
+            ),
+            covariance = matrix(0, nrow = d, ncol = d)
+        )
+        class(.Object) <- "double_exponential"
+
+        return(.Object)
+    }
         
+    # Check if the parameters are NULL. If so, then we invoke the default 
+    # parameter set
+    if(is.null(parameters)) {
+        parameters <- list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1),
+            "omega" = 0.5,
+            "gamma" = matrix(0, nrow = 1, ncol = 1),
+            "nu" = matrix(0, nrow = 1, ncol = 1)
+        )
+    }
+
+    # Check if the covariances are NULL. If so, then we invoke the default 
+    # covariances
+    if(is.null(covariance)) {
+        covariance <- matrix(0, nrow = 1, ncol = 1)
+    }
+
     # Check whether all parameters are defined in the list of parameters
     if(!all(c("alpha", "beta", "omega", "gamma", "nu") %in% names(parameters))) {
         stop(
