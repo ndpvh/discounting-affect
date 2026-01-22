@@ -1096,7 +1096,7 @@ double_exponential <- function(d = NA,
         .Object <- model(
             d = d,
             k = k,
-            n = d + d * k + 2 * d^2 + d * (d + 1) / 2,
+            n = d + d * k + 1 + 2 * d^2 + d * (d + 1) / 2,
             parameters = list(
                 "alpha" = numeric(d),
                 "beta" = matrix(0, nrow = d, ncol = k),
