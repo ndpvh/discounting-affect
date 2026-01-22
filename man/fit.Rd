@@ -45,14 +45,13 @@ Can either be \code{"DEoptim"} for the differential evolution algorithm in
 in \code{\link[nloptr]{nloptr}}. Defaults to \code{"DEoptim"}.}
 }
 \value{
-An \code{S3} object of class \code{\link[discounting]{fitobj}} 
-containing an instance of the \code{\link[discounting]{model-class}} with the 
-estimated parameters (\code{"model"}), the results of the optimization 
-procedure (\code{"fit"}), the value of the objective after ending the 
-optimization procedure (\code{"objective"}), the residuals of the model 
-(\code{"residuals"}), and a named vector containing the values of the 
-estimated parameters linked to a character vector explaining their content 
-(\code{"parameters"}).
+An named list containing an instance of the 
+\code{\link[discounting]{model-class}} with the estimated parameters 
+(\code{"model"}), the results of the optimization procedure (\code{"fit"}), 
+the value of the objective after ending the optimization procedure 
+(\code{"objective"}), the residuals of the model (\code{"residuals"}), and a 
+named vector containing the values of the estimated parameters linked to a 
+character vector explaining their content (\code{"parameters"}).
 }
 \description{
 This method enables the user to fit a model (defined in \code{model}) on a
@@ -74,7 +73,7 @@ were needed instead, then this function would need to change.
 data <- simulate(
   quasi_hyperbolic(
     parameters = list(
-      "alpha" = c(1, -1) 
+      "alpha" = c(1, -1) ,
       "beta" = matrix(2, nrow = 2, ncol = 2),
       "nu" = diag(2) * 0.75,
       "kappa" = diag(2) * 0.5
@@ -87,10 +86,12 @@ data <- simulate(
 # Evaluate the objective function for an exponential model with a particular
 # set of parameters
 fit(
-  exponential(),
+  exponential(d = 2, k = 2),
   data,
   dynamics = "isotropic",
-  covariance = "isotropic"
+  covariance = "isotropic",
+  itermax = 50,
+  trace = FALSE
 )
 
 }

@@ -113,9 +113,205 @@ setMethod(
 )
 
 
+#' Fit a model to data
+#' 
+#' This method enables the user to fit a model (defined in \code{model}) on a
+#' particular dataset (defined in \code{data}). The estimation procedure makes
+#' use of numerical optimization using either \code{\link[DEoptim]{DEoptim}} or
+#' \code{\link[nloptr]{nloptr}}, as specified by the user. Estimation proceeds
+#' through an optimization according to the output of the objective function 
+#' of the provided model, as defined through 
+#' \code{\link[discounting]{objective_function}}, thus using least-squares
+#' as optimization standard.
+#' 
+#' @details 
+#' Note that currently, least-squares estimation is assumed, meaning that the 
+#' covariance matrix is left out of the objective function. If maximum-likelihood
+#' were needed instead, then this function would need to change.
+#' 
+#' @param model Instance of the \code{\link[discounting]{model-class}}, 
+#' defining the model to evaluate the objective function for.
+#' @param data Instance of the \code{\link[discounting]{dataset-class}}
+#' containing the data to fit the model to.
+#' @param dynamics Character denoting the structure of the dynamical matrices.
+#' Can either be \code{"anisotropic"} (completely free), \code{"symmetric"}
+#' (symmetric around the diagonal), and \code{"isotropic"} (diagonal). Note that
+#' this influences different parameters for different models, namely 
+#' \eqn{\Gamma} for the exponential discounting model, \eqn{N} and \eqn{K} for
+#' the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
+#' double-exponential discounting model. Defaults to \code{"isotropic"}.
 #' @param covariance Character denoting the structure of covariance matrix.
 #' Can either by \code{"symmetric"} (symmetric around the diagonal) and 
 #' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
-# , 
-#              covariance = "symmetric"
-# ALSO CHANGE PARAMETER NUMBER DEPENDING ON THE DYNAMICS + COVARIANCE
+#' @param optimizer Character denoting the optimizer to use for the estimation.
+#' Can either be \code{"DEoptim"} for the differential evolution algorithm in 
+#' \code{\link[DEoptim]{DEoptim}} or \code{"nloptr"} for the library implemented
+#' in \code{\link[nloptr]{nloptr}}. Defaults to \code{"DEoptim"}.
+#' @param ... Arguments passed on to the control parameters of the optimizer, 
+#' either to \code{\link[DEoptim]{DEoptim.control}} or the \code{opts} 
+#' argument of \code{\link[nloptr]{nloptr}}.
+#' 
+#' @return An named list containing an instance of the 
+#' \code{\link[discounting]{model-class}} with the estimated parameters 
+#' (\code{"model"}), the results of the optimization procedure (\code{"fit"}), 
+#' the value of the objective after ending the optimization procedure 
+#' (\code{"objective"}), the residuals of the model (\code{"residuals"}), and a 
+#' named vector containing the values of the estimated parameters linked to a 
+#' character vector explaining their content (\code{"parameters"}). 
+#' 
+#' @examples
+#' # Simulate data to use for this example
+#' data <- simulate(
+#'   quasi_hyperbolic(
+#'     parameters = list(
+#'       "alpha" = c(1, -1) ,
+#'       "beta" = matrix(2, nrow = 2, ncol = 2),
+#'       "nu" = diag(2) * 0.75,
+#'       "kappa" = diag(2) * 0.5
+#'     ),
+#'     covariance = matrix(c(1, 0.25, 0.25, 1), nrow = 2, ncol = 2)
+#'   ),
+#'   X = matrix(rnorm(200), nrow = 100, ncol = 2)
+#' )
+#' 
+#' # Evaluate the objective function for an exponential model with a particular
+#' # set of parameters
+#' fit(
+#'   exponential(d = 2, k = 2),
+#'   data,
+#'   dynamics = "isotropic",
+#'   covariance = "isotropic",
+#'   itermax = 50,
+#'   trace = FALSE
+#' )
+#' 
+#' @rdname fit
+#' @export 
+setGeneric(
+    "fit",
+    function(model, data, ...) standardGeneric("fit") 
+)
+
+#' @rdname fit
+#' @export  
+setMethod(
+    "fit",
+    c("model", "dataset"),
+    function(model, 
+             data, 
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             optimizer = "DEoptim",
+             ...) {
+        
+        # Extract the bounds of the model to be optimized
+        bounds <- get_bounds(model, dynamics = dynamics)
+
+        # Prepare the objective function for the optimization
+        obj <- function(x) objective_function(
+            model,
+            data,
+            x, 
+            dynamics = dynamics
+        )
+
+        # Perform the estimation procedure according to the optimizer chosen
+        # by the user
+        if(optimizer == "DEoptim") {
+            # Run the optimization
+            result <- DEoptim::DEoptim(
+                obj,
+                lower = bounds$lower,
+                upper = bounds$upper,
+                control = DEoptim.control(
+                    ...
+                )
+            )
+
+            # Extract those things we definitely need
+            parameters <- result$optim$bestmem
+            objective <- result$optim$bestval
+
+        } else if(optimizer == "nloptr") {
+            # Define the initial condition
+            x0 <- runif(
+                length(bounds$lower),
+                min = bounds$lower, 
+                max = bounds$upper
+            )
+
+            # Run the optimization
+            result <- nloptr::nloptr(
+                x0, 
+                eval_f = obj,
+                lb = bounds$lower,
+                ub = bounds$upper,
+                opts = list(
+                    ...
+                )
+            )
+
+            # Extract those things we definitely need
+            parameters <- result$solution
+            objective <- result$objective
+
+        } else {
+            stop("Optimizer is not recognized. Please use \"DEoptim\" or \"nloptr\".")
+        }
+
+        # Add the parameters to the model that was estimated
+        model <- fill(
+            model,
+            parameters,
+            dynamics = dynamics,
+            parameters_only = TRUE
+        )
+
+        # Estimate the covariance matrix according to the structure of the 
+        # model
+        residuals <- data@Y - predict(model, data)@Y
+        if(covariance == "symmetric") {
+            v <- cov(residuals)
+
+            model@covariance <- as.matrix(v)
+            parameters <- c(parameters, v[lower.tri(v, diag = TRUE)])
+
+        } else if(covariance == "isotropic") {
+            v <- sapply(
+                seq_len(ncol(residuals)),
+                var
+            )
+
+            diag(model@covariance) <- v
+            parameters <- c(parameters, v)
+
+        }
+
+        # Define the number of parameters of the model and adjust accordingly
+        model@n <- count_parameters(
+            model,
+            dynamics = dynamics,
+            covariance = covariance,
+            parameters_only = FALSE
+        )
+
+        # Add context to the vector of parameters of the model.
+        names(parameters) <- parameter_names(
+            model,
+            dynamics = dynamics,
+            covariance = covariance,
+            parameters_only = FALSE
+        )
+
+        # Join everything together in a named list and return
+        fitobj <- list(
+            "model" = model,
+            "fit" = result,
+            "objective" = objective,
+            "residuals" = residuals,
+            "parameters" = parameters
+        )
+
+        return(fitobj)
+    }
+)
