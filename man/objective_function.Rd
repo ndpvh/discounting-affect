@@ -20,6 +20,14 @@ containing the data to fit the model to.}
 compute the \eqn{SSE} for.}
 
 \item{...}{Additional arguments passed on to the methods.}
+
+\item{dynamics}{Character denoting the structure of the dynamical matrices.
+Can either be \code{"anisotropic"} (completely free), \code{"symmetric"}
+(symmetric around the diagonal), and \code{"isotropic"} (diagonal). Note that
+this influences different parameters for different models, namely 
+\eqn{\Gamma} for the exponential discounting model, \eqn{N} and \eqn{K} for
+the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
+double-exponential discounting model. Defaults to \code{"isotropic"}.}
 }
 \value{
 The sum of squared error or \eqn{SSE}, quantifying misfit of the model
