@@ -130,8 +130,10 @@ setMethod(
 #' @param covariance Character denoting the structure of the covariance matrix.
 #' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
 #' \code{"isotropic"} (diagonal). Defaults to \code{"isotropic"}.
-#' @param count_covariance Logical denoting whether to count the parameters of
-#' the covariance matrix to the total. Defaults to \code{TRUE}.
+#' @param parameters_only Logical denoting whether to only count the number of 
+#' parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
+#' count the number of parameters in the covariance matrix as well 
+#' (\code{FALSE}). Defaults to \code{FALSE}.
 #' @param ... Arguments passed on to the methods.
 #' 
 #' @return Integer denoting the number of parameters the model contains within
@@ -179,7 +181,7 @@ setMethod(
     function(model, 
              dynamics = "isotropic",
              covariance = "symmetric",
-             count_covariance = TRUE) {
+             parameters_only = FALSE) {
         
         # Extract relevant dimensionalities from the model
         d <- model@d 
@@ -208,23 +210,138 @@ setMethod(
         # Check whether the covariances should be counted as well. If not, we 
         # can immediately skip ahead. If so, then we need to account for them
         # here
-        if(count_covariance) {
-            if(covariance == "symmetric") {
-                n <- n + d * (d + 1) / 2
-
-            } else if(covariance == "isotropic") {
-                n <- n + d
-
-            } else {
-                stop(
-                    paste(
-                        "Structure for covariance is not know.",
-                        "Please use \"isotropic\" or \"symmetric\"."
-                    )
-                )
-            }
+        if(!parameters_only) {
+            n <- n + count_covariance(model@d, covariance = covariance)
         }
 
         return(n)
     }
 )
+
+#' @rdname count_parameters
+#' @export 
+setMethod(
+    "count_parameters",
+    "quasi_hyperbolic",
+    function(model, 
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             parameters_only = FALSE) {
+        
+        # Extract relevant dimensionalities from the model
+        d <- model@d 
+        k <- model@k
+        
+        # Define the number of parameters needed for each the different structures
+        # for \Gamma
+        if(dynamics == "isotropic") {
+            n <- d + d * k + 2 * d
+
+        } else if(dynamics == "symmetric") {
+            n <- d + d * k + 2 * d * (d + 1) / 2
+
+        } else if(dynamics == "anisotropic") {
+            n <- d + d * k + 2 * d^2
+            
+        } else {
+            stop(
+                paste(
+                    "Structure for dynamics is not know.",
+                    "Please use \"isotropic\", \"symmetric\", or \"anisotropic\"."
+                )
+            )
+        }
+
+        # Check whether the covariances should be counted as well. If not, we 
+        # can immediately skip ahead. If so, then we need to account for them
+        # here
+        if(!parameters_only) {
+            n <- n + count_covariance(model@d, covariance = covariance)
+        }
+
+        return(n)
+    }
+)
+
+#' @rdname count_parameters
+#' @export 
+setMethod(
+    "count_parameters",
+    "double_exponential",
+    function(model, 
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             parameters_only = FALSE) {
+        
+        # Extract relevant dimensionalities from the model
+        d <- model@d 
+        k <- model@k
+        
+        # Define the number of parameters needed for each the different structures
+        # for \Gamma
+        if(dynamics == "isotropic") {
+            n <- d + d * k + 2 * d + 1
+
+        } else if(dynamics == "symmetric") {
+            n <- d + d * k + 2 * d * (d + 1) / 2 + 1
+
+        } else if(dynamics == "anisotropic") {
+            n <- d + d * k + 2 * d^2 + 1
+            
+        } else {
+            stop(
+                paste(
+                    "Structure for dynamics is not know.",
+                    "Please use \"isotropic\", \"symmetric\", or \"anisotropic\"."
+                )
+            )
+        }
+
+        # Check whether the covariances should be counted as well. If not, we 
+        # can immediately skip ahead. If so, then we need to account for them
+        # here
+        if(!parameters_only) {
+            n <- n + count_covariance(model@d, covariance = covariance)
+        }
+
+        return(n)
+    }
+)
+
+#' Count the number of parameters in the covariance matrix
+#' 
+#' @param d Integer denoting the dimensionality of the model.
+#' @param covariance Character denoting the structure of the covariance matrix.
+#' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
+#' \code{"isotropic"} (diagonal). Defaults to \code{"isotropic"}.
+#' 
+#' @return Integer denoting the number of parameters in the covariance matrix
+#' under the specified conditions.
+#' 
+#' @examples 
+#' count_covariance(2, "symmetric")
+#' count_covariance(2, "isotropic")
+#' 
+#' @rdname count_covariance
+#' @export 
+count_covariance <- function(d, 
+                             covariance = "symmetric") {
+
+    # Dispatch on structure
+    if(covariance == "symmetric") {
+        n <- d * (d + 1) / 2
+
+    } else if(covariance == "isotropic") {
+        n <- d
+
+    } else {
+        stop(
+            paste(
+                "Structure for covariance is not know.",
+                "Please use \"isotropic\" or \"symmetric\"."
+            )
+        )
+    }
+
+    return(n)
+}
