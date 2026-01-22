@@ -43,6 +43,15 @@
 - [`fill_covariance()`](https://github.com/ndpvh/discounting-affect/reference/fill_covariance.md)
   : Fill the covariance matrix with values
 
+- [`fit()`](https://github.com/ndpvh/discounting-affect/reference/fit.md)
+  : Fit a model to data
+
+- [`get_bounds()`](https://github.com/ndpvh/discounting-affect/reference/get_bounds.md)
+  : Get bounds of the parameters of a model
+
+- [`get_bounds_covariance()`](https://github.com/ndpvh/discounting-affect/reference/get_bounds_covariance.md)
+  : Get bounds for the parameters in the covariance matrix
+
 - [`model-class`](https://github.com/ndpvh/discounting-affect/reference/model-class.md)
   : Model Class
 
@@ -54,6 +63,12 @@
 
 - [`objective_function()`](https://github.com/ndpvh/discounting-affect/reference/objective_function.md)
   : Objective function
+
+- [`parameter_names()`](https://github.com/ndpvh/discounting-affect/reference/parameter_names.md)
+  : Name the relevant parameters of the model
+
+- [`parameter_names_covariance()`](https://github.com/ndpvh/discounting-affect/reference/parameter_names_covariance.md)
+  : Get the names for the parameters in the covariance matrix
 
 - [`predict(`*`<exponential>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)
   [`predict(`*`<quasi_hyperbolic>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)
