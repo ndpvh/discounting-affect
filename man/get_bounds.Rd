@@ -7,11 +7,10 @@
 \alias{get_bounds,double_exponential-method}
 \title{Get bounds of the parameters of a model}
 \usage{
-get_bounds(model, parameters, ...)
+get_bounds(model, ...)
 
 \S4method{get_bounds}{exponential}(
   model,
-  parameters,
   dynamics = "isotropic",
   covariance = "symmetric",
   parameters_only = TRUE,
@@ -21,7 +20,6 @@ get_bounds(model, parameters, ...)
 
 \S4method{get_bounds}{quasi_hyperbolic}(
   model,
-  parameters,
   dynamics = "isotropic",
   covariance = "symmetric",
   parameters_only = TRUE,
@@ -31,7 +29,6 @@ get_bounds(model, parameters, ...)
 
 \S4method{get_bounds}{double_exponential}(
   model,
-  parameters,
   dynamics = "isotropic",
   covariance = "symmetric",
   parameters_only = TRUE,
@@ -56,7 +53,7 @@ double-exponential discounting model. Defaults to \code{"isotropic"}.}
 Can either be \code{"symmetric"} (symmetric around the diagonal) or 
 \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.}
 
-\item{parameters_only}{Logical denoting whether to only fill the 
+\item{parameters_only}{Logical denoting whether to only get bounds for the 
 parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
 fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.}
 

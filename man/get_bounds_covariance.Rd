@@ -24,14 +24,14 @@ covariance matrix in that order.
 Get bounds for the parameters in the covariance matrix
 }
 \examples{
-count_covariance(
+get_bounds_covariance(
   2, 
   0,
   1,
   covariance = "symmetric"
 )
 
-count_covariance(
+get_bounds_covariance(
   2,
   0, 
   1,
