@@ -572,6 +572,294 @@ test_that(
     }
 )
 
+test_that(
+    "Check output for fill: Double exponential discounting, no covariances included",
+    {
+        # Single dimension and single predictor
+        my_model <- double_exponential(d = 1, k = 1)
+        tst <- fill(my_model, 1:5)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], as.matrix(2))
+        expect_equal(tst@parameters[["omega"]], 3)
+        expect_equal(tst@parameters[["gamma"]], as.matrix(4))
+        expect_equal(tst@parameters[["nu"]], as.matrix(5))
+
+        # Single dimension and two predictors
+        my_model <- double_exponential(d = 1, k = 2)
+        tst <- fill(my_model, 1:6)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
+        expect_equal(tst@parameters[["omega"]], 4)
+        expect_equal(tst@parameters[["gamma"]], as.matrix(5))
+        expect_equal(tst@parameters[["nu"]], as.matrix(6))
+
+        # Two dimensions and single predictor
+        my_model <- double_exponential(d = 2, k = 1)
+        tst <- fill(my_model, 1:9, dynamics = "isotropic")
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 5)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 6:7)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
+
+        tst <- fill(my_model, 1:11, dynamics = "symmetric")
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 5)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(6, 7, 7, 8), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
+
+        tst <- fill(my_model, 1:13, dynamics = "anisotropic")
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 5)
+        expect_equal(tst@parameters[["gamma"]], matrix(6:9, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(10:13, nrow = 2, ncol = 2))
+
+        # Two dimensions and two predictors
+        my_model <- double_exponential(d = 2, k = 2)
+        tst <- fill(my_model, 1:11, dynamics = "isotropic")
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 8:9)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
+
+        tst <- fill(my_model, 1:13, dynamics = "symmetric")
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+
+        tst <- fill(my_model, 1:15, dynamics = "anisotropic")
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], matrix(8:11, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(12:15, nrow = 2, ncol = 2))
+    }
+)
+
+test_that(
+    "Check output for fill: Double exponential discounting, covariances included",
+    {
+        # Single dimension and single predictor
+        my_model <- double_exponential(d = 1, k = 1)
+        tst <- fill(my_model, 1:6, parameters_only = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], as.matrix(2))
+        expect_equal(tst@parameters[["omega"]], 3)
+        expect_equal(tst@parameters[["gamma"]], as.matrix(4))
+        expect_equal(tst@parameters[["nu"]], as.matrix(5))
+        expect_equal(tst@covariance, as.matrix(6))
+
+        # Single dimension and two predictors
+        my_model <- double_exponential(d = 1, k = 2)
+        tst <- fill(my_model, 1:7, parameters_only = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
+        expect_equal(tst@parameters[["omega"]], 4)
+        expect_equal(tst@parameters[["gamma"]], as.matrix(5))
+        expect_equal(tst@parameters[["nu"]], as.matrix(6))
+        expect_equal(tst@covariance, as.matrix(7))
+
+        # Two dimensions and single predictor
+        my_model <- double_exponential(d = 2, k = 1)
+        tst <- fill(
+            my_model, 
+            1:11, 
+            dynamics = "isotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 5)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 6:7)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
+        expect_equal(tst@covariance, diag(2) * 10:11)
+
+        tst <- fill(
+            my_model, 
+            1:12, 
+            dynamics = "isotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 5)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 6:7)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
+        expect_equal(tst@covariance, matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
+
+        tst <- fill(
+            my_model, 
+            1:13, 
+            dynamics = "symmetric", 
+            covariance = "isotropic",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 5)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(6, 7, 7, 8), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 12:13)
+
+        tst <- fill(
+            my_model, 
+            1:14, 
+            dynamics = "symmetric", 
+            covariance = "symmetric",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 5)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(6, 7, 7, 8), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(12, 13, 13, 14), nrow = 2, ncol = 2))
+
+        tst <- fill(
+            my_model, 
+            1:15, 
+            dynamics = "anisotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 5)
+        expect_equal(tst@parameters[["gamma"]], matrix(6:9, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(10:13, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 14:15)
+
+        tst <- fill(
+            my_model, 
+            1:16, 
+            dynamics = "anisotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 5)
+        expect_equal(tst@parameters[["gamma"]], matrix(6:9, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(10:13, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(14, 15, 15, 16), nrow = 2, ncol = 2))
+
+        # Two dimensions and two predictors
+        my_model <- double_exponential(d = 2, k = 2)
+        tst <- fill(
+            my_model, 
+            1:13, 
+            dynamics = "isotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 8:9)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
+        expect_equal(tst@covariance, diag(2) * 12:13)
+
+        tst <- fill(
+            my_model, 
+            1:14, 
+            dynamics = "isotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 8:9)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
+        expect_equal(tst@covariance, matrix(c(12, 13, 13, 14), nrow = 2, ncol = 2))
+
+        tst <- fill(
+            my_model, 
+            1:15, 
+            dynamics = "symmetric", 
+            covariance = "isotropic",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 14:15)
+
+        tst <- fill(
+            my_model, 
+            1:16, 
+            dynamics = "symmetric", 
+            covariance = "symmetric",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(14, 15, 15, 16), nrow = 2, ncol = 2))
+
+        tst <- fill(
+            my_model, 
+            1:17, 
+            dynamics = "anisotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], matrix(8:11, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(12:15, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 16:17)
+
+        tst <- fill(
+            my_model, 
+            1:18, 
+            dynamics = "anisotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], matrix(8:11, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(12:15, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(16, 17, 17, 18), nrow = 2, ncol = 2))
+    }
+)
+
 
 
 ################################################################################
