@@ -23,6 +23,12 @@
 #' \eqn{\Gamma} for the exponential discounting model, \eqn{N} and \eqn{K} for
 #' the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
 #' double-exponential discounting model. Defaults to \code{"isotropic"}.
+#' @param covariance Character denoting the structure of the covariance matrix.
+#' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
+#' @param parameters_only Logical denoting whether to only fill the 
+#' parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
+#' fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.
 #' @param ... Additional arguments passed on to the methods.
 #' 
 #' @return Instance of the \code{\link[discounting]{model-class}} containing 
@@ -52,7 +58,9 @@ setMethod(
     "exponential",
     function(model,
              parameters,
-             dynamics = "isotropic") {
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             parameters_only = TRUE) {
         
         # Extract relevant dimensionalities from the model
         d <- model@d 
@@ -60,7 +68,8 @@ setMethod(
         n <- count_parameters(
             model, 
             dynamics = dynamics, 
-            count_covariance = FALSE
+            covariance = covariance,
+            parameters_only = parameters_only
         )
 
         # Check whether a sufficient number of parameters are defined
@@ -72,7 +81,16 @@ setMethod(
                     length(parameters),
                     "provided for an exponential model with",
                     dynamics,
-                    "forgetting matrix."
+                    "forgetting matrix",
+                    ifelse(
+                        parameters_only,
+                        ".",
+                        paste(
+                            "and",
+                            covariance,
+                            "covariance matrix."
+                        )
+                    )
                 )
             )
         } else if(length(parameters) > n) {
@@ -83,12 +101,133 @@ setMethod(
                     length(parameters),
                     "provided for an exponential model with",
                     dynamics,
-                    "forgetting matrix.",
+                    "forgetting matrix",
+                    ifelse(
+                        parameters_only,
+                        ".",
+                        paste(
+                            "and",
+                            covariance,
+                            "covariance matrix."
+                        )
+                    ),
                     "Using only the first",
                     n, 
                     "to define the model."
                 )
             )
+
+            parameters <- parameters[1:n]
+        }
+
+        # Once defined, we can start assigning values to the parameters of the 
+        # model. When necessary, dispath on the structure of the parameters
+        params <- model@parameters 
+
+        params[["alpha"]][] <- parameters[1:d]
+        params[["beta"]][] <- parameters[(d + 1):(d + d * k)]
+
+        if(dynamics == "isotropic") {
+            idx <- (d + d * k + 1):(d + d * k + d)
+            diag(params[["gamma"]]) <- parameters[idx]
+        
+        } else if(dynamics == "symmetric") {
+            idx <- (d + d * k + 1):(d + d * k + d * (d + 1) / 2)
+
+            idy <- lower.tri(params[["gamma"]], diag = TRUE)
+            params[["gamma"]][idy] <- parameters[idx]
+
+            idy <- upper.tri(params[["gamma"]], diag = FALSE)
+            params[["gamma"]][idy] <- t(params[["gamma"]])[idy]
+
+        } else if(dynamics == "anisotropic") {
+            idx <- (d + d * k + 1):(d + d * k + d^2)
+            params[["gamma"]][] <- parameters[idx]
+        }
+
+        # If we need to fill the covariance as well, then do so
+        if(!parameters_only) {
+            model@covariance <- fill_covariance(
+                d,
+                parameters = parameters[(max(idx) + 1):(length(parameters))],
+                covariance = covariance
+            )
+        }
+
+        # Assign the parameters to the model and return
+        model@parameters <- params
+        
+        return(model)
+    }
+)
+
+#' @rdname fill
+#' @export 
+setMethod(
+    "fill",
+    "quasi_hyperbolic",
+    function(model,
+             parameters,
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             parameters_only = TRUE) {
+        
+        # Extract relevant dimensionalities from the model
+        d <- model@d 
+        k <- model@k
+        n <- count_parameters(
+            model, 
+            dynamics = dynamics, 
+            covariance = covariance,
+            parameters_only = parameters_only
+        )
+
+        # Check whether a sufficient number of parameters are defined
+        if(length(parameters) < n) {
+            stop(
+                paste(
+                    n, 
+                    "parameters needed, but only",
+                    length(parameters),
+                    "provided for an quasi-hyperbolic model with",
+                    dynamics,
+                    "forgetting matrix",
+                    ifelse(
+                        parameters_only,
+                        ".",
+                        paste(
+                            "and",
+                            covariance,
+                            "covariance matrix."
+                        )
+                    )
+                )
+            )
+        } else if(length(parameters) > n) {
+            warning(
+                paste(
+                    n, 
+                    "parameters needed, but",
+                    length(parameters),
+                    "provided for a quasi-hyperbolic model with",
+                    dynamics,
+                    "forgetting matrix",
+                    ifelse(
+                        parameters_only,
+                        ".",
+                        paste(
+                            "and",
+                            covariance,
+                            "covariance matrix."
+                        )
+                    ),
+                    "Using only the first",
+                    n, 
+                    "to define the model."
+                )
+            )
+
+            parameters <- parameters[1:n]
         }
 
         # Once defined, we can start assigning values to the parameters of the 
@@ -100,18 +239,23 @@ setMethod(
 
         left <- parameters[(d + d * k + 1):length(parameters)]
         if(dynamics == "isotropic") {
-            diag(params[["gamma"]]) <- left
+            diag(params[["nu"]]) <- left[1:d]
+            diag(params[["kappa"]]) <- left[(d + 1):length(left)]
         
         } else if(dynamics == "symmetric") {
-            idx <- lower.tri(params[["gamma"]], diag = TRUE)
-            params[["gamma"]][idx] <- left
+            idx <- lower.tri(params[["nu"]], diag = TRUE)
+            params[["nu"]][idx] <- left[1:(d * (d + 1)/2)]
+            params[["kappa"]][idx] <- left[(d * (d + 1)/2 + 1):length(left)]
 
-            idx <- upper.tri(params[["gamma"]], diag = FALSE)
-            params[["gamma"]][idx] <- t(params[["gamma"]])[idx]
+            idx <- upper.tri(params[["nu"]], diag = FALSE)
+            params[["nu"]][idx] <- t(params[["nu"]])[idx]
+            params[["kappa"]][idx] <- t(params[["kappa"]])[idx]
 
         } else if(dynamics == "anisotropic") {
-            params[["gamma"]][] <- left
-        }
+            params[["nu"]][] <- left[1:d^2]
+            params[["kappa"]][] <- left[(d^2 + 1):length(left)]
+
+        } 
 
         # Assign the parameters to the model and return
         model@parameters <- params
@@ -119,6 +263,89 @@ setMethod(
         return(model)
     }
 )
+
+#' Fill the covariance matrix with values
+#' 
+#' @param d Integer denoting the dimensionality of the model.
+#' @param parameters Numeric vector containing the values of the parameters 
+#' that should be assigned to the model. Importantly, the number of parameters
+#' within this vector should correspond exactly to the number of parameters 
+#' needed by the model. Ideally, you let functions internal to this package
+#' handle this for you, rather than you defining these parameters manually.
+#' @param covariance Character denoting the structure of the covariance matrix.
+#' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
+#' 
+#' @return Matrix filled with the specified values.
+#' 
+#' @examples 
+#' fill_covariance(
+#'   2,
+#'   1:3,
+#'   covariance = "symmetric"
+#' )
+#' 
+#' fill_covariance(
+#'   2,
+#'   1:2,
+#'   covariance = "isotropic"
+#' )
+#' 
+#' @rdname fill_covariance
+#' @export 
+fill_covariance <- function(d, 
+                            parameters,
+                            covariance = "symmetric") {
+    
+    # Check whether enough parameters are defined
+    n <- count_covariance(d, covariance = covariance)
+
+    if(length(parameters) < n) {
+        stop(
+            paste(
+                n,
+                "parameters needed to fill a",
+                covariance,
+                "covariance matrix but only",
+                length(parameters), 
+                "provided."
+            )
+        )
+
+    } else if(length(parameters) > n) {
+        warning(
+            paste(
+                n,
+                "parameters needed to fill a",
+                covariance,
+                "covariance matrix and",
+                length(parameters), 
+                "are provided.",
+                "Only using the first",
+                n,
+                "values."
+            )
+        )
+
+        parameters <- parameters[1:n]
+    }
+
+    # Dispatch on the particular structure of the covariance matrix to fill it 
+    # up
+    result <- matrix(0, nrow = d, ncol = d)
+    if(covariance == "symmetric") {
+        idx <- lower.tri(result, diag = TRUE)
+        result[idx] <- parameters
+
+        idx <- upper.tri(result, diag = FALSE)
+        result[idx] <- t(result)[idx]
+
+    } else if(covariance == "isotropic") {
+        diag(result) <- parameters
+    } 
+
+    return(result)
+}
 
 
 
@@ -137,7 +364,7 @@ setMethod(
 #' double-exponential discounting model. Defaults to \code{"isotropic"}.
 #' @param covariance Character denoting the structure of the covariance matrix.
 #' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
-#' \code{"isotropic"} (diagonal). Defaults to \code{"isotropic"}.
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
 #' @param parameters_only Logical denoting whether to only count the number of 
 #' parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
 #' count the number of parameters in the covariance matrix as well 
@@ -321,7 +548,7 @@ setMethod(
 #' @param d Integer denoting the dimensionality of the model.
 #' @param covariance Character denoting the structure of the covariance matrix.
 #' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
-#' \code{"isotropic"} (diagonal). Defaults to \code{"isotropic"}.
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
 #' 
 #' @return Integer denoting the number of parameters in the covariance matrix
 #' under the specified conditions.

@@ -1,3 +1,84 @@
+################################################################################
+# FILL
+
+test_that(
+    "Test known errors for fill",
+    {
+        # Not enough parameters provided for the covariance matrix
+        expect_error(fill_covariance(2, 1:2, covariance = "symmetric"))
+        expect_error(fill_covariance(2, 1, covariance = "isotropic"))
+    }
+)
+
+test_that(
+    "Test known warnings for fill",
+    {
+        # More than enough parameters provided for the covariance matrix
+        expect_warning(fill_covariance(2, 1:4, covariance = "symmetric"))
+
+        tst <- fill_covariance(2, 1:4, covariance = "symmetric") |>
+            suppressWarnings()
+        expect_equal(tst, matrix(c(1, 2, 2, 3), nrow = 2, ncol = 2))
+
+        expect_warning(fill_covariance(2, 1:4, covariance = "isotropic")) 
+
+        tst <- fill_covariance(2, 1:4, covariance = "isotropic") |>
+            suppressWarnings()
+        expect_equal(tst, diag(2) * 1:2)
+    }
+)
+
+test_that(
+    "Check output for fill: Covariance matrix",
+    {
+        tst <- fill_covariance(1, 1)
+        expect_equal(tst, as.matrix(1))
+
+        tst <- fill_covariance(2, 1:3, covariance = "symmetric")
+        expect_equal(tst, matrix(c(1, 2, 2, 3), nrow = 2, ncol = 2))
+
+        tst <- fill_covariance(2, 1:2, covariance = "isotropic")
+        expect_equal(tst, matrix(c(1, 0, 0, 2), nrow = 2, ncol = 2))
+
+        tst <- fill_covariance(3, 1:6, covariance = "symmetric")
+        expect_equal(
+            tst, 
+            matrix(
+                c(1, 2, 3, 2, 4, 5, 3, 5, 6), 
+                nrow = 3, 
+                ncol = 3
+            )
+        )
+
+        tst <- fill_covariance(
+            3, 
+            1:3, 
+            covariance = "isotropic"
+        )
+        expect_equal(
+            tst, 
+            diag(3) * 1:3
+        )
+    }
+)
+
+test_that(
+    "Check output for fill: Exponential discounting",
+    {
+        # Single dimension and single predictor
+        my_model <- exponential(d = 1, k = 1)
+        tst <- fill(my_model, 1:3)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], as.matrix(2))
+        expect_equal(tst@parameters[["gamma"]], as.matrix(3))
+    }
+)
+
+
+################################################################################
+# COUNT_PARAMETERS
+
 test_that(
     "Test known errors for count_parameters and count_covariance",
     {
