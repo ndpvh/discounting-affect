@@ -10,6 +10,8 @@
 
 ## usethis namespace: start
 #' @import MASS
+#' @import DEoptim
+#' @import nloptr
 #' @importFrom methods new
 #' @importFrom utils head
 ## usethis namespace: end

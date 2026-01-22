@@ -18,7 +18,9 @@ URL: https://github.com/ndpvh/discounting-affect
 BugReports: https://github.com/ndpvh/discounting-affect/issues
 Imports: 
     MASS,
-    methods
+    methods,
+    DEoptim,
+    nloptr
 Suggests: 
     fs,
     testthat (>= 3.0.0)
