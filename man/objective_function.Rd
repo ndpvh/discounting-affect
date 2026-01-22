@@ -7,7 +7,7 @@
 \usage{
 objective_function(model, data, parameters, ...)
 
-\S4method{objective_function}{model,dataset}(model, data, parameters)
+\S4method{objective_function}{model,dataset}(model, data, parameters, dynamics = "isotropic")
 }
 \arguments{
 \item{model}{Instance of the \code{\link[discounting]{model-class}}, 
