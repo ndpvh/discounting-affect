@@ -96,7 +96,7 @@ setMethod(
         prediction <- predict(model, data)
 
         # Compare model predictions to the data
-        residuals <- data$Y - prediction@Y 
+        residuals <- data@Y - prediction@Y 
 
         # Compute the sum squared error and return
         SSE <- sum(residuals^2)
