@@ -37,3 +37,4 @@ Collate:
     'simulate.R'
     'fit.R'
     'recovery.R'
+    'statistics.R'
