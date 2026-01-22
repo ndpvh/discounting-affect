@@ -11,7 +11,7 @@ count_covariance(d, covariance = "symmetric")
 
 \item{covariance}{Character denoting the structure of the covariance matrix.
 Can either be \code{"symmetric"} (symmetric around the diagonal) or 
-\code{"isotropic"} (diagonal). Defaults to \code{"isotropic"}.}
+\code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.}
 }
 \value{
 Integer denoting the number of parameters in the covariance matrix

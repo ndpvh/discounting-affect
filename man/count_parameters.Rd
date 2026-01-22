@@ -3,11 +3,27 @@
 \name{count_parameters}
 \alias{count_parameters}
 \alias{count_parameters,exponential-method}
+\alias{count_parameters,quasi_hyperbolic-method}
+\alias{count_parameters,double_exponential-method}
 \title{Count number of parameters for a model}
 \usage{
 count_parameters(model, ...)
 
 \S4method{count_parameters}{exponential}(
+  model,
+  dynamics = "isotropic",
+  covariance = "symmetric",
+  parameters_only = FALSE
+)
+
+\S4method{count_parameters}{quasi_hyperbolic}(
+  model,
+  dynamics = "isotropic",
+  covariance = "symmetric",
+  parameters_only = FALSE
+)
+
+\S4method{count_parameters}{double_exponential}(
   model,
   dynamics = "isotropic",
   covariance = "symmetric",
@@ -29,7 +45,7 @@ double-exponential discounting model. Defaults to \code{"isotropic"}.}
 
 \item{covariance}{Character denoting the structure of the covariance matrix.
 Can either be \code{"symmetric"} (symmetric around the diagonal) or 
-\code{"isotropic"} (diagonal). Defaults to \code{"isotropic"}.}
+\code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.}
 
 \item{parameters_only}{Logical denoting whether to only count the number of 
 parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
