@@ -7,6 +7,21 @@ test_that(
         # Not enough parameters provided for the covariance matrix
         expect_error(fill_covariance(2, 1:2, covariance = "symmetric"))
         expect_error(fill_covariance(2, 1, covariance = "isotropic"))
+
+        # Not enough parameters provided for the exponential discounting model
+        expect_error(fill(exponential(d = 2, k = 2), 1:2, dynamics = "anisotropic"))
+        expect_error(fill(exponential(d = 2, k = 2), 1:2, dynamics = "symmetric"))
+        expect_error(fill(exponential(d = 2, k = 2), 1:2, dynamics = "isotropic"))
+
+        # Not enough parameters provided for the quasi-hyperbolic discounting model
+        expect_error(fill(quasi_hyperbolic(d = 2, k = 2), 1:2, dynamics = "anisotropic"))
+        expect_error(fill(quasi_hyperbolic(d = 2, k = 2), 1:2, dynamics = "symmetric"))
+        expect_error(fill(quasi_hyperbolic(d = 2, k = 2), 1:2, dynamics = "isotropic"))
+
+        # Not enough parameters provided for the double exponential discounting model
+        expect_error(fill(double_exponential(d = 2, k = 2), 1:2, dynamics = "anisotropic"))
+        expect_error(fill(double_exponential(d = 2, k = 2), 1:2, dynamics = "symmetric"))
+        expect_error(fill(double_exponential(d = 2, k = 2), 1:2, dynamics = "isotropic"))
     }
 )
 
@@ -15,16 +30,29 @@ test_that(
     {
         # More than enough parameters provided for the covariance matrix
         expect_warning(fill_covariance(2, 1:4, covariance = "symmetric"))
-
         tst <- fill_covariance(2, 1:4, covariance = "symmetric") |>
             suppressWarnings()
         expect_equal(tst, matrix(c(1, 2, 2, 3), nrow = 2, ncol = 2))
 
         expect_warning(fill_covariance(2, 1:4, covariance = "isotropic")) 
-
         tst <- fill_covariance(2, 1:4, covariance = "isotropic") |>
             suppressWarnings()
         expect_equal(tst, diag(2) * 1:2)
+
+        # Too many parameters provided for the exponential discounting model
+        expect_warning(fill(exponential(d = 2, k = 2), 1:20, dynamics = "anisotropic"))
+        expect_warning(fill(exponential(d = 2, k = 2), 1:20, dynamics = "symmetric"))
+        expect_warning(fill(exponential(d = 2, k = 2), 1:20, dynamics = "isotropic"))
+
+        # Too many parameters provided for the quasi-hyperbolic discounting model
+        expect_warning(fill(quasi_hyperbolic(d = 2, k = 2), 1:20, dynamics = "anisotropic"))
+        expect_warning(fill(quasi_hyperbolic(d = 2, k = 2), 1:20, dynamics = "symmetric"))
+        expect_warning(fill(quasi_hyperbolic(d = 2, k = 2), 1:20, dynamics = "isotropic"))
+
+        # Too many parameters provided for the double exponential discounting model
+        expect_warning(fill(double_exponential(d = 2, k = 2), 1:20, dynamics = "anisotropic"))
+        expect_warning(fill(double_exponential(d = 2, k = 2), 1:20, dynamics = "symmetric"))
+        expect_warning(fill(double_exponential(d = 2, k = 2), 1:20, dynamics = "isotropic"))
     }
 )
 
@@ -870,6 +898,8 @@ test_that(
     {
         # Dynamics not defined
         expect_error(count_parameters(exponential(), dynamics = "test"))
+        expect_error(count_parameters(quasi_hyperbolic(), dynamics = "test"))
+        expect_error(count_parameters(double_exponential(), dynamics = "test"))
 
         # Covariance not defined
         expect_error(count_parameters(exponential(), covariance = "test"))
