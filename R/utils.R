@@ -209,7 +209,7 @@ setMethod(
                     n, 
                     "parameters needed, but",
                     length(parameters),
-                    "provided for a quasi-hyperbolic model with",
+                    "provided for an quasi-hyperbolic model with",
                     dynamics,
                     "forgetting matrix",
                     ifelse(
@@ -237,25 +237,163 @@ setMethod(
         params[["alpha"]][] <- parameters[1:d]
         params[["beta"]][] <- parameters[(d + 1):(d + d * k)]
 
-        left <- parameters[(d + d * k + 1):length(parameters)]
         if(dynamics == "isotropic") {
-            diag(params[["nu"]]) <- left[1:d]
-            diag(params[["kappa"]]) <- left[(d + 1):length(left)]
+            idx_1 <- (d + d * k + 1):(d + d * k + d)
+            idx_2 <- (d + d * k + d + 1):(d + d * k + 2 * d)
+
+            diag(params[["nu"]]) <- parameters[idx_1]
+            diag(params[["kappa"]]) <- parameters[idx_2]
         
         } else if(dynamics == "symmetric") {
-            idx <- lower.tri(params[["nu"]], diag = TRUE)
-            params[["nu"]][idx] <- left[1:(d * (d + 1)/2)]
-            params[["kappa"]][idx] <- left[(d * (d + 1)/2 + 1):length(left)]
+            idx_1 <- (d + d * k + 1):(d + d * k + d * (d + 1) / 2)
+            idx_2 <- (d + d * k + d * (d + 1) / 2 + 1):(d + d * k + 2 * d * (d + 1) / 2)
 
-            idx <- upper.tri(params[["nu"]], diag = FALSE)
-            params[["nu"]][idx] <- t(params[["nu"]])[idx]
-            params[["kappa"]][idx] <- t(params[["kappa"]])[idx]
+            idy <- lower.tri(params[["nu"]], diag = TRUE)
+            params[["nu"]][idy] <- parameters[idx_1]
+            params[["kappa"]][idy] <- parameters[idx_2]
+
+            idy <- upper.tri(params[["nu"]], diag = FALSE)
+            params[["nu"]][idy] <- t(params[["nu"]])[idy]
+            params[["kappa"]][idy] <- t(params[["kappa"]])[idy]
 
         } else if(dynamics == "anisotropic") {
-            params[["nu"]][] <- left[1:d^2]
-            params[["kappa"]][] <- left[(d^2 + 1):length(left)]
+            idx_1 <- (d + d * k + 1):(d + d * k + d^2)
+            idx_2 <- (d + d * k + d^2 + 1):(d + d * k + 2 * d^2)
+
+            params[["nu"]][] <- parameters[idx_1]
+            params[["kappa"]][] <- parameters[idx_2]
 
         } 
+
+        # If we need to fill the covariance as well, then do so
+        if(!parameters_only) {
+            model@covariance <- fill_covariance(
+                d,
+                parameters = parameters[(max(idx_2) + 1):(length(parameters))],
+                covariance = covariance
+            )
+        }
+
+        # Assign the parameters to the model and return
+        model@parameters <- params
+        
+        return(model)
+    }
+)
+
+#' @rdname fill
+#' @export 
+setMethod(
+    "fill",
+    "double_exponential",
+    function(model,
+             parameters,
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             parameters_only = TRUE) {
+        
+        # Extract relevant dimensionalities from the model
+        d <- model@d 
+        k <- model@k
+        n <- count_parameters(
+            model, 
+            dynamics = dynamics, 
+            covariance = covariance,
+            parameters_only = parameters_only
+        )
+
+        # Check whether a sufficient number of parameters are defined
+        if(length(parameters) < n) {
+            stop(
+                paste(
+                    n, 
+                    "parameters needed, but only",
+                    length(parameters),
+                    "provided for an double exponential model with",
+                    dynamics,
+                    "forgetting matrix",
+                    ifelse(
+                        parameters_only,
+                        ".",
+                        paste(
+                            "and",
+                            covariance,
+                            "covariance matrix."
+                        )
+                    )
+                )
+            )
+        } else if(length(parameters) > n) {
+            warning(
+                paste(
+                    n, 
+                    "parameters needed, but",
+                    length(parameters),
+                    "provided for an double exponential model with",
+                    dynamics,
+                    "forgetting matrix",
+                    ifelse(
+                        parameters_only,
+                        ".",
+                        paste(
+                            "and",
+                            covariance,
+                            "covariance matrix."
+                        )
+                    ),
+                    "Using only the first",
+                    n, 
+                    "to define the model."
+                )
+            )
+
+            parameters <- parameters[1:n]
+        }
+
+        # Once defined, we can start assigning values to the parameters of the 
+        # model. When necessary, dispath on the structure of the parameters
+        params <- model@parameters 
+
+        params[["alpha"]][] <- parameters[1:d]
+        params[["beta"]][] <- parameters[(d + 1):(d + d * k)]
+        params[["omega"]][] <- parameters[(d + d * k + 1)]
+
+        if(dynamics == "isotropic") {
+            idx_1 <- (d + d * k + 1 + 1):(d + d * k + d + 1)
+            idx_2 <- (d + d * k + d + 1 + 1):(d + d * k + 2 * d + 1)
+
+            diag(params[["nu"]]) <- parameters[idx_1]
+            diag(params[["kappa"]]) <- parameters[idx_2]
+        
+        } else if(dynamics == "symmetric") {
+            idx_1 <- (d + d * k + 1 + 1):(d + d * k + 1 + d * (d + 1) / 2)
+            idx_2 <- (d + d * k + 1 + d * (d + 1) / 2 + 1):(d + d * k + 1 + 2 * d * (d + 1) / 2)
+
+            idy <- lower.tri(params[["nu"]], diag = TRUE)
+            params[["nu"]][idy] <- parameters[idx_1]
+            params[["kappa"]][idy] <- parameters[idx_2]
+
+            idy <- upper.tri(params[["nu"]], diag = FALSE)
+            params[["nu"]][idy] <- t(params[["nu"]])[idy]
+            params[["kappa"]][idy] <- t(params[["kappa"]])[idy]
+
+        } else if(dynamics == "anisotropic") {
+            idx_1 <- (d + d * k + 1 + 1):(d + d * k + 1 + d^2)
+            idx_2 <- (d + d * k + 1 + d^2 + 1):(d + d * k + 1 + 2 * d^2)
+
+            params[["nu"]][] <- parameters[idx_1]
+            params[["kappa"]][] <- parameters[idx_2]
+
+        } 
+
+        # If we need to fill the covariance as well, then do so
+        if(!parameters_only) {
+            model@covariance <- fill_covariance(
+                d,
+                parameters = parameters[(max(idx_2) + 1):(length(parameters))],
+                covariance = covariance
+            )
+        }
 
         # Assign the parameters to the model and return
         model@parameters <- params

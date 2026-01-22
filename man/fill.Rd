@@ -4,6 +4,7 @@
 \alias{fill}
 \alias{fill,exponential-method}
 \alias{fill,quasi_hyperbolic-method}
+\alias{fill,double_exponential-method}
 \title{Change model parameters}
 \usage{
 fill(model, parameters, ...)
@@ -17,6 +18,14 @@ fill(model, parameters, ...)
 )
 
 \S4method{fill}{quasi_hyperbolic}(
+  model,
+  parameters,
+  dynamics = "isotropic",
+  covariance = "symmetric",
+  parameters_only = TRUE
+)
+
+\S4method{fill}{double_exponential}(
   model,
   parameters,
   dynamics = "isotropic",
