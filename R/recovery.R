@@ -30,6 +30,11 @@
 #' structure of the covariance matrix for the models. See 
 #' \code{\link[discounting]{fill}} for guidance on their potential values. By
 #' default, both the simulation and fitting model are \code{"symmetric"}.
+#' @param print_iteration Logical denoting whether to print the iteration of 
+#' the recovery at this moment. Defaults to \code{TRUE}.
+#' @param print_content Character containing information that you would wish 
+#' to print alongside the iteration. Gets printed before the iteration itself.
+#' Defaults to an empty string.
 #' @param ... Arguments passed on to \code{\link[discounting]{fit}}.
 #' @inheritParams fit
 #' @inheritParams simulate,model-method
@@ -91,6 +96,8 @@ setMethod(
              sim_covariance = covariance,
              fit_dynamics = dynamics,
              fit_covariance = covariance,
+             print_iteration = TRUE,
+             print_content = "",
              ...) {
 
         # If fit_model is NULL, we will assign it the same model as sim_model
@@ -167,6 +174,11 @@ setMethod(
 
         # Loop over each of the iterations and perform the simulation study
         for(i in seq_len(iterations)) {
+            # If you need to print content, do so
+            if(print_iteration) {
+                cat("\r", print_content, i)
+            }
+
             # Generate parameters of the simulation model
             parameters <- generate_parameters(
                 sim_model,
@@ -179,7 +191,8 @@ setMethod(
                 parameters,
                 dynamics = sim_dynamics,
                 covariance = sim_covariance,
-                parameters_only = FALSE
+                parameters_only = FALSE,
+                cholesky = TRUE
             )
             result$simulate[i, ] <- parameters
 
@@ -213,6 +226,11 @@ setMethod(
                 fitobj$objective,
                 summarized
             )
+        }
+
+        # Skip ahead if the recovery is done
+        if(print_iteration) {
+            cat("\n")
         }
 
         return(result)

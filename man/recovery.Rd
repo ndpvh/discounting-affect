@@ -21,6 +21,8 @@ recovery(sim_model, ...)
   sim_covariance = covariance,
   fit_dynamics = dynamics,
   fit_covariance = covariance,
+  print_iteration = TRUE,
+  print_content = "",
   ...
 )
 }
@@ -73,6 +75,13 @@ fitting model are \code{"isotropic"}.}
 structure of the covariance matrix for the models. See 
 \code{\link[discounting]{fill}} for guidance on their potential values. By
 default, both the simulation and fitting model are \code{"symmetric"}.}
+
+\item{print_iteration}{Logical denoting whether to print the iteration of 
+the recovery at this moment. Defaults to \code{TRUE}.}
+
+\item{print_content}{Character containing information that you would wish 
+to print alongside the iteration. Gets printed before the iteration itself.
+Defaults to an empty string.}
 }
 \value{
 Named list containing a \code{data.frame} with simulated parameters
