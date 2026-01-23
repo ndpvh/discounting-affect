@@ -14,7 +14,8 @@ fill(model, parameters, ...)
   parameters,
   dynamics = "isotropic",
   covariance = "symmetric",
-  parameters_only = TRUE
+  parameters_only = TRUE,
+  cholesky = TRUE
 )
 
 \S4method{fill}{quasi_hyperbolic}(
@@ -22,7 +23,8 @@ fill(model, parameters, ...)
   parameters,
   dynamics = "isotropic",
   covariance = "symmetric",
-  parameters_only = TRUE
+  parameters_only = TRUE,
+  cholesky = TRUE
 )
 
 \S4method{fill}{double_exponential}(
@@ -30,7 +32,8 @@ fill(model, parameters, ...)
   parameters,
   dynamics = "isotropic",
   covariance = "symmetric",
-  parameters_only = TRUE
+  parameters_only = TRUE,
+  cholesky = TRUE
 )
 }
 \arguments{
@@ -59,6 +62,10 @@ Can either be \code{"symmetric"} (symmetric around the diagonal) or
 \item{parameters_only}{Logical denoting whether to only fill the 
 parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
 fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.}
+
+\item{cholesky}{Logical denoting whether the values of the covariance matrix 
+should be taken as the values of its Cholesky decomposition instead. Defaults 
+to \code{TRUE}.}
 }
 \value{
 Instance of the \code{\link[discounting]{model-class}} containing 

@@ -4,7 +4,7 @@
 \alias{fill_covariance}
 \title{Fill the covariance matrix with values}
 \usage{
-fill_covariance(d, parameters, covariance = "symmetric")
+fill_covariance(d, parameters, covariance = "symmetric", cholesky = TRUE)
 }
 \arguments{
 \item{d}{Integer denoting the dimensionality of the model.}
@@ -18,6 +18,10 @@ handle this for you, rather than you defining these parameters manually.}
 \item{covariance}{Character denoting the structure of the covariance matrix.
 Can either be \code{"symmetric"} (symmetric around the diagonal) or 
 \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.}
+
+\item{cholesky}{Logical denoting whether the values of the covariance matrix 
+should be taken as the values of its Cholesky decomposition instead. Defaults 
+to \code{TRUE}.}
 }
 \value{
 Matrix filled with the specified values.
@@ -29,13 +33,15 @@ Fill the covariance matrix with values
 fill_covariance(
   2,
   1:3,
-  covariance = "symmetric"
+  covariance = "symmetric",
+  cholesky = FALSE
 )
 
 fill_covariance(
   2,
   1:2,
-  covariance = "isotropic"
+  covariance = "isotropic",
+  cholesky = FALSE
 )
 
 }
