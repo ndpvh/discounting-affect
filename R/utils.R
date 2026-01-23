@@ -23,13 +23,11 @@
 #' \eqn{\Gamma} for the exponential discounting model, \eqn{N} and \eqn{K} for
 #' the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
 #' double-exponential discounting model. Defaults to \code{"isotropic"}.
-#' @param covariance Character denoting the structure of the covariance matrix.
-#' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
-#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
 #' @param parameters_only Logical denoting whether to only fill the 
 #' parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
 #' fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.
 #' @param ... Additional arguments passed on to the methods.
+#' @inheritParams fill_covariance
 #' 
 #' @return Instance of the \code{\link[discounting]{model-class}} containing 
 #' the values \code{parameters} in its \code{parameter}-slot.
@@ -60,7 +58,8 @@ setMethod(
              parameters,
              dynamics = "isotropic",
              covariance = "symmetric",
-             parameters_only = TRUE) {
+             parameters_only = TRUE,
+             cholesky = TRUE) {
         
         # Extract relevant dimensionalities from the model
         d <- model@d 
@@ -150,7 +149,8 @@ setMethod(
             model@covariance <- fill_covariance(
                 d,
                 parameters = parameters[(max(idx) + 1):(length(parameters))],
-                covariance = covariance
+                covariance = covariance,
+                cholesky = cholesky
             )
         }
 
@@ -170,7 +170,8 @@ setMethod(
              parameters,
              dynamics = "isotropic",
              covariance = "symmetric",
-             parameters_only = TRUE) {
+             parameters_only = TRUE,
+             cholesky = TRUE) {
         
         # Extract relevant dimensionalities from the model
         d <- model@d 
@@ -270,7 +271,8 @@ setMethod(
             model@covariance <- fill_covariance(
                 d,
                 parameters = parameters[(max(idx_2) + 1):(length(parameters))],
-                covariance = covariance
+                covariance = covariance,
+                cholesky = cholesky
             )
         }
 
@@ -290,7 +292,8 @@ setMethod(
              parameters,
              dynamics = "isotropic",
              covariance = "symmetric",
-             parameters_only = TRUE) {
+             parameters_only = TRUE,
+             cholesky = TRUE) {
         
         # Extract relevant dimensionalities from the model
         d <- model@d 
@@ -391,7 +394,8 @@ setMethod(
             model@covariance <- fill_covariance(
                 d,
                 parameters = parameters[(max(idx_2) + 1):(length(parameters))],
-                covariance = covariance
+                covariance = covariance,
+                cholesky = cholesky
             )
         }
 
@@ -413,6 +417,9 @@ setMethod(
 #' @param covariance Character denoting the structure of the covariance matrix.
 #' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
 #' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
+#' @param cholesky Logical denoting whether the values of the covariance matrix 
+#' should be taken as the values of its Cholesky decomposition instead. Defaults 
+#' to \code{TRUE}.
 #' 
 #' @return Matrix filled with the specified values.
 #' 
@@ -420,20 +427,23 @@ setMethod(
 #' fill_covariance(
 #'   2,
 #'   1:3,
-#'   covariance = "symmetric"
+#'   covariance = "symmetric",
+#'   cholesky = FALSE
 #' )
 #' 
 #' fill_covariance(
 #'   2,
 #'   1:2,
-#'   covariance = "isotropic"
+#'   covariance = "isotropic",
+#'   cholesky = FALSE
 #' )
 #' 
 #' @rdname fill_covariance
 #' @export 
 fill_covariance <- function(d, 
                             parameters,
-                            covariance = "symmetric") {
+                            covariance = "symmetric",
+                            cholesky = TRUE) {
     
     # Check whether enough parameters are defined
     n <- count_covariance(d, covariance = covariance)
@@ -475,10 +485,20 @@ fill_covariance <- function(d,
         idx <- lower.tri(result, diag = TRUE)
         result[idx] <- parameters
 
-        idx <- upper.tri(result, diag = FALSE)
-        result[idx] <- t(result)[idx]
+        # Check whether the Cholesky decomposition is used or not.
+        if(cholesky) {
+            result <- result %*% t(result)
+        } else {
+            idx <- upper.tri(result, diag = FALSE)
+            result[idx] <- t(result)[idx]
+        }
 
     } else if(covariance == "isotropic") {
+        # Check whether the Cholesky decomposition is used or not
+        if(cholesky) {
+            parameters <- parameters^2
+        }
+
         diag(result) <- parameters
     } 
 

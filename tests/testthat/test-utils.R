@@ -29,13 +29,13 @@ test_that(
     "Test known warnings for fill",
     {
         # More than enough parameters provided for the covariance matrix
-        expect_warning(fill_covariance(2, 1:4, covariance = "symmetric"))
-        tst <- fill_covariance(2, 1:4, covariance = "symmetric") |>
+        expect_warning(fill_covariance(2, 1:4, covariance = "symmetric", cholesky = FALSE))
+        tst <- fill_covariance(2, 1:4, covariance = "symmetric", cholesky = FALSE) |>
             suppressWarnings()
         expect_equal(tst, matrix(c(1, 2, 2, 3), nrow = 2, ncol = 2))
 
-        expect_warning(fill_covariance(2, 1:4, covariance = "isotropic")) 
-        tst <- fill_covariance(2, 1:4, covariance = "isotropic") |>
+        expect_warning(fill_covariance(2, 1:4, covariance = "isotropic", cholesky = FALSE)) 
+        tst <- fill_covariance(2, 1:4, covariance = "isotropic", cholesky = FALSE) |>
             suppressWarnings()
         expect_equal(tst, diag(2) * 1:2)
 
@@ -59,16 +59,17 @@ test_that(
 test_that(
     "Check output for fill: Covariance matrix",
     {
-        tst <- fill_covariance(1, 1)
+        # Without Cholesky decomposition
+        tst <- fill_covariance(1, 1, cholesky = FALSE)
         expect_equal(tst, as.matrix(1))
 
-        tst <- fill_covariance(2, 1:3, covariance = "symmetric")
+        tst <- fill_covariance(2, 1:3, covariance = "symmetric", cholesky = FALSE)
         expect_equal(tst, matrix(c(1, 2, 2, 3), nrow = 2, ncol = 2))
 
-        tst <- fill_covariance(2, 1:2, covariance = "isotropic")
+        tst <- fill_covariance(2, 1:2, covariance = "isotropic", cholesky = FALSE)
         expect_equal(tst, matrix(c(1, 0, 0, 2), nrow = 2, ncol = 2))
 
-        tst <- fill_covariance(3, 1:6, covariance = "symmetric")
+        tst <- fill_covariance(3, 1:6, covariance = "symmetric", cholesky = FALSE)
         expect_equal(
             tst, 
             matrix(
@@ -81,11 +82,43 @@ test_that(
         tst <- fill_covariance(
             3, 
             1:3, 
-            covariance = "isotropic"
+            covariance = "isotropic", 
+            cholesky = FALSE
         )
         expect_equal(
             tst, 
             diag(3) * 1:3
+        )
+
+        # With Cholesky decomposition
+        tst <- fill_covariance(1, 0.5, cholesky = TRUE)
+        expect_equal(tst, as.matrix(0.25))
+
+        tst <- fill_covariance(2, 1:3, covariance = "symmetric", cholesky = TRUE)
+        expect_equal(tst, matrix(c(1, 2, 2, 4 + 9), nrow = 2, ncol = 2))
+
+        tst <- fill_covariance(2, 1:2, covariance = "isotropic", cholesky = TRUE)
+        expect_equal(tst, matrix(c(1, 0, 0, 4), nrow = 2, ncol = 2))
+
+        tst <- fill_covariance(3, 1:6, covariance = "symmetric", cholesky = TRUE)
+        expect_equal(
+            tst, 
+            matrix(
+                c(1, 2, 3, 2, 4 + 16, 6 + 20, 3, 6 + 20, 9 + 25 + 36), 
+                nrow = 3, 
+                ncol = 3
+            )
+        )
+
+        tst <- fill_covariance(
+            3, 
+            1:3, 
+            covariance = "isotropic", 
+            cholesky = TRUE
+        )
+        expect_equal(
+            tst, 
+            diag(3) * c(1, 4, 9)
         )
     }
 )
@@ -156,7 +189,7 @@ test_that(
     {
         # Single dimension and single predictor
         my_model <- exponential(d = 1, k = 1)
-        tst <- fill(my_model, 1:4, parameters_only = FALSE)
+        tst <- fill(my_model, 1:4, parameters_only = FALSE, cholesky = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1)
         expect_equal(tst@parameters[["beta"]], as.matrix(2))
@@ -165,7 +198,7 @@ test_that(
 
         # Single dimension and two predictors
         my_model <- exponential(d = 1, k = 2)
-        tst <- fill(my_model, 1:5, parameters_only = FALSE)
+        tst <- fill(my_model, 1:5, parameters_only = FALSE, cholesky = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1)
         expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
@@ -179,7 +212,8 @@ test_that(
             1:8, 
             dynamics = "isotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -192,7 +226,8 @@ test_that(
             1:9, 
             dynamics = "isotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -205,7 +240,8 @@ test_that(
             1:9, 
             dynamics = "symmetric", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -218,7 +254,8 @@ test_that(
             1:10, 
             dynamics = "symmetric", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -231,7 +268,8 @@ test_that(
             1:10, 
             dynamics = "anisotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -244,7 +282,8 @@ test_that(
             1:11, 
             dynamics = "anisotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -259,7 +298,8 @@ test_that(
             1:10, 
             dynamics = "isotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -272,7 +312,8 @@ test_that(
             1:11, 
             dynamics = "isotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -285,7 +326,8 @@ test_that(
             1:11, 
             dynamics = "symmetric", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -298,7 +340,8 @@ test_that(
             1:12, 
             dynamics = "symmetric", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -311,7 +354,8 @@ test_that(
             1:12, 
             dynamics = "anisotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -324,7 +368,8 @@ test_that(
             1:13, 
             dynamics = "anisotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -408,7 +453,7 @@ test_that(
     {
         # Single dimension and single predictor
         my_model <- quasi_hyperbolic(d = 1, k = 1)
-        tst <- fill(my_model, 1:5, parameters_only = FALSE)
+        tst <- fill(my_model, 1:5, parameters_only = FALSE, cholesky = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1)
         expect_equal(tst@parameters[["beta"]], as.matrix(2))
@@ -418,7 +463,7 @@ test_that(
 
         # Single dimension and two predictors
         my_model <- quasi_hyperbolic(d = 1, k = 2)
-        tst <- fill(my_model, 1:6, parameters_only = FALSE)
+        tst <- fill(my_model, 1:6, parameters_only = FALSE, cholesky = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1)
         expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
@@ -433,7 +478,8 @@ test_that(
             1:10, 
             dynamics = "isotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -447,7 +493,8 @@ test_that(
             1:11, 
             dynamics = "isotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -461,7 +508,8 @@ test_that(
             1:12, 
             dynamics = "symmetric", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -475,7 +523,8 @@ test_that(
             1:13, 
             dynamics = "symmetric", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -489,7 +538,8 @@ test_that(
             1:14, 
             dynamics = "anisotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -503,7 +553,8 @@ test_that(
             1:15, 
             dynamics = "anisotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -519,7 +570,8 @@ test_that(
             1:12, 
             dynamics = "isotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -533,7 +585,8 @@ test_that(
             1:13, 
             dynamics = "isotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -547,7 +600,8 @@ test_that(
             1:14, 
             dynamics = "symmetric", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -561,7 +615,8 @@ test_that(
             1:15, 
             dynamics = "symmetric", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -575,7 +630,8 @@ test_that(
             1:16, 
             dynamics = "anisotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -589,7 +645,8 @@ test_that(
             1:17, 
             dynamics = "anisotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -682,7 +739,7 @@ test_that(
     {
         # Single dimension and single predictor
         my_model <- double_exponential(d = 1, k = 1)
-        tst <- fill(my_model, 1:6, parameters_only = FALSE)
+        tst <- fill(my_model, 1:6, parameters_only = FALSE, cholesky = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1)
         expect_equal(tst@parameters[["beta"]], as.matrix(2))
@@ -693,7 +750,7 @@ test_that(
 
         # Single dimension and two predictors
         my_model <- double_exponential(d = 1, k = 2)
-        tst <- fill(my_model, 1:7, parameters_only = FALSE)
+        tst <- fill(my_model, 1:7, parameters_only = FALSE, cholesky = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1)
         expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
@@ -709,7 +766,8 @@ test_that(
             1:11, 
             dynamics = "isotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -724,7 +782,8 @@ test_that(
             1:12, 
             dynamics = "isotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -739,7 +798,8 @@ test_that(
             1:13, 
             dynamics = "symmetric", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -754,7 +814,8 @@ test_that(
             1:14, 
             dynamics = "symmetric", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -769,7 +830,8 @@ test_that(
             1:15, 
             dynamics = "anisotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -784,7 +846,8 @@ test_that(
             1:16, 
             dynamics = "anisotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -801,7 +864,8 @@ test_that(
             1:13, 
             dynamics = "isotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -816,7 +880,8 @@ test_that(
             1:14, 
             dynamics = "isotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -831,7 +896,8 @@ test_that(
             1:15, 
             dynamics = "symmetric", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -846,7 +912,8 @@ test_that(
             1:16, 
             dynamics = "symmetric", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -861,7 +928,8 @@ test_that(
             1:17, 
             dynamics = "anisotropic", 
             covariance = "isotropic",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
@@ -876,7 +944,8 @@ test_that(
             1:18, 
             dynamics = "anisotropic", 
             covariance = "symmetric",
-            parameters_only = FALSE
+            parameters_only = FALSE,
+            cholesky = FALSE
         )
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
