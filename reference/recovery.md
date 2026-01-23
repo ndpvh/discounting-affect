@@ -22,10 +22,14 @@ recovery(
   X = NULL,
   Xfun = NULL,
   N = NULL,
-  sim_dynamics = "isotropic",
-  sim_covariance = "symmetric",
-  fit_dynamics = "isotropic",
-  fit_covariance = "symmetric",
+  dynamics = "isotropic",
+  covariance = "symmetric",
+  sim_dynamics = dynamics,
+  sim_covariance = covariance,
+  fit_dynamics = dynamics,
+  fit_covariance = covariance,
+  print_iteration = TRUE,
+  print_content = "",
   ...
 )
 ```
@@ -94,19 +98,32 @@ recovery(
   Number of datapoints to simulate. Passed on to `Xfun` when defined.
   Defaults to `NULL`.
 
-- sim_dynamics, fit_dynamics:
+- dynamics, sim_dynamics, fit_dynamics:
 
   Character denoting the structure of the dynamic parameters of the
   models. See
   [`fill`](https://github.com/ndpvh/discounting-affect/reference/fill.md)
-  for guidance on their potential values.
+  for guidance on their potential values. By default, both the
+  simulation and fitting model are `"isotropic"`.
 
-- sim_covariance, fit_covariance:
+- covariance, sim_covariance, fit_covariance:
 
   Character denoting the structure of the covariance matrix for the
   models. See
   [`fill`](https://github.com/ndpvh/discounting-affect/reference/fill.md)
-  for guidance on their potential values.
+  for guidance on their potential values. By default, both the
+  simulation and fitting model are `"symmetric"`.
+
+- print_iteration:
+
+  Logical denoting whether to print the iteration of the recovery at
+  this moment. Defaults to `TRUE`.
+
+- print_content:
+
+  Character containing information that you would wish to print
+  alongside the iteration. Gets printed before the iteration itself.
+  Defaults to an empty string.
 
 ## Value
 
@@ -144,30 +161,31 @@ recovery(
   itermax = 25,
   trace = FALSE
 )
+#>   1  2  3  4  5  6  7  8  9  10
 #> $simulate
-#>       alpha_1    beta_11  gamma_11  sigma_11
-#> 1   0.8569972 -3.4713281 0.3856933 0.7613589
-#> 2   0.6521350 -2.1040805 0.3951991 0.7686621
-#> 3   0.9726840 -1.0776891 0.1876451 0.9299054
-#> 4  -0.8299362 -2.6235053 0.3315630 0.4635610
-#> 5  -0.2605241 -2.2082261 0.3500239 0.3059435
-#> 6   0.3009353 -0.6631639 0.3738693 0.2184910
-#> 7   0.0882654 -1.9570082 0.5534691 0.2898066
-#> 8  -0.1595766 -4.3435898 0.9757551 0.9275211
-#> 9  -0.5922077 -3.0689218 0.8292778 0.0121203
-#> 10  0.3658308  2.5180615 0.4250825 0.9416419
+#>        alpha_1   beta_11   gamma_11   sigma_11
+#> 1   0.04718214  1.991339 0.95672699 0.01756332
+#> 2  -0.81088930  1.426539 0.55630113 0.67094691
+#> 3  -0.69590675 -4.515063 0.68234734 0.92588219
+#> 4  -0.57706106  1.546639 0.02898173 0.25566434
+#> 5   0.88520977  4.223072 0.59879785 0.69701228
+#> 6   0.03722637  1.040132 0.90861255 0.31559462
+#> 7  -0.41505119  4.300577 0.90982185 0.24311205
+#> 8  -0.83420104 -1.050362 0.50488693 0.41220518
+#> 9  -0.13091330  2.109529 0.89065568 0.10986635
+#> 10  0.25219549  2.498303 0.78960627 0.46784837
 #> 
 #> $fit
-#>        alpha_1    beta_11  gamma_11   sigma_11 objective       aic
-#> 1   0.82515333 -3.1871739 0.4273836 0.61662205 14.798933 10.694555
-#> 2   0.39358489 -2.0797859 0.4903053 0.63099627 15.149367 10.717959
-#> 3   0.99811203 -1.1704834 0.4362487 1.32169186 32.214797 11.472426
-#> 4  -0.94982943 -2.3933690 0.2308495 0.63052586 15.132648 10.716855
-#> 5  -0.06182098 -2.1407326 0.3784976 0.28475363  6.836606  9.922291
-#> 6   0.34663569 -0.6688359 0.1688776 0.20502626  4.922150  9.593745
-#> 7   0.07885944 -1.9596535 0.5435221 0.24347692  5.843476  9.765326
-#> 8  -0.49383948 -4.4309722 0.9735560 1.48424461 35.989756 11.583234
-#> 9  -0.60246529 -3.0956377 0.8290827 0.01698464  0.415764  7.122363
-#> 10  0.17673488  2.5706500 0.4448343 1.15802805 27.793059 11.324786
+#>        alpha_1   beta_11   gamma_11    sigma_11  objective       aic
+#> 1   0.03802146  2.032352 0.95288325 0.006493631  0.2192525  6.482469
+#> 2  -0.98023331  1.507981 0.20281709 0.192164784  4.6219609  9.530819
+#> 3  -0.48831415 -4.353223 0.64153970 0.856432308 20.5545752 11.023084
+#> 4  -0.54609764  1.560876 0.06682918 0.063965546  1.5352623  8.428701
+#> 5   0.83323455  4.294115 0.60032750 0.427434362 10.2595347 10.328207
+#> 6  -0.02916657  1.002506 0.92813084 0.197082742  4.7319374  9.554335
+#> 7  -0.45954171  4.302533 0.90348396 0.045743294  1.1117774  8.105960
+#> 8  -0.79688947 -1.064166 0.50422185 0.091175908  2.1896802  8.783755
+#> 9  -0.24557647  2.086468 0.88077115 0.013665804  0.3279812  6.885201
+#> 10  0.52271390  2.456810 0.80438984 0.225795128  5.4200274  9.690101
 #> 
 ```

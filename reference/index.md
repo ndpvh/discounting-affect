@@ -2,6 +2,18 @@
 
 ## All functions
 
+- [`aic()`](https://github.com/ndpvh/discounting-affect/reference/aic.md)
+  : Compute the \\AIC\\ based on \\SSE\\
+
+- [`autocorrelation()`](https://github.com/ndpvh/discounting-affect/reference/autocorrelation.md)
+  : Compute the autocorrelation of the residuals
+
+- [`bias()`](https://github.com/ndpvh/discounting-affect/reference/bias.md)
+  : Compute the mean of the residuals
+
+- [`bic()`](https://github.com/ndpvh/discounting-affect/reference/bic.md)
+  : Compute the \\BIC\\ based on \\SSE\\
+
 - [`count_covariance()`](https://github.com/ndpvh/discounting-affect/reference/count_covariance.md)
   : Count the number of parameters in the covariance matrix
 
