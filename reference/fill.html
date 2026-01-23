@@ -62,7 +62,8 @@ optimizers such as <code><a href="https://rdrr.io/pkg/DEoptim/man/DEoptim.html" 
 <span>  <span class="va">parameters</span>,</span>
 <span>  dynamics <span class="op">=</span> <span class="st">"isotropic"</span>,</span>
 <span>  covariance <span class="op">=</span> <span class="st">"symmetric"</span>,</span>
-<span>  parameters_only <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  parameters_only <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  cholesky <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'quasi_hyperbolic'</span></span>
@@ -71,7 +72,8 @@ optimizers such as <code><a href="https://rdrr.io/pkg/DEoptim/man/DEoptim.html" 
 <span>  <span class="va">parameters</span>,</span>
 <span>  dynamics <span class="op">=</span> <span class="st">"isotropic"</span>,</span>
 <span>  covariance <span class="op">=</span> <span class="st">"symmetric"</span>,</span>
-<span>  parameters_only <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  parameters_only <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  cholesky <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'double_exponential'</span></span>
@@ -80,7 +82,8 @@ optimizers such as <code><a href="https://rdrr.io/pkg/DEoptim/man/DEoptim.html" 
 <span>  <span class="va">parameters</span>,</span>
 <span>  dynamics <span class="op">=</span> <span class="st">"isotropic"</span>,</span>
 <span>  covariance <span class="op">=</span> <span class="st">"symmetric"</span>,</span>
-<span>  parameters_only <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  parameters_only <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  cholesky <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -124,6 +127,12 @@ Can either be <code>"symmetric"</code> (symmetric around the diagonal) or
 <dd><p>Logical denoting whether to only fill the
 parameters in de <code>parameter</code> slot of the model (<code>TRUE</code>), or to
 fill the covariance matrix as well (<code>FALSE</code>). Defaults to <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-cholesky">cholesky<a class="anchor" aria-label="anchor" href="#arg-cholesky"></a></dt>
+<dd><p>Logical denoting whether the values of the covariance matrix
+should be taken as the values of its Cholesky decomposition instead. Defaults
+to <code>TRUE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

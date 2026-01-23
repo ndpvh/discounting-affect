@@ -5,7 +5,7 @@ Fill the covariance matrix with values
 ## Usage
 
 ``` r
-fill_covariance(d, parameters, covariance = "symmetric")
+fill_covariance(d, parameters, covariance = "symmetric", cholesky = TRUE)
 ```
 
 ## Arguments
@@ -29,6 +29,12 @@ fill_covariance(d, parameters, covariance = "symmetric")
   be `"symmetric"` (symmetric around the diagonal) or `"isotropic"`
   (diagonal). Defaults to `"symmetric"`.
 
+- cholesky:
+
+  Logical denoting whether the values of the covariance matrix should be
+  taken as the values of its Cholesky decomposition instead. Defaults to
+  `TRUE`.
+
 ## Value
 
 Matrix filled with the specified values.
@@ -39,18 +45,20 @@ Matrix filled with the specified values.
 fill_covariance(
   2,
   1:3,
-  covariance = "symmetric"
+  covariance = "symmetric",
+  cholesky = FALSE
 )
 #>      [,1] [,2]
 #> [1,]    1    2
-#> [2,]    2   13
+#> [2,]    2    3
 
 fill_covariance(
   2,
   1:2,
-  covariance = "isotropic"
+  covariance = "isotropic",
+  cholesky = FALSE
 )
 #>      [,1] [,2]
 #> [1,]    1    0
-#> [2,]    0    4
+#> [2,]    0    2
 ```

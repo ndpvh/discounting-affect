@@ -39,7 +39,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fill_covariance</span><span class="op">(</span><span class="va">d</span>, <span class="va">parameters</span>, covariance <span class="op">=</span> <span class="st">"symmetric"</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fill_covariance</span><span class="op">(</span><span class="va">d</span>, <span class="va">parameters</span>, covariance <span class="op">=</span> <span class="st">"symmetric"</span>, cholesky <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -63,6 +63,12 @@ handle this for you, rather than you defining these parameters manually.</p></dd
 Can either be <code>"symmetric"</code> (symmetric around the diagonal) or
 <code>"isotropic"</code> (diagonal). Defaults to <code>"symmetric"</code>.</p></dd>
 
+
+<dt id="arg-cholesky">cholesky<a class="anchor" aria-label="anchor" href="#arg-cholesky"></a></dt>
+<dd><p>Logical denoting whether the values of the covariance matrix
+should be taken as the values of its Cholesky decomposition instead. Defaults
+to <code>TRUE</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -74,20 +80,22 @@ Can either be <code>"symmetric"</code> (symmetric around the diagonal) or
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">fill_covariance</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="fl">2</span>,</span></span>
 <span class="r-in"><span>  <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,</span></span>
-<span class="r-in"><span>  covariance <span class="op">=</span> <span class="st">"symmetric"</span></span></span>
+<span class="r-in"><span>  covariance <span class="op">=</span> <span class="st">"symmetric"</span>,</span></span>
+<span class="r-in"><span>  cholesky <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      [,1] [,2]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1    2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]    2   13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]    2    3</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">fill_covariance</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="fl">2</span>,</span></span>
 <span class="r-in"><span>  <span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,</span></span>
-<span class="r-in"><span>  covariance <span class="op">=</span> <span class="st">"isotropic"</span></span></span>
+<span class="r-in"><span>  covariance <span class="op">=</span> <span class="st">"isotropic"</span>,</span></span>
+<span class="r-in"><span>  cholesky <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      [,1] [,2]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1,]    1    0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]    0    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,]    0    2</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
