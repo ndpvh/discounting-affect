@@ -50,3 +50,7 @@ rsconnect/
 
 # Mac has the tendency of storing a DS_Store
 .DS_Store
+
+# Add results and figures to the .gitignore
+scripts/results
+scripts/figures
