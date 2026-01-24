@@ -176,7 +176,7 @@ setMethod(
         for(i in seq_len(iterations)) {
             # If you need to print content, do so
             if(print_iteration) {
-                cat("\r", print_content, i)
+                cat("\r", print_content, i, paste(rep(" ", 10), sep = ""))
             }
 
             # Generate parameters of the simulation model
@@ -229,9 +229,9 @@ setMethod(
         }
 
         # Skip ahead if the recovery is done
-        if(print_iteration) {
-            cat("\n")
-        }
+        # if(print_iteration) {
+        #     cat("\n")
+        # }
 
         return(result)
     }
