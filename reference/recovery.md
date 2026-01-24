@@ -161,7 +161,7 @@ recovery(
   itermax = 25,
   trace = FALSE
 )
-#>   1  2  3  4  5  6  7  8  9  10
+#>   1                      2                      3                      4                      5                      6                      7                      8                      9                      10                    
 #> $simulate
 #>        alpha_1   beta_11   gamma_11   sigma_11
 #> 1   0.04718214  1.991339 0.95672699 0.01756332
