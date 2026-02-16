@@ -1699,3 +1699,66 @@ setMethod(
         return(parameters)
     }
 )
+
+
+
+################################################################################
+# PARAMETERS
+
+#' Extract model parameters
+#' 
+#' Extract the parameters of a particular model. This includes the covariances,
+#' so not only the deterministic model parameters.
+#' 
+#' @param model Instance of the \code{\link[discounting]{model-class}}
+#' @param vector Logical denoting whether to output the parameters in a vector
+#' (\code{TRUE}) or a list (\code{FALSE}). Defaults to \code{TRUE}.
+#' 
+#' @return Numeric vector containing all parameters of the model.
+#' 
+#' @examples 
+#' parameters(
+#'   double_exponential(d = 2, k = 3),
+#'   vector = TRUE
+#' )
+#' 
+#' parameters(
+#'   double_exponential(d = 2, k = 3),
+#'   vector = FALSE
+#' )
+#' 
+#' @rdname parameters
+#' @export 
+setGeneric(
+    "parameters",
+    function(model, ...) standardGeneric("parameters")
+)
+
+#' @rdname parameters
+#' @export 
+setMethod(
+    "parameters",
+    "model",
+    function(model,
+             vector = TRUE) {
+        
+        # Extract the unique parameters of the model and return
+        params <- sapply(
+            seq_along(model@parameters),
+            function(i) as.numeric(model@parameters[[i]])
+        )   
+
+        # Add the covariances into the mix
+        params <- append(
+            params,
+            model@covariance[lower.tri(model@covariance, diag = TRUE)]
+        )
+
+        # Check whether we want to output the vector or the list
+        if(vector) {
+            params <- unlist(params)
+        }
+        
+        return(params)
+    }
+)

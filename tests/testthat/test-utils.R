@@ -3488,3 +3488,42 @@ test_that(
         )
     }
 )
+
+
+
+################################################################################
+# PARAMETERS
+
+test_that(
+    "Check the retrieved parameter values when vector = TRUE",
+    {
+        vector <- TRUE
+
+        #################################
+        # Exponential discounting model
+
+        # Anisotropic, Symmetric
+        model <- fill(
+            exponential(d = 2, k = 2),
+            1:13,
+            dynamics = "anisotropic",
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, vector = vector),
+            1:13
+        )
+
+        # Symmetric, Symmetric
+
+        # Isotropic, Symmetric
+
+        # Anisotropic, Isotropic
+
+        # Symmetric, Isotropic
+
+        # Isotropic, Isotropic
+    }
+)
