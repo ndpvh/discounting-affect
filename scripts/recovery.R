@@ -15,8 +15,8 @@ devtools::load_all()
 # PRELIMINARIES
 
 # Define the number of recoveries `iterations` and the number of datapoints `N`
-iterations <- 100
-N <- 50
+iterations <- 20
+N <- 140
 
 # Define the models to use for the recovery study
 models <- list(
@@ -43,9 +43,13 @@ models <- list(
 )
 
 # Define the dynamical and covariance characteristics of these models
-characteristics <- cbind(
-    rep(c("anisotropic", "isotropic", "symmetric"), each = 2),
-    rep(c("isotropic", "symmetric"), times = 3)
+# characteristics <- cbind(
+#     rep(c("anisotropic", "isotropic", "symmetric"), each = 2),
+#     rep(c("isotropic", "symmetric"), times = 3)
+# )
+characteristics <- rbind(
+    c("anisotropic", "symmetric"),
+    c("isotropic", "symmetric")
 )
 
 # Define functions for generating the values of X in the simulation
@@ -104,10 +108,12 @@ empty <- parallel::mclapply(
                 covariance = characteristics[j, 2],
 
                 # DEoptim characteristics
-                itermax = 1000,
+                itermax = 500,
                 strategy = 6,
                 p = 0.5, 
                 NP = 200,
+                reltol = 1e-5,
+                steptol = 100,
                 trace = FALSE,
 
                 # Additional stuff
@@ -262,3 +268,5 @@ empty <- parallel::mclapply(
         parallel::detectCores() - 1
     )
 )
+
+cat("\n")
