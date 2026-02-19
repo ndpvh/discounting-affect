@@ -95,48 +95,48 @@ test_that(
 
         my_model <- exponential(d = 2, k = 1)
 
-        # Isotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "isotropic", fill = TRUE)
+        # Isotropic, full = TRUE
+        tst <- index(my_model, dynamics = "isotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
         expect_equal(tst@parameters[["gamma"]], diag(2) * 5:6)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Isotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "isotropic", fill = FALSE)
+        # Isotropic, full = FALSE
+        tst <- index(my_model, dynamics = "isotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
         expect_equal(tst@parameters[["gamma"]], diag(2) * 5:6)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = TRUE
-        tst <- index(my_model, dynamics = "symmetric", fill = TRUE)
+        # Symmetric, full = TRUE
+        tst <- index(my_model, dynamics = "symmetric", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
         expect_equal(tst@parameters[["gamma"]], matrix(c(5, 6, 6, 7), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = FALSE
-        tst <- index(my_model, dynamics = "symmetric", fill = FALSE)
+        # Symmetric, full = FALSE
+        tst <- index(my_model, dynamics = "symmetric", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
         expect_equal(tst@parameters[["gamma"]], matrix(c(5, 6, 0, 7), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "anisotropic", fill = TRUE)
+        # Anisotropic, full = TRUE
+        tst <- index(my_model, dynamics = "anisotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
         expect_equal(tst@parameters[["gamma"]], matrix(5:8, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "anisotropic", fill = FALSE)
+        # Anisotropic, full = FALSE
+        tst <- index(my_model, dynamics = "anisotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -149,48 +149,48 @@ test_that(
 
         my_model <- exponential(d = 2, k = 2)
 
-        # Isotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "isotropic", fill = TRUE)
+        # Isotropic, full = TRUE
+        tst <- index(my_model, dynamics = "isotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
         expect_equal(tst@parameters[["gamma"]], diag(2) * 7:8)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Isotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "isotropic", fill = FALSE)
+        # Isotropic, full = FALSE
+        tst <- index(my_model, dynamics = "isotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
         expect_equal(tst@parameters[["gamma"]], diag(2) * 7:8)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = TRUE
-        tst <- index(my_model, dynamics = "symmetric", fill = TRUE)
+        # Symmetric, full = TRUE
+        tst <- index(my_model, dynamics = "symmetric", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
         expect_equal(tst@parameters[["gamma"]], matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = FALSE
-        tst <- index(my_model, dynamics = "symmetric", fill = FALSE)
+        # Symmetric, full = FALSE
+        tst <- index(my_model, dynamics = "symmetric", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
         expect_equal(tst@parameters[["gamma"]], matrix(c(7, 8, 0, 9), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "anisotropic", fill = TRUE)
+        # Anisotropic, full = TRUE
+        tst <- index(my_model, dynamics = "anisotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
         expect_equal(tst@parameters[["gamma"]], matrix(7:10, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "anisotropic", fill = FALSE)
+        # Anisotropic, full = FALSE
+        tst <- index(my_model, dynamics = "anisotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -229,11 +229,11 @@ test_that(
 
         my_model <- exponential(d = 2, k = 1)
 
-        # Isotropic, fill = TRUE
+        # Isotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -243,11 +243,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], diag(2) * 5:6)
         expect_equal(tst@covariance, diag(2) * 7:8)
 
-        # Isotropic, fill = FALSE
+        # Isotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -257,11 +257,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], diag(2) * 5:6)
         expect_equal(tst@covariance, diag(2) * 7:8)
 
-        # Symmetric, fill = TRUE
+        # Symmetric, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -271,11 +271,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], matrix(c(5, 6, 6, 7), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 8:9)
 
-        # Symmetric, fill = FALSE
+        # Symmetric, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -285,11 +285,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], matrix(c(5, 6, 0, 7), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 8:9)
 
-        # Anisotropic, fill = TRUE
+        # Anisotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -299,11 +299,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], matrix(5:8, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 9:10)
 
-        # Anisotropic, fill = FALSE
+        # Anisotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -319,11 +319,11 @@ test_that(
 
         my_model <- exponential(d = 2, k = 2)
 
-        # Isotropic, fill = TRUE
+        # Isotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -333,11 +333,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], diag(2) * 7:8)
         expect_equal(tst@covariance, diag(2) * 9:10)
 
-        # Isotropic, fill = FALSE
+        # Isotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -347,11 +347,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], diag(2) * 7:8)
         expect_equal(tst@covariance, diag(2) * 9:10)
 
-        # Symmetric, fill = TRUE
+        # Symmetric, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -361,11 +361,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 10:11)
 
-        # Symmetric, fill = FALSE
+        # Symmetric, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -375,11 +375,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], matrix(c(7, 8, 0, 9), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 10:11)
 
-        # Anisotropic, fill = TRUE
+        # Anisotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -389,11 +389,11 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], matrix(7:10, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 11:12)
 
-        # Anisotropic, fill = FALSE
+        # Anisotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -437,8 +437,8 @@ test_that(
 
         my_model <- quasi_hyperbolic(d = 2, k = 1)
 
-        # Isotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "isotropic", fill = TRUE)
+        # Isotropic, full = TRUE
+        tst <- index(my_model, dynamics = "isotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -446,8 +446,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], diag(2) * 7:8)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Isotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "isotropic", fill = FALSE)
+        # Isotropic, full = FALSE
+        tst <- index(my_model, dynamics = "isotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -455,8 +455,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], diag(2) * 7:8)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = TRUE
-        tst <- index(my_model, dynamics = "symmetric", fill = TRUE)
+        # Symmetric, full = TRUE
+        tst <- index(my_model, dynamics = "symmetric", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -464,8 +464,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = FALSE
-        tst <- index(my_model, dynamics = "symmetric", fill = FALSE)
+        # Symmetric, full = FALSE
+        tst <- index(my_model, dynamics = "symmetric", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -473,8 +473,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(c(8, 9, 0, 10), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "anisotropic", fill = TRUE)
+        # Anisotropic, full = TRUE
+        tst <- index(my_model, dynamics = "anisotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -482,8 +482,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(9:12, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "anisotropic", fill = FALSE)
+        # Anisotropic, full = FALSE
+        tst <- index(my_model, dynamics = "anisotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -497,8 +497,8 @@ test_that(
 
         my_model <- quasi_hyperbolic(d = 2, k = 2)
 
-        # Isotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "isotropic", fill = TRUE)
+        # Isotropic, full = TRUE
+        tst <- index(my_model, dynamics = "isotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -506,8 +506,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], diag(2) * 9:10)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Isotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "isotropic", fill = FALSE)
+        # Isotropic, full = FALSE
+        tst <- index(my_model, dynamics = "isotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -515,8 +515,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], diag(2) * 9:10)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = TRUE
-        tst <- index(my_model, dynamics = "symmetric", fill = TRUE)
+        # Symmetric, full = TRUE
+        tst <- index(my_model, dynamics = "symmetric", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -524,8 +524,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = FALSE
-        tst <- index(my_model, dynamics = "symmetric", fill = FALSE)
+        # Symmetric, full = FALSE
+        tst <- index(my_model, dynamics = "symmetric", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -533,8 +533,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(c(10, 11, 0, 12), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "anisotropic", fill = TRUE)
+        # Anisotropic, full = TRUE
+        tst <- index(my_model, dynamics = "anisotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -542,8 +542,8 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(11:14, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "anisotropic", fill = FALSE)
+        # Anisotropic, full = FALSE
+        tst <- index(my_model, dynamics = "anisotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -585,11 +585,11 @@ test_that(
 
         my_model <- quasi_hyperbolic(d = 2, k = 1)
 
-        # Isotropic, fill = TRUE
+        # Isotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -600,11 +600,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], diag(2) * 7:8)
         expect_equal(tst@covariance, diag(2) * 9:10)
 
-        # Isotropic, fill = FALSE
+        # Isotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -615,11 +615,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], diag(2) * 7:8)
         expect_equal(tst@covariance, diag(2) * 9:10)
 
-        # Symmetric, fill = TRUE
+        # Symmetric, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -630,11 +630,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 11:12)
 
-        # Symmetric, fill = FALSE
+        # Symmetric, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -645,11 +645,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(c(8, 9, 0, 10), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 11:12)
 
-        # Anisotropic, fill = TRUE
+        # Anisotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -660,11 +660,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(9:12, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 13:14)
 
-        # Anisotropic, fill = FALSE
+        # Anisotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -681,11 +681,11 @@ test_that(
 
         my_model <- quasi_hyperbolic(d = 2, k = 2)
 
-        # Isotropic, fill = TRUE
+        # Isotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -696,11 +696,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], diag(2) * 9:10)
         expect_equal(tst@covariance, diag(2) * 11:12)
 
-        # Isotropic, fill = FALSE
+        # Isotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -711,11 +711,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], diag(2) * 9:10)
         expect_equal(tst@covariance, diag(2) * 11:12)
 
-        # Symmetric, fill = TRUE
+        # Symmetric, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -726,11 +726,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 13:14)
 
-        # Symmetric, fill = FALSE
+        # Symmetric, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -741,11 +741,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(c(10, 11, 0, 12), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 13:14)
 
-        # Anisotropic, fill = TRUE
+        # Anisotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -756,11 +756,11 @@ test_that(
         expect_equal(tst@parameters[["kappa"]], matrix(11:14, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 15:16)
 
-        # Anisotropic, fill = FALSE
+        # Anisotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -807,8 +807,8 @@ test_that(
 
         my_model <- double_exponential(d = 2, k = 1)
 
-        # Isotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "isotropic", fill = TRUE)
+        # Isotropic, full = TRUE
+        tst <- index(my_model, dynamics = "isotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -817,8 +817,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Isotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "isotropic", fill = FALSE)
+        # Isotropic, full = FALSE
+        tst <- index(my_model, dynamics = "isotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -827,8 +827,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = TRUE
-        tst <- index(my_model, dynamics = "symmetric", fill = TRUE)
+        # Symmetric, full = TRUE
+        tst <- index(my_model, dynamics = "symmetric", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -837,8 +837,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = FALSE
-        tst <- index(my_model, dynamics = "symmetric", fill = FALSE)
+        # Symmetric, full = FALSE
+        tst <- index(my_model, dynamics = "symmetric", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -847,8 +847,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 0, 11), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "anisotropic", fill = TRUE)
+        # Anisotropic, full = TRUE
+        tst <- index(my_model, dynamics = "anisotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -857,8 +857,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(10:13, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "anisotropic", fill = FALSE)
+        # Anisotropic, full = FALSE
+        tst <- index(my_model, dynamics = "anisotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
@@ -873,8 +873,8 @@ test_that(
 
         my_model <- double_exponential(d = 2, k = 2)
 
-        # Isotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "isotropic", fill = TRUE)
+        # Isotropic, full = TRUE
+        tst <- index(my_model, dynamics = "isotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -883,8 +883,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Isotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "isotropic", fill = FALSE)
+        # Isotropic, full = FALSE
+        tst <- index(my_model, dynamics = "isotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -893,8 +893,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = TRUE
-        tst <- index(my_model, dynamics = "symmetric", fill = TRUE)
+        # Symmetric, full = TRUE
+        tst <- index(my_model, dynamics = "symmetric", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -903,8 +903,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Symmetric, fill = FALSE
-        tst <- index(my_model, dynamics = "symmetric", fill = FALSE)
+        # Symmetric, full = FALSE
+        tst <- index(my_model, dynamics = "symmetric", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -913,8 +913,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 0, 13), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = TRUE
-        tst <- index(my_model, dynamics = "anisotropic", fill = TRUE)
+        # Anisotropic, full = TRUE
+        tst <- index(my_model, dynamics = "anisotropic", full = TRUE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -923,8 +923,8 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(12:15, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
 
-        # Anisotropic, fill = FALSE
-        tst <- index(my_model, dynamics = "anisotropic", fill = FALSE)
+        # Anisotropic, full = FALSE
+        tst <- index(my_model, dynamics = "anisotropic", full = FALSE)
 
         expect_equal(tst@parameters[["alpha"]], 1:2)
         expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
@@ -969,11 +969,11 @@ test_that(
 
         my_model <- double_exponential(d = 2, k = 1)
 
-        # Isotropic, fill = TRUE
+        # Isotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -985,11 +985,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
         expect_equal(tst@covariance, diag(2) * 10:11)
 
-        # Isotropic, fill = FALSE
+        # Isotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1001,11 +1001,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
         expect_equal(tst@covariance, diag(2) * 10:11)
 
-        # Symmetric, fill = TRUE
+        # Symmetric, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1017,11 +1017,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 12:13)
 
-        # Symmetric, fill = FALSE
+        # Symmetric, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1033,11 +1033,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 0, 11), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 12:13)
 
-        # Anisotropic, fill = TRUE
+        # Anisotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1049,11 +1049,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(10:13, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 14:15)
 
-        # Anisotropic, fill = FALSE
+        # Anisotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1071,11 +1071,11 @@ test_that(
 
         my_model <- double_exponential(d = 2, k = 2)
 
-        # Isotropic, fill = TRUE
+        # Isotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1087,11 +1087,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
         expect_equal(tst@covariance, diag(2) * 12:13)
 
-        # Isotropic, fill = FALSE
+        # Isotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "isotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1103,11 +1103,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
         expect_equal(tst@covariance, diag(2) * 12:13)
 
-        # Symmetric, fill = TRUE
+        # Symmetric, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1119,11 +1119,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 14:15)
 
-        # Symmetric, fill = FALSE
+        # Symmetric, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "symmetric", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1135,11 +1135,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 0, 13), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 14:15)
 
-        # Anisotropic, fill = TRUE
+        # Anisotropic, full = TRUE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = TRUE, 
+            full = TRUE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1151,11 +1151,11 @@ test_that(
         expect_equal(tst@parameters[["nu"]], matrix(12:15, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 16:17)
 
-        # Anisotropic, fill = FALSE
+        # Anisotropic, full = FALSE
         tst <- index(
             my_model, 
             dynamics = "anisotropic", 
-            fill = FALSE, 
+            full = FALSE, 
             parameters_only = FALSE,
             covariance = "isotropic"
         )
@@ -1179,10 +1179,6 @@ test_that(
 test_that(
     "Test known errors for fill",
     {
-        # Not enough parameters provided for the covariance matrix
-        expect_error(fill_covariance(2, 1:2, covariance = "symmetric"))
-        expect_error(fill_covariance(2, 1, covariance = "isotropic"))
-
         # Not enough parameters provided for the exponential discounting model
         expect_error(fill(exponential(d = 2, k = 2), 1:2, dynamics = "anisotropic"))
         expect_error(fill(exponential(d = 2, k = 2), 1:2, dynamics = "symmetric"))
@@ -1203,17 +1199,6 @@ test_that(
 test_that(
     "Test known warnings for fill",
     {
-        # More than enough parameters provided for the covariance matrix
-        expect_warning(fill_covariance(2, 1:4, covariance = "symmetric", cholesky = FALSE))
-        tst <- fill_covariance(2, 1:4, covariance = "symmetric", cholesky = FALSE) |>
-            suppressWarnings()
-        expect_equal(tst, matrix(c(1, 2, 2, 3), nrow = 2, ncol = 2))
-
-        expect_warning(fill_covariance(2, 1:4, covariance = "isotropic", cholesky = FALSE)) 
-        tst <- fill_covariance(2, 1:4, covariance = "isotropic", cholesky = FALSE) |>
-            suppressWarnings()
-        expect_equal(tst, diag(2) * 1:2)
-
         # Too many parameters provided for the exponential discounting model
         expect_warning(fill(exponential(d = 2, k = 2), 1:20, dynamics = "anisotropic"))
         expect_warning(fill(exponential(d = 2, k = 2), 1:20, dynamics = "symmetric"))
@@ -1232,903 +1217,713 @@ test_that(
 )
 
 test_that(
-    "Check output for fill: Covariance matrix",
-    {
-        # Without Cholesky decomposition
-        tst <- fill_covariance(1, 1, cholesky = FALSE)
-        expect_equal(tst, as.matrix(1))
-
-        tst <- fill_covariance(2, 1:3, covariance = "symmetric", cholesky = FALSE)
-        expect_equal(tst, matrix(c(1, 2, 2, 3), nrow = 2, ncol = 2))
-
-        tst <- fill_covariance(2, 1:2, covariance = "isotropic", cholesky = FALSE)
-        expect_equal(tst, matrix(c(1, 0, 0, 2), nrow = 2, ncol = 2))
-
-        tst <- fill_covariance(3, 1:6, covariance = "symmetric", cholesky = FALSE)
-        expect_equal(
-            tst, 
-            matrix(
-                c(1, 2, 3, 2, 4, 5, 3, 5, 6), 
-                nrow = 3, 
-                ncol = 3
-            )
-        )
-
-        tst <- fill_covariance(
-            3, 
-            1:3, 
-            covariance = "isotropic", 
-            cholesky = FALSE
-        )
-        expect_equal(
-            tst, 
-            diag(3) * 1:3
-        )
-
-        # With Cholesky decomposition
-        tst <- fill_covariance(1, 0.5, cholesky = TRUE)
-        expect_equal(tst, as.matrix(0.25))
-
-        tst <- fill_covariance(2, 1:3, covariance = "symmetric", cholesky = TRUE)
-        expect_equal(tst, matrix(c(1, 2, 2, 4 + 9), nrow = 2, ncol = 2))
-
-        tst <- fill_covariance(2, 1:2, covariance = "isotropic", cholesky = TRUE)
-        expect_equal(tst, matrix(c(1, 0, 0, 4), nrow = 2, ncol = 2))
-
-        tst <- fill_covariance(3, 1:6, covariance = "symmetric", cholesky = TRUE)
-        expect_equal(
-            tst, 
-            matrix(
-                c(1, 2, 3, 2, 4 + 16, 6 + 20, 3, 6 + 20, 9 + 25 + 36), 
-                nrow = 3, 
-                ncol = 3
-            )
-        )
-
-        tst <- fill_covariance(
-            3, 
-            1:3, 
-            covariance = "isotropic", 
-            cholesky = TRUE
-        )
-        expect_equal(
-            tst, 
-            diag(3) * c(1, 4, 9)
-        )
-    }
-)
-
-test_that(
-    "Check output for fill: Exponential discounting, no covariances included",
-    {
+    "Check output for fill: Exponential discounting",
+    {        
+        ########################################################################
         # Single dimension and single predictor
+
         my_model <- exponential(d = 1, k = 1)
-        tst <- fill(my_model, 1:3)
+        tst <- fill(my_model, 5:8, parameters_only = FALSE, cholesky = FALSE)
 
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], as.matrix(2))
-        expect_equal(tst@parameters[["gamma"]], as.matrix(3))
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], as.matrix(6))
+        expect_equal(tst@parameters[["gamma"]], as.matrix(7))
+        expect_equal(tst@covariance, as.matrix(8))
 
+
+
+        #######################################################################
         # Single dimension and two predictors
+
         my_model <- exponential(d = 1, k = 2)
-        tst <- fill(my_model, 1:4)
+        tst <- fill(my_model, 5:9, parameters_only = FALSE, cholesky = FALSE)
 
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
-        expect_equal(tst@parameters[["gamma"]], as.matrix(4))
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], matrix(6:7, nrow = 1))
+        expect_equal(tst@parameters[["gamma"]], as.matrix(8))
+        expect_equal(tst@covariance, as.matrix(9))
 
+
+
+        ########################################################################
         # Two dimensions and single predictor
+
         my_model <- exponential(d = 2, k = 1)
-        tst <- fill(my_model, 1:6, dynamics = "isotropic")
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 5:6)
-
-        tst <- fill(my_model, 1:7, dynamics = "symmetric")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["gamma"]], matrix(c(5, 6, 6, 7), nrow = 2, ncol = 2))
-
-        tst <- fill(my_model, 1:8, dynamics = "anisotropic")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["gamma"]], matrix(5:8, nrow = 2, ncol = 2))
-
-        # Two dimensions and two predictors
-        my_model <- exponential(d = 2, k = 2)
-        tst <- fill(my_model, 1:8, dynamics = "isotropic")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 7:8)
-
-        tst <- fill(my_model, 1:9, dynamics = "symmetric")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["gamma"]], matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
-
-        tst <- fill(my_model, 1:10, dynamics = "anisotropic")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["gamma"]], matrix(7:10, nrow = 2, ncol = 2))
-    }
-)
-
-test_that(
-    "Check output for fill: Exponential discounting, covariances included",
-    {
-        # Single dimension and single predictor
-        my_model <- exponential(d = 1, k = 1)
-        tst <- fill(my_model, 1:4, parameters_only = FALSE, cholesky = FALSE)
-
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], as.matrix(2))
-        expect_equal(tst@parameters[["gamma"]], as.matrix(3))
-        expect_equal(tst@covariance, as.matrix(4))
-
-        # Single dimension and two predictors
-        my_model <- exponential(d = 1, k = 2)
-        tst <- fill(my_model, 1:5, parameters_only = FALSE, cholesky = FALSE)
-
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
-        expect_equal(tst@parameters[["gamma"]], as.matrix(4))
-        expect_equal(tst@covariance, as.matrix(5))
-
-        # Two dimensions and single predictor
-        my_model <- exponential(d = 2, k = 1)
+        # Isotropic - Isotropic
         tst <- fill(
             my_model, 
-            1:8, 
+            5:12, 
             dynamics = "isotropic", 
             covariance = "isotropic",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 5:6)
-        expect_equal(tst@covariance, diag(2) * 7:8)
-
-        tst <- fill(
-            my_model, 
-            1:9, 
-            dynamics = "isotropic", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 5:6)
-        expect_equal(tst@covariance, matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
-
-        tst <- fill(
-            my_model, 
-            1:9, 
-            dynamics = "symmetric", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["gamma"]], matrix(c(5, 6, 6, 7), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, diag(2) * 8:9)
-
-        tst <- fill(
-            my_model, 
-            1:10, 
-            dynamics = "symmetric", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["gamma"]], matrix(c(5, 6, 6, 7), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
-
-        tst <- fill(
-            my_model, 
-            1:10, 
-            dynamics = "anisotropic", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["gamma"]], matrix(5:8, nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, diag(2) * 9:10)
-
-        tst <- fill(
-            my_model, 
-            1:11, 
-            dynamics = "anisotropic", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["gamma"]], matrix(5:8, nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
-
-        # Two dimensions and two predictors
-        my_model <- exponential(d = 2, k = 2)
-        tst <- fill(
-            my_model, 
-            1:10, 
-            dynamics = "isotropic", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 7:8)
-        expect_equal(tst@covariance, diag(2) * 9:10)
-
-        tst <- fill(
-            my_model, 
-            1:11, 
-            dynamics = "isotropic", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 7:8)
-        expect_equal(tst@covariance, matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
-
-        tst <- fill(
-            my_model, 
-            1:11, 
-            dynamics = "symmetric", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["gamma"]], matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, diag(2) * 10:11)
-
-        tst <- fill(
-            my_model, 
-            1:12, 
-            dynamics = "symmetric", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["gamma"]], matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
-
-        tst <- fill(
-            my_model, 
-            1:12, 
-            dynamics = "anisotropic", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["gamma"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 9:10)
         expect_equal(tst@covariance, diag(2) * 11:12)
 
+        # Isotropic - Symmetric
         tst <- fill(
             my_model, 
-            1:13, 
-            dynamics = "anisotropic", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["gamma"]], matrix(7:10, nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
-    }
-)
-
-test_that(
-    "Check output for fill: Quasi-hyperbolic discounting, no covariances included",
-    {
-        # Single dimension and single predictor
-        my_model <- quasi_hyperbolic(d = 1, k = 1)
-        tst <- fill(my_model, 1:4)
-
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], as.matrix(2))
-        expect_equal(tst@parameters[["nu"]], as.matrix(3))
-        expect_equal(tst@parameters[["kappa"]], as.matrix(4))
-
-        # Single dimension and two predictors
-        my_model <- quasi_hyperbolic(d = 1, k = 2)
-        tst <- fill(my_model, 1:5)
-
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
-        expect_equal(tst@parameters[["nu"]], as.matrix(4))
-        expect_equal(tst@parameters[["kappa"]], as.matrix(5))
-
-        # Two dimensions and single predictor
-        my_model <- quasi_hyperbolic(d = 2, k = 1)
-        tst <- fill(my_model, 1:8, dynamics = "isotropic")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["nu"]], diag(2) * 5:6)
-        expect_equal(tst@parameters[["kappa"]], diag(2) * 7:8)
-
-        tst <- fill(my_model, 1:10, dynamics = "symmetric")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["nu"]], matrix(c(5, 6, 6, 7), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
-
-        tst <- fill(my_model, 1:12, dynamics = "anisotropic")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["nu"]], matrix(5:8, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(9:12, nrow = 2, ncol = 2))
-
-        # Two dimensions and two predictors
-        my_model <- quasi_hyperbolic(d = 2, k = 2)
-        tst <- fill(my_model, 1:10, dynamics = "isotropic")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], diag(2) * 7:8)
-        expect_equal(tst@parameters[["kappa"]], diag(2) * 9:10)
-
-        tst <- fill(my_model, 1:12, dynamics = "symmetric")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
-
-        tst <- fill(my_model, 1:14, dynamics = "anisotropic")
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(7:10, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(11:14, nrow = 2, ncol = 2))
-    }
-)
-
-test_that(
-    "Check output for fill: Quasi-hyperbolic discounting, covariances included",
-    {
-        # Single dimension and single predictor
-        my_model <- quasi_hyperbolic(d = 1, k = 1)
-        tst <- fill(my_model, 1:5, parameters_only = FALSE, cholesky = FALSE)
-
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], as.matrix(2))
-        expect_equal(tst@parameters[["nu"]], as.matrix(3))
-        expect_equal(tst@parameters[["kappa"]], as.matrix(4))
-        expect_equal(tst@covariance, as.matrix(5))
-
-        # Single dimension and two predictors
-        my_model <- quasi_hyperbolic(d = 1, k = 2)
-        tst <- fill(my_model, 1:6, parameters_only = FALSE, cholesky = FALSE)
-
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
-        expect_equal(tst@parameters[["nu"]], as.matrix(4))
-        expect_equal(tst@parameters[["kappa"]], as.matrix(5))
-        expect_equal(tst@covariance, as.matrix(6))
-
-        # Two dimensions and single predictor
-        my_model <- quasi_hyperbolic(d = 2, k = 1)
-        tst <- fill(
-            my_model, 
-            1:10, 
-            dynamics = "isotropic", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["nu"]], diag(2) * 5:6)
-        expect_equal(tst@parameters[["kappa"]], diag(2) * 7:8)
-        expect_equal(tst@covariance, diag(2) * 9:10)
-
-        tst <- fill(
-            my_model, 
-            1:11, 
+            5:13, 
             dynamics = "isotropic", 
             covariance = "symmetric",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["nu"]], diag(2) * 5:6)
-        expect_equal(tst@parameters[["kappa"]], diag(2) * 7:8)
-        expect_equal(tst@covariance, matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 9:10)
+        expect_equal(tst@covariance, matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
 
+        # Symmetric - Isotropic
         tst <- fill(
             my_model, 
-            1:12, 
+            5:13, 
             dynamics = "symmetric", 
             covariance = "isotropic",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["nu"]], matrix(c(5, 6, 6, 7), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, diag(2) * 11:12)
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["gamma"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 12:13)
 
+        # Symmetric - Symmetric
         tst <- fill(
             my_model, 
-            1:13, 
+            5:14,
             dynamics = "symmetric", 
             covariance = "symmetric",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["nu"]], matrix(c(5, 6, 6, 7), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["gamma"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(12, 13, 13, 14), nrow = 2, ncol = 2))
 
+        # Anisotropic - Isotropic
         tst <- fill(
             my_model, 
-            1:14, 
+            5:14, 
             dynamics = "anisotropic", 
             covariance = "isotropic",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["nu"]], matrix(5:8, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(9:12, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["gamma"]], matrix(9:12, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 13:14)
 
+        # Anisotropic - Symmetric
         tst <- fill(
             my_model, 
-            1:15, 
+            5:15, 
             dynamics = "anisotropic", 
             covariance = "symmetric",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["nu"]], matrix(5:8, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(9:12, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["gamma"]], matrix(9:12, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(c(13, 14, 14, 15), nrow = 2, ncol = 2))
 
+
+
+        ########################################################################
         # Two dimensions and two predictors
-        my_model <- quasi_hyperbolic(d = 2, k = 2)
+
+        my_model <- exponential(d = 2, k = 2)
+
+        # Isotropic - Isotropic
         tst <- fill(
             my_model, 
-            1:12, 
+            5:14, 
             dynamics = "isotropic", 
             covariance = "isotropic",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], diag(2) * 7:8)
-        expect_equal(tst@parameters[["kappa"]], diag(2) * 9:10)
-        expect_equal(tst@covariance, diag(2) * 11:12)
-
-        tst <- fill(
-            my_model, 
-            1:13, 
-            dynamics = "isotropic", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], diag(2) * 7:8)
-        expect_equal(tst@parameters[["kappa"]], diag(2) * 9:10)
-        expect_equal(tst@covariance, matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
-
-        tst <- fill(
-            my_model, 
-            1:14, 
-            dynamics = "symmetric", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 11:12)
         expect_equal(tst@covariance, diag(2) * 13:14)
 
+        # Isotropic - Symmetric
         tst <- fill(
             my_model, 
-            1:15, 
+            5:15, 
+            dynamics = "isotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 11:12)
+        expect_equal(tst@covariance, matrix(c(13, 14, 14, 15), nrow = 2, ncol = 2))
+
+        # Symmetric - Isotropic
+        tst <- fill(
+            my_model, 
+            5:15, 
+            dynamics = "symmetric", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["gamma"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 14:15)
+
+        # Symmetric - Symmetric
+        tst <- fill(
+            my_model, 
+            5:16,
             dynamics = "symmetric", 
             covariance = "symmetric",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, matrix(c(13, 14, 14, 15), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["gamma"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(14, 15, 15, 16), nrow = 2, ncol = 2))
 
+        # Anisotropic - Isotropic
         tst <- fill(
             my_model, 
-            1:16, 
+            5:16, 
             dynamics = "anisotropic", 
             covariance = "isotropic",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(7:10, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(11:14, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["gamma"]], matrix(11:14, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 15:16)
 
+        # Anisotropic - Symmetric
         tst <- fill(
             my_model, 
-            1:17, 
+            5:17, 
             dynamics = "anisotropic", 
             covariance = "symmetric",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(7:10, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["kappa"]], matrix(11:14, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["gamma"]], matrix(11:14, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(c(15, 16, 16, 17), nrow = 2, ncol = 2))
     }
 )
 
 test_that(
-    "Check output for fill: Double exponential discounting, no covariances included",
+    "Check output for fill: Quasi-hyperbolic discounting",
     {
+        ########################################################################
         # Single dimension and single predictor
-        my_model <- double_exponential(d = 1, k = 1)
-        tst <- fill(my_model, 1:5)
 
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], as.matrix(2))
-        expect_equal(tst@parameters[["omega"]], 3)
-        expect_equal(tst@parameters[["gamma"]], as.matrix(4))
-        expect_equal(tst@parameters[["nu"]], as.matrix(5))
+        my_model <- quasi_hyperbolic(d = 1, k = 1)
+        tst <- fill(my_model, 5:9, parameters_only = FALSE, cholesky = FALSE)
 
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], as.matrix(6))
+        expect_equal(tst@parameters[["nu"]], as.matrix(7))
+        expect_equal(tst@parameters[["kappa"]], as.matrix(8))
+        expect_equal(tst@covariance, as.matrix(9))
+
+
+
+        #######################################################################
         # Single dimension and two predictors
-        my_model <- double_exponential(d = 1, k = 2)
-        tst <- fill(my_model, 1:6)
 
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
-        expect_equal(tst@parameters[["omega"]], 4)
-        expect_equal(tst@parameters[["gamma"]], as.matrix(5))
-        expect_equal(tst@parameters[["nu"]], as.matrix(6))
+        my_model <- quasi_hyperbolic(d = 1, k = 2)
+        tst <- fill(my_model, 5:10, parameters_only = FALSE, cholesky = FALSE)
 
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], matrix(6:7, nrow = 1))
+        expect_equal(tst@parameters[["nu"]], as.matrix(8))
+        expect_equal(tst@parameters[["kappa"]], as.matrix(9))
+        expect_equal(tst@covariance, as.matrix(10))
+
+
+
+        ########################################################################
         # Two dimensions and single predictor
-        my_model <- double_exponential(d = 2, k = 1)
-        tst <- fill(my_model, 1:9, dynamics = "isotropic")
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["omega"]], 5)
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 6:7)
-        expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
+        my_model <- quasi_hyperbolic(d = 2, k = 1)
 
-        tst <- fill(my_model, 1:11, dynamics = "symmetric")
+        # Isotropic - Isotropic
+        tst <- fill(
+            my_model, 
+            5:14, 
+            dynamics = "isotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["omega"]], 5)
-        expect_equal(tst@parameters[["gamma"]], matrix(c(6, 7, 7, 8), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["nu"]], diag(2) * 9:10)
+        expect_equal(tst@parameters[["kappa"]], diag(2) * 11:12)
+        expect_equal(tst@covariance, diag(2) * 13:14)
+
+        # Isotropic - Symmetric
+        tst <- fill(
+            my_model, 
+            5:15, 
+            dynamics = "isotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["nu"]], diag(2) * 9:10)
+        expect_equal(tst@parameters[["kappa"]], diag(2) * 11:12)
+        expect_equal(tst@covariance, matrix(c(13, 14, 14, 15), nrow = 2, ncol = 2))
+
+        # Symmetric - Isotropic
+        tst <- fill(
+            my_model, 
+            5:16, 
+            dynamics = "symmetric", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
         expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["kappa"]], matrix(c(12, 13, 13, 14), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 15:16)
 
-        tst <- fill(my_model, 1:13, dynamics = "anisotropic")
+        # Symmetric - Symmetric
+        tst <- fill(
+            my_model, 
+            5:17,
+            dynamics = "symmetric", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["omega"]], 5)
-        expect_equal(tst@parameters[["gamma"]], matrix(6:9, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(10:13, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["kappa"]], matrix(c(12, 13, 13, 14), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(15, 16, 16, 17), nrow = 2, ncol = 2))
 
+        # Anisotropic - Isotropic
+        tst <- fill(
+            my_model, 
+            5:18, 
+            dynamics = "anisotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["nu"]], matrix(9:12, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["kappa"]], matrix(13:16, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 17:18)
+
+        # Anisotropic - Symmetric
+        tst <- fill(
+            my_model, 
+            5:19, 
+            dynamics = "anisotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["nu"]], matrix(9:12, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["kappa"]], matrix(13:16, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(17, 18, 18, 19), nrow = 2, ncol = 2))
+
+
+
+        ########################################################################
         # Two dimensions and two predictors
-        my_model <- double_exponential(d = 2, k = 2)
-        tst <- fill(my_model, 1:11, dynamics = "isotropic")
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["omega"]], 7)
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 8:9)
-        expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
+        my_model <- quasi_hyperbolic(d = 2, k = 2)
 
-        tst <- fill(my_model, 1:13, dynamics = "symmetric")
+        # Isotropic - Isotropic
+        tst <- fill(
+            my_model, 
+            5:16, 
+            dynamics = "isotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["omega"]], 7)
-        expect_equal(tst@parameters[["gamma"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], diag(2) * 11:12)
+        expect_equal(tst@parameters[["kappa"]], diag(2) * 13:14)
+        expect_equal(tst@covariance, diag(2) * 15:16)
+
+        # Isotropic - Symmetric
+        tst <- fill(
+            my_model, 
+            5:17, 
+            dynamics = "isotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], diag(2) * 11:12)
+        expect_equal(tst@parameters[["kappa"]], diag(2) * 13:14)
+        expect_equal(tst@covariance, matrix(c(15, 16, 16, 17), nrow = 2, ncol = 2))
+
+        # Symmetric - Isotropic
+        tst <- fill(
+            my_model, 
+            5:18, 
+            dynamics = "symmetric", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
         expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["kappa"]], matrix(c(14, 15, 15, 16), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 17:18)
 
-        tst <- fill(my_model, 1:15, dynamics = "anisotropic")
+        # Symmetric - Symmetric
+        tst <- fill(
+            my_model, 
+            5:19,
+            dynamics = "symmetric", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["omega"]], 7)
-        expect_equal(tst@parameters[["gamma"]], matrix(8:11, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(12:15, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["kappa"]], matrix(c(14, 15, 15, 16), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(17, 18, 18, 19), nrow = 2, ncol = 2))
+
+        # Anisotropic - Isotropic
+        tst <- fill(
+            my_model, 
+            5:20, 
+            dynamics = "anisotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(11:14, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["kappa"]], matrix(15:18, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 19:20)
+
+        # Anisotropic - Symmetric
+        tst <- fill(
+            my_model, 
+            5:21, 
+            dynamics = "anisotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(11:14, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["kappa"]], matrix(15:18, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(19, 20, 20, 21), nrow = 2, ncol = 2))
     }
 )
 
 test_that(
-    "Check output for fill: Double exponential discounting, covariances included",
+    "Check output for fill: Double exponential discounting",
     {
+        ########################################################################
         # Single dimension and single predictor
+
         my_model <- double_exponential(d = 1, k = 1)
-        tst <- fill(my_model, 1:6, parameters_only = FALSE, cholesky = FALSE)
+        tst <- fill(my_model, 5:10, parameters_only = FALSE, cholesky = FALSE)
 
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], as.matrix(2))
-        expect_equal(tst@parameters[["omega"]], 3)
-        expect_equal(tst@parameters[["gamma"]], as.matrix(4))
-        expect_equal(tst@parameters[["nu"]], as.matrix(5))
-        expect_equal(tst@covariance, as.matrix(6))
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], as.matrix(6))
+        expect_equal(tst@parameters[["omega"]], 7)
+        expect_equal(tst@parameters[["gamma"]], as.matrix(8))
+        expect_equal(tst@parameters[["nu"]], as.matrix(9))
+        expect_equal(tst@covariance, as.matrix(10))
 
+
+
+        #######################################################################
         # Single dimension and two predictors
+
         my_model <- double_exponential(d = 1, k = 2)
-        tst <- fill(my_model, 1:7, parameters_only = FALSE, cholesky = FALSE)
+        tst <- fill(my_model, 5:11, parameters_only = FALSE, cholesky = FALSE)
 
-        expect_equal(tst@parameters[["alpha"]], 1)
-        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
-        expect_equal(tst@parameters[["omega"]], 4)
-        expect_equal(tst@parameters[["gamma"]], as.matrix(5))
-        expect_equal(tst@parameters[["nu"]], as.matrix(6))
-        expect_equal(tst@covariance, as.matrix(7))
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], matrix(6:7, nrow = 1))
+        expect_equal(tst@parameters[["omega"]], 8)
+        expect_equal(tst@parameters[["gamma"]], as.matrix(9))
+        expect_equal(tst@parameters[["nu"]], as.matrix(10))
+        expect_equal(tst@covariance, as.matrix(11))
 
+
+
+        ########################################################################
         # Two dimensions and single predictor
+
         my_model <- double_exponential(d = 2, k = 1)
+
+        # Isotropic - Isotropic
         tst <- fill(
             my_model, 
-            1:11, 
+            5:15, 
             dynamics = "isotropic", 
             covariance = "isotropic",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["omega"]], 5)
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 6:7)
-        expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
-        expect_equal(tst@covariance, diag(2) * 10:11)
-
-        tst <- fill(
-            my_model, 
-            1:12, 
-            dynamics = "isotropic", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["omega"]], 5)
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 6:7)
-        expect_equal(tst@parameters[["nu"]], diag(2) * 8:9)
-        expect_equal(tst@covariance, matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
-
-        tst <- fill(
-            my_model, 
-            1:13, 
-            dynamics = "symmetric", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["omega"]], 5)
-        expect_equal(tst@parameters[["gamma"]], matrix(c(6, 7, 7, 8), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, diag(2) * 12:13)
-
-        tst <- fill(
-            my_model, 
-            1:14, 
-            dynamics = "symmetric", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["omega"]], 5)
-        expect_equal(tst@parameters[["gamma"]], matrix(c(6, 7, 7, 8), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, matrix(c(12, 13, 13, 14), nrow = 2, ncol = 2))
-
-        tst <- fill(
-            my_model, 
-            1:15, 
-            dynamics = "anisotropic", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["omega"]], 5)
-        expect_equal(tst@parameters[["gamma"]], matrix(6:9, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(10:13, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 9)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 10:11)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 12:13)
         expect_equal(tst@covariance, diag(2) * 14:15)
 
+        # Isotropic - Symmetric
         tst <- fill(
             my_model, 
-            1:16, 
-            dynamics = "anisotropic", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
-        expect_equal(tst@parameters[["omega"]], 5)
-        expect_equal(tst@parameters[["gamma"]], matrix(6:9, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(10:13, nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, matrix(c(14, 15, 15, 16), nrow = 2, ncol = 2))
-
-        # Two dimensions and two predictors
-        my_model <- double_exponential(d = 2, k = 2)
-        tst <- fill(
-            my_model, 
-            1:13, 
-            dynamics = "isotropic", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["omega"]], 7)
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 8:9)
-        expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
-        expect_equal(tst@covariance, diag(2) * 12:13)
-
-        tst <- fill(
-            my_model, 
-            1:14, 
+            5:16, 
             dynamics = "isotropic", 
             covariance = "symmetric",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["omega"]], 7)
-        expect_equal(tst@parameters[["gamma"]], diag(2) * 8:9)
-        expect_equal(tst@parameters[["nu"]], diag(2) * 10:11)
-        expect_equal(tst@covariance, matrix(c(12, 13, 13, 14), nrow = 2, ncol = 2))
-
-        tst <- fill(
-            my_model, 
-            1:15, 
-            dynamics = "symmetric", 
-            covariance = "isotropic",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["omega"]], 7)
-        expect_equal(tst@parameters[["gamma"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
-        expect_equal(tst@covariance, diag(2) * 14:15)
-
-        tst <- fill(
-            my_model, 
-            1:16, 
-            dynamics = "symmetric", 
-            covariance = "symmetric",
-            parameters_only = FALSE,
-            cholesky = FALSE
-        )
-
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["omega"]], 7)
-        expect_equal(tst@parameters[["gamma"]], matrix(c(8, 9, 9, 10), nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 9)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 10:11)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 12:13)
         expect_equal(tst@covariance, matrix(c(14, 15, 15, 16), nrow = 2, ncol = 2))
 
+        # Symmetric - Isotropic
         tst <- fill(
             my_model, 
-            1:17, 
-            dynamics = "anisotropic", 
+            5:17, 
+            dynamics = "symmetric", 
             covariance = "isotropic",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["omega"]], 7)
-        expect_equal(tst@parameters[["gamma"]], matrix(8:11, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(12:15, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 9)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(13, 14, 14, 15), nrow = 2, ncol = 2))
         expect_equal(tst@covariance, diag(2) * 16:17)
 
+        # Symmetric - Symmetric
         tst <- fill(
             my_model, 
-            1:18, 
+            5:18,
+            dynamics = "symmetric", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 9)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(10, 11, 11, 12), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(13, 14, 14, 15), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(16, 17, 17, 18), nrow = 2, ncol = 2))
+
+        # Anisotropic - Isotropic
+        tst <- fill(
+            my_model, 
+            5:19, 
+            dynamics = "anisotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 9)
+        expect_equal(tst@parameters[["gamma"]], matrix(10:13, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(14:17, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 18:19)
+
+        # Anisotropic - Symmetric
+        tst <- fill(
+            my_model, 
+            5:20, 
             dynamics = "anisotropic", 
             covariance = "symmetric",
             parameters_only = FALSE,
             cholesky = FALSE
         )
 
-        expect_equal(tst@parameters[["alpha"]], 1:2)
-        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["omega"]], 7)
-        expect_equal(tst@parameters[["gamma"]], matrix(8:11, nrow = 2, ncol = 2))
-        expect_equal(tst@parameters[["nu"]], matrix(12:15, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@parameters[["omega"]], 9)
+        expect_equal(tst@parameters[["gamma"]], matrix(10:13, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(14:17, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(18, 19, 19, 20), nrow = 2, ncol = 2))
+
+
+
+        ########################################################################
+        # Two dimensions and two predictors
+
+        my_model <- double_exponential(d = 2, k = 2)
+
+        # Isotropic - Isotropic
+        tst <- fill(
+            my_model, 
+            5:17, 
+            dynamics = "isotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 11)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 12:13)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 14:15)
+        expect_equal(tst@covariance, diag(2) * 16:17)
+
+        # Isotropic - Symmetric
+        tst <- fill(
+            my_model, 
+            5:18, 
+            dynamics = "isotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 11)
+        expect_equal(tst@parameters[["gamma"]], diag(2) * 12:13)
+        expect_equal(tst@parameters[["nu"]], diag(2) * 14:15)
         expect_equal(tst@covariance, matrix(c(16, 17, 17, 18), nrow = 2, ncol = 2))
+
+        # Symmetric - Isotropic
+        tst <- fill(
+            my_model, 
+            5:19, 
+            dynamics = "symmetric", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 11)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(12, 13, 13, 14), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(15, 16, 16, 17), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 18:19)
+
+        # Symmetric - Symmetric
+        tst <- fill(
+            my_model, 
+            5:20,
+            dynamics = "symmetric", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 11)
+        expect_equal(tst@parameters[["gamma"]], matrix(c(12, 13, 13, 14), nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(c(15, 16, 16, 17), nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(18, 19, 19, 20), nrow = 2, ncol = 2))
+
+        # Anisotropic - Isotropic
+        tst <- fill(
+            my_model, 
+            5:21, 
+            dynamics = "anisotropic", 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 11)
+        expect_equal(tst@parameters[["gamma"]], matrix(12:15, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(16:19, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 20:21)
+
+        # Anisotropic - Symmetric
+        tst <- fill(
+            my_model, 
+            5:22, 
+            dynamics = "anisotropic", 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["omega"]], 11)
+        expect_equal(tst@parameters[["gamma"]], matrix(12:15, nrow = 2, ncol = 2))
+        expect_equal(tst@parameters[["nu"]], matrix(16:19, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(20, 21, 21, 22), nrow = 2, ncol = 2))
     }
 )
 
