@@ -188,7 +188,7 @@ setMethod(
         if(!parameters_only) {
             model@covariance <- index_covariance(
                 d,
-                max(params[["gamma"]]) + 1,
+                max(params[["kappa"]]) + 1,
                 cholesky = !fill | cholesky,
                 ...
             )
