@@ -35,34 +35,11 @@ parameters(
   double_exponential(d = 2, k = 3),
   vector = TRUE
 )
-#>  [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+#> Error in index_covariance(d, max(params[["nu"]]) + 1, cholesky = !full |     cholesky, ...): unused argument (vector = TRUE)
 
 parameters(
   double_exponential(d = 2, k = 3),
   vector = FALSE
 )
-#> [[1]]
-#> [1] 0 0
-#> 
-#> [[2]]
-#> [1] 0 0 0 0 0 0
-#> 
-#> [[3]]
-#> [1] 0
-#> 
-#> [[4]]
-#> [1] 0 0 0 0
-#> 
-#> [[5]]
-#> [1] 0 0 0 0
-#> 
-#> [[6]]
-#> [1] 0
-#> 
-#> [[7]]
-#> [1] 0
-#> 
-#> [[8]]
-#> [1] 0
-#> 
+#> Error in index_covariance(d, max(params[["nu"]]) + 1, cholesky = !full |     cholesky, ...): unused argument (vector = FALSE)
 ```
