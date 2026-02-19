@@ -1,4 +1,209 @@
 ################################################################################
+# INDICES
+
+#' Index model parameters
+#' 
+#' Fill the model parameters with indices denoting which values to use for a 
+#' particular model. 
+#' 
+#' @param model Instance of the \code{\link[discounting]{model-class}}
+#' @param dynamics Character denoting the structure of the dynamical matrices.
+#' Can either be \code{"anisotropic"} (completely free), \code{"symmetric"}
+#' (symmetric around the diagonal), and \code{"isotropic"} (diagonal). Note that
+#' this influences different parameters for different models, namely 
+#' \eqn{\Gamma} for the exponential discounting model, \eqn{N} and \eqn{K} for
+#' the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
+#' double-exponential discounting model. Defaults to \code{"isotropic"}.
+#' @param parameters_only Logical denoting whether to only fill the 
+#' parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
+#' fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.
+#' @param fill Logical denoting whether to provide the full matrices or 
+#' whether a partial fill is sufficient. Makes the distinction between a 
+#' symmetric matrix being lower-triangular or fully filled. Defaults to 
+#' \code{TRUE} as for most purposes, you would want the complete matrix. An 
+#' example of where this is \code{FALSE} can be found in 
+#' \code{\link[discounting]{parameters}}. Note that if \code{fill = FALSE} and 
+#' \code{parameters_only = FALSE}, this will automatically let the 
+#' \code{cholesky} argument become \code{TRUE}, ensuring only the 
+#' lower-triangular of the covariance matrix is indexed (as required by 
+#' \code{fill}).
+#' @param ... Additional arguments passed on to the methods.
+#' @inheritParams index_covariance
+#' 
+#' @return Instance of the \code{\link[discounting]{model-class}} with the 
+#' parameters being indexed 
+#' 
+#' @examples 
+#' index(
+#'   double_exponential(d = 2, k = 3),
+#'   fill = TRUE
+#' )
+#' 
+#' index(
+#'   double_exponential(d = 2, k = 3),
+#'   fill = FALSE
+#' )
+#' 
+#' @rdname index
+#' @export 
+setGeneric(
+    "index",
+    function(model, ...) standardGeneric("index")
+)
+
+#' @rdname index
+#' @export 
+setMethod(
+    "index",
+    "exponential",
+    function(model,
+             dynamics = "isotropic",
+             parameters_only = TRUE,
+             fill = TRUE, 
+             cholesky = TRUE,
+             ...) {
+        
+        # Get the dimensions of the model
+        d <- model@d 
+        k <- model@k
+
+        # Extract the parameter list 
+        params <- model@parameters
+
+        # Once defined, we can start assigning values to the parameters of the 
+        # model. When necessary, dispath on the structure of the parameters
+        params[["alpha"]][] <- 1:d
+        params[["beta"]][] <- (d + 1):(d + d * k)
+
+        # Isotropic: Only requires d values on its diagonal. 
+        if(dynamics == "isotropic") {
+            diag(params[["gamma"]]) <- (d + d * k + 1):(d + d * k + d)
+        
+        # Symmetric: Requires d * (d + 1) / 2 values in the lower triangular 
+        # region of its matrix, which is then mirrored on the upper triangular 
+        # region of the matrix. Note that this mirrroring is only done when 
+        # required through the fill argument
+        } else if(dynamics == "symmetric") {
+            idx <- lower.tri(
+                params[["gamma"]], 
+                diag = TRUE
+            )
+
+            params[["gamma"]][idx] <- (d + d * k + 1):(d + d * k + d * (d + 1) / 2)
+
+            if(fill) {
+                idx <- upper.tri(
+                    params[["gamma"]], 
+                    diag = FALSE
+                )
+
+                params[["gamma"]][idx] <- t(params[["gamma"]])[idx]
+            }
+            
+        # Anisotropic: Requires d^2 values to be put in the matrix, as all 
+        # individual parameters of the matrix are freely chosen or estimated
+        } else if(dynamics == "anisotropic") {
+            params[["gamma"]][] <- (d + d * k + 1):(d + d * k + d^2)
+        }
+
+        # If we need to fill the covariance as well, then do so
+        if(!parameters_only) {
+            model@covariance <- index_covariance(
+                d,
+                max(params[["gamma"]]) + 1,
+                cholesky = !fill | cholesky,
+                ...
+            )
+        }
+
+        # Assign the parameters to the model and return
+        model@parameters <- params
+
+        return(model)
+    }
+)
+
+#' Index the covariance matrix
+#' 
+#' @param d Integer denoting the dimensionality of the model.
+#' @param start Integer denoting the index at which to start the indexing of 
+#' the covariance matrix, so that it is the first value of the index.
+#' @param covariance Character denoting the structure of the covariance matrix.
+#' Can either be \code{"symmetric"} (symmetric around the diagonal) or 
+#' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
+#' @param cholesky Logical denoting whether the idea is to use the Cholesky 
+#' decomposition to create the values of the covariance matrix. In this case, 
+#' the indices should only span the lower-triangular of the matrix. Defaults 
+#' to \code{TRUE}.
+#' 
+#' @return Indexed covariance matrix.
+#' 
+#' @examples 
+#' index_covariance(
+#'   2,
+#'   6,
+#'   covariance = "symmetric",
+#'   cholesky = FALSE
+#' )
+#' 
+#' index_covariance(
+#'   2,
+#'   6,
+#'   covariance = "isotropic",
+#'   cholesky = FALSE
+#' )
+#' 
+#' @rdname index_covariance
+#' @export 
+index_covariance <- function(d, 
+                             start,
+                             covariance = "symmetric",
+                             cholesky = TRUE) {
+
+    # Create a placeholder for the covariance matrix of the correct 
+    # dimensionality
+    result <- matrix(
+        0, 
+        nrow = d, 
+        ncol = d
+    )
+
+    # Symmetric: If the covariance matrix is symmetric, then we need to index 
+    # the lower-triangular at minimum, and otherwise mirror if `cholesky`is 
+    # `TRUE`.
+    if(covariance == "symmetric") {
+        idx <- lower.tri(
+            result, 
+            diag = TRUE
+        )
+
+        result[idx] <- start:(start + d * (d + 1) / 2 - 1)
+
+        # If the Cholesky decomposition is not used, then we have to mirror the 
+        # lower-triangular indices into the upper-triangular region of the matrix
+        if(!cholesky) {
+            idx <- upper.tri(
+                result, 
+                diag = FALSE
+            )
+
+            result[idx] <- t(result)[idx]
+        }
+
+    # Isotropic: Indices are only added on the diagonal of the matrix. 
+    } else if(covariance == "isotropic") {
+        diag(result) <- start:(start + d - 1)
+
+    } 
+
+    return(result)
+}
+
+
+
+
+
+################################################################################
 # FILL
 
 #' Change model parameters
@@ -1762,3 +1967,4 @@ setMethod(
         return(params)
     }
 )
+
