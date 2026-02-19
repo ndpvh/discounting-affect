@@ -7,30 +7,26 @@
 \usage{
 parameters(model, ...)
 
-\S4method{parameters}{model}(model, vector = TRUE)
+\S4method{parameters}{model}(model, parameters_only = FALSE, ...)
 }
 \arguments{
 \item{model}{Instance of the \code{\link[discounting]{model-class}}}
 
-\item{vector}{Logical denoting whether to output the parameters in a vector
-(\code{TRUE}) or a list (\code{FALSE}). Defaults to \code{TRUE}.}
+\item{...}{Additional arguments passed on to \code{\link[discounting]{index}}}
+
+\item{parameters_only}{Logical denoting whether to only extract the 
+determinstic parameters of the model (\code{TRUE}) or also include the 
+covariance parameters (\code{FALSE}). Defaults to \code{FALSE}.}
 }
 \value{
 Numeric vector containing all parameters of the model.
 }
 \description{
-Extract the parameters of a particular model. This includes the covariances,
-so not only the deterministic model parameters.
+Extract the parameters of a particular model.
 }
 \examples{
-parameters(
-  double_exponential(d = 2, k = 3),
-  vector = TRUE
-)
+parameters(double_exponential(d = 2, k = 3))
 
-parameters(
-  double_exponential(d = 2, k = 3),
-  vector = FALSE
-)
+parameters(double_exponential(d = 2, k = 3))
 
 }

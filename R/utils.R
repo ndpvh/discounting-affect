@@ -396,6 +396,7 @@ index_covariance <- function(d,
 #' @param parameters_only Logical denoting whether to only fill the 
 #' parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
 #' fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.
+#' @inheritParams index_covariance
 #' @param ... Additional arguments passed on to the methods.
 #' 
 #' @return Instance of the \code{\link[discounting]{model-class}} containing 

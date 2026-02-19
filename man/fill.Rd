@@ -36,9 +36,18 @@ this influences different parameters for different models, namely
 the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
 double-exponential discounting model. Defaults to \code{"isotropic"}.}
 
+\item{covariance}{Character denoting the structure of the covariance matrix.
+Can either be \code{"symmetric"} (symmetric around the diagonal) or 
+\code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.}
+
 \item{parameters_only}{Logical denoting whether to only fill the 
 parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
 fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.}
+
+\item{cholesky}{Logical denoting whether the idea is to use the Cholesky 
+decomposition to create the values of the covariance matrix. In this case, 
+the indices should only span the lower-triangular of the matrix. Defaults 
+to \code{TRUE}.}
 }
 \value{
 Instance of the \code{\link[discounting]{model-class}} containing 
