@@ -1,7 +1,6 @@
 # Extract model parameters
 
-Extract the parameters of a particular model. This includes the
-covariances, so not only the deterministic model parameters.
+Extract the parameters of a particular model.
 
 ## Usage
 
@@ -9,7 +8,7 @@ covariances, so not only the deterministic model parameters.
 parameters(model, ...)
 
 # S4 method for class 'model'
-parameters(model, vector = TRUE)
+parameters(model, parameters_only = FALSE, ...)
 ```
 
 ## Arguments
@@ -19,10 +18,16 @@ parameters(model, vector = TRUE)
   Instance of the
   [`model-class`](https://github.com/ndpvh/discounting-affect/reference/model-class.md)
 
-- vector:
+- ...:
 
-  Logical denoting whether to output the parameters in a vector (`TRUE`)
-  or a list (`FALSE`). Defaults to `TRUE`.
+  Additional arguments passed on to
+  [`index`](https://github.com/ndpvh/discounting-affect/reference/index.md)
+
+- parameters_only:
+
+  Logical denoting whether to only extract the determinstic parameters
+  of the model (`TRUE`) or also include the covariance parameters
+  (`FALSE`). Defaults to `FALSE`.
 
 ## Value
 
@@ -31,15 +36,9 @@ Numeric vector containing all parameters of the model.
 ## Examples
 
 ``` r
-parameters(
-  double_exponential(d = 2, k = 3),
-  vector = TRUE
-)
-#> Error in index_covariance(d, max(params[["nu"]]) + 1, cholesky = !full |     cholesky, ...): unused argument (vector = TRUE)
+parameters(double_exponential(d = 2, k = 3))
+#>  [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
-parameters(
-  double_exponential(d = 2, k = 3),
-  vector = FALSE
-)
-#> Error in index_covariance(d, max(params[["nu"]]) + 1, cholesky = !full |     cholesky, ...): unused argument (vector = FALSE)
+parameters(double_exponential(d = 2, k = 3))
+#>  [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 ```

@@ -57,11 +57,24 @@ fill(
   quasi-hyperbolic discounting model, and \\\Gamma\\ and \\N\\ for the
   double-exponential discounting model. Defaults to `"isotropic"`.
 
+- covariance:
+
+  Character denoting the structure of the covariance matrix. Can either
+  be `"symmetric"` (symmetric around the diagonal) or `"isotropic"`
+  (diagonal). Defaults to `"symmetric"`.
+
 - parameters_only:
 
   Logical denoting whether to only fill the parameters in de `parameter`
   slot of the model (`TRUE`), or to fill the covariance matrix as well
   (`FALSE`). Defaults to `TRUE`.
+
+- cholesky:
+
+  Logical denoting whether the idea is to use the Cholesky decomposition
+  to create the values of the covariance matrix. In this case, the
+  indices should only span the lower-triangular of the matrix. Defaults
+  to `TRUE`.
 
 ## Value
 

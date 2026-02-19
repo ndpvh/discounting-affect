@@ -17,7 +17,7 @@ nloptr provide within the objective function."><script type="text/javascript" as
 
     <a class="navbar-brand me-2" href="../index.html">discounting</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,10 +98,23 @@ the quasi-hyperbolic discounting model, and \(\Gamma\) and \(N\) for the
 double-exponential discounting model. Defaults to <code>"isotropic"</code>.</p></dd>
 
 
+<dt id="arg-covariance">covariance<a class="anchor" aria-label="anchor" href="#arg-covariance"></a></dt>
+<dd><p>Character denoting the structure of the covariance matrix.
+Can either be <code>"symmetric"</code> (symmetric around the diagonal) or
+<code>"isotropic"</code> (diagonal). Defaults to <code>"symmetric"</code>.</p></dd>
+
+
 <dt id="arg-parameters-only">parameters_only<a class="anchor" aria-label="anchor" href="#arg-parameters-only"></a></dt>
 <dd><p>Logical denoting whether to only fill the
 parameters in de <code>parameter</code> slot of the model (<code>TRUE</code>), or to
 fill the covariance matrix as well (<code>FALSE</code>). Defaults to <code>TRUE</code>.</p></dd>
+
+
+<dt id="arg-cholesky">cholesky<a class="anchor" aria-label="anchor" href="#arg-cholesky"></a></dt>
+<dd><p>Logical denoting whether the idea is to use the Cholesky
+decomposition to create the values of the covariance matrix. In this case,
+the indices should only span the lower-triangular of the matrix. Defaults
+to <code>TRUE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
