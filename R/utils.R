@@ -123,6 +123,84 @@ setMethod(
     }
 )
 
+#' @rdname index
+#' @export 
+setMethod(
+    "index",
+    "quasi_hyperbolic",
+    function(model,
+             dynamics = "isotropic",
+             parameters_only = TRUE,
+             fill = TRUE, 
+             cholesky = TRUE,
+             ...) {
+        
+        # Get the dimensions of the model
+        d <- model@d 
+        k <- model@k
+
+        # Extract the parameter list 
+        params <- model@parameters
+
+        # Once defined, we can start assigning values to the parameters of the 
+        # model. When necessary, dispath on the structure of the parameters
+        params[["alpha"]][] <- 1:d
+        params[["beta"]][] <- (d + 1):(d + d * k)
+
+        # Isotropic: Only requires d values on the diagonal of its two dynamic
+        # matrices. 
+        if(dynamics == "isotropic") {
+            diag(params[["nu"]]) <- (d + d * k + 1):(d + d * k + d)
+            diag(params[["kappa"]]) <- (d + d * k + d + 1):(d + d * k + 2 * d)
+        
+        # Symmetric: Requires d * (d + 1) / 2 values in the lower triangular 
+        # region of its two dynamic matrices, afterwards mirroring the same 
+        # values on the upper triangular region of the same matrices. Note that 
+        # this mirrroring is only done when required through the fill argument
+        } else if(dynamics == "symmetric") {
+            idx <- lower.tri(
+                params[["nu"]], 
+                diag = TRUE
+            )
+
+            params[["nu"]][idx] <- (d + d * k + 1):(d + d * k + d * (d + 1) / 2)
+            params[["kappa"]][idx] <- (d + d * k + d * (d + 1) / 2 + 1):(d + d * k + 2 * d * (d + 1) / 2)
+
+            if(fill) {
+                idx <- upper.tri(
+                    params[["nu"]], 
+                    diag = FALSE
+                )
+
+                params[["nu"]][idx] <- t(params[["nu"]])[idx]
+                params[["kappa"]][idx] <- t(params[["kappa"]])[idx]
+            }
+
+        # Anisotropic: Requires d^2 values to be put in the matrices, as all 
+        # individual parameters of the matrix are freely chosen or estimated
+        } else if(dynamics == "anisotropic") {
+            params[["nu"]][] <- (d + d * k + 1):(d + d * k + d^2)
+            params[["kappa"]][] <- (d + d * k + d^2 + 1):(d + d * k + 2 * d^2)
+
+        } 
+
+        # If we need to fill the covariance as well, then do so
+        if(!parameters_only) {
+            model@covariance <- index_covariance(
+                d,
+                max(params[["gamma"]]) + 1,
+                cholesky = !fill | cholesky,
+                ...
+            )
+        }
+
+        # Assign the parameters to the model and return
+        model@parameters <- params
+
+        return(model)
+    }
+)
+
 #' Index the covariance matrix
 #' 
 #' @param d Integer denoting the dimensionality of the model.
