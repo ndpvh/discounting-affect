@@ -2,38 +2,19 @@
 % Please edit documentation in R/utils.R
 \name{fill}
 \alias{fill}
-\alias{fill,exponential-method}
-\alias{fill,quasi_hyperbolic-method}
-\alias{fill,double_exponential-method}
+\alias{fill,model-method}
 \title{Change model parameters}
 \usage{
 fill(model, parameters, ...)
 
-\S4method{fill}{exponential}(
+\S4method{fill}{model}(
   model,
   parameters,
   dynamics = "isotropic",
   covariance = "symmetric",
   parameters_only = TRUE,
-  cholesky = TRUE
-)
-
-\S4method{fill}{quasi_hyperbolic}(
-  model,
-  parameters,
-  dynamics = "isotropic",
-  covariance = "symmetric",
-  parameters_only = TRUE,
-  cholesky = TRUE
-)
-
-\S4method{fill}{double_exponential}(
-  model,
-  parameters,
-  dynamics = "isotropic",
-  covariance = "symmetric",
-  parameters_only = TRUE,
-  cholesky = TRUE
+  cholesky = TRUE,
+  ...
 )
 }
 \arguments{
@@ -55,17 +36,9 @@ this influences different parameters for different models, namely
 the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
 double-exponential discounting model. Defaults to \code{"isotropic"}.}
 
-\item{covariance}{Character denoting the structure of the covariance matrix.
-Can either be \code{"symmetric"} (symmetric around the diagonal) or 
-\code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.}
-
 \item{parameters_only}{Logical denoting whether to only fill the 
 parameters in de \code{parameter} slot of the model (\code{TRUE}), or to 
 fill the covariance matrix as well (\code{FALSE}). Defaults to \code{TRUE}.}
-
-\item{cholesky}{Logical denoting whether the values of the covariance matrix 
-should be taken as the values of its Cholesky decomposition instead. Defaults 
-to \code{TRUE}.}
 }
 \value{
 Instance of the \code{\link[discounting]{model-class}} containing 
