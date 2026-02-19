@@ -50,9 +50,6 @@
 - [`fill()`](https://github.com/ndpvh/discounting-affect/reference/fill.md)
   : Change model parameters
 
-- [`fill_covariance()`](https://github.com/ndpvh/discounting-affect/reference/fill_covariance.md)
-  : Fill the covariance matrix with values
-
 - [`fit()`](https://github.com/ndpvh/discounting-affect/reference/fit.md)
   : Fit a model to data
 
@@ -64,6 +61,12 @@
 
 - [`get_bounds_covariance()`](https://github.com/ndpvh/discounting-affect/reference/get_bounds_covariance.md)
   : Get bounds for the parameters in the covariance matrix
+
+- [`index()`](https://github.com/ndpvh/discounting-affect/reference/index-topic.md)
+  : Index model parameters
+
+- [`index_covariance()`](https://github.com/ndpvh/discounting-affect/reference/index_covariance.md)
+  : Index the covariance matrix
 
 - [`model-class`](https://github.com/ndpvh/discounting-affect/reference/model-class.md)
   : Model Class
@@ -82,6 +85,9 @@
 
 - [`parameter_names_covariance()`](https://github.com/ndpvh/discounting-affect/reference/parameter_names_covariance.md)
   : Get the names for the parameters in the covariance matrix
+
+- [`parameters()`](https://github.com/ndpvh/discounting-affect/reference/parameters.md)
+  : Extract model parameters
 
 - [`predict(`*`<exponential>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)
   [`predict(`*`<quasi_hyperbolic>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)

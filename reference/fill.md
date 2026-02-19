@@ -15,34 +15,15 @@ provide within the objective function.
 ``` r
 fill(model, parameters, ...)
 
-# S4 method for class 'exponential'
+# S4 method for class 'model'
 fill(
   model,
   parameters,
   dynamics = "isotropic",
   covariance = "symmetric",
   parameters_only = TRUE,
-  cholesky = TRUE
-)
-
-# S4 method for class 'quasi_hyperbolic'
-fill(
-  model,
-  parameters,
-  dynamics = "isotropic",
-  covariance = "symmetric",
-  parameters_only = TRUE,
-  cholesky = TRUE
-)
-
-# S4 method for class 'double_exponential'
-fill(
-  model,
-  parameters,
-  dynamics = "isotropic",
-  covariance = "symmetric",
-  parameters_only = TRUE,
-  cholesky = TRUE
+  cholesky = TRUE,
+  ...
 )
 ```
 
@@ -76,23 +57,11 @@ fill(
   quasi-hyperbolic discounting model, and \\\Gamma\\ and \\N\\ for the
   double-exponential discounting model. Defaults to `"isotropic"`.
 
-- covariance:
-
-  Character denoting the structure of the covariance matrix. Can either
-  be `"symmetric"` (symmetric around the diagonal) or `"isotropic"`
-  (diagonal). Defaults to `"symmetric"`.
-
 - parameters_only:
 
   Logical denoting whether to only fill the parameters in de `parameter`
   slot of the model (`TRUE`), or to fill the covariance matrix as well
   (`FALSE`). Defaults to `TRUE`.
-
-- cholesky:
-
-  Logical denoting whether the values of the covariance matrix should be
-  taken as the values of its Cholesky decomposition instead. Defaults to
-  `TRUE`.
 
 ## Value
 
