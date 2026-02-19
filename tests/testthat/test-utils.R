@@ -4465,13 +4465,8 @@ test_that(
 # PARAMETERS
 
 test_that(
-    "Check the retrieved parameter values when vector = TRUE",
+    "Check the output of parameters: Exponential discounting",
     {
-        vector <- TRUE
-
-        #################################
-        # Exponential discounting model
-
         # Anisotropic, Symmetric
         model <- fill(
             exponential(d = 2, k = 2),
@@ -4482,19 +4477,256 @@ test_that(
             cholesky = FALSE
         )
         expect_equal(
-            parameters(model, vector = vector),
+            parameters(model, dynamics = "anisotropic", covariance = "symmetric"),
             1:13
         )
 
         # Symmetric, Symmetric
-        # Test
+        model <- fill(
+            exponential(d = 2, k = 2),
+            1:12,
+            dynamics = "symmetric",
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "symmetric", covariance = "symmetric"),
+            1:12
+        )
 
         # Isotropic, Symmetric
+        model <- fill(
+            exponential(d = 2, k = 2),
+            1:11,
+            dynamics = "isotropic",
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "isotropic", covariance = "symmetric"),
+            1:11
+        )
 
         # Anisotropic, Isotropic
+        model <- fill(
+            exponential(d = 2, k = 2),
+            1:12,
+            dynamics = "anisotropic",
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "anisotropic", covariance = "isotropic"),
+            1:12
+        )
 
         # Symmetric, Isotropic
+        model <- fill(
+            exponential(d = 2, k = 2),
+            1:11,
+            dynamics = "symmetric",
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "symmetric", covariance = "isotropic"),
+            1:11
+        )
 
         # Isotropic, Isotropic
+        model <- fill(
+            exponential(d = 2, k = 2),
+            1:10,
+            dynamics = "isotropic",
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "isotropic", covariance = "isotropic"),
+            1:10
+        )
+    }
+)
+
+test_that(
+    "Check the output of parameters: Quasi-hyperbolic discounting",
+    {
+        # Anisotropic, Symmetric
+        model <- fill(
+            quasi_hyperbolic(d = 2, k = 2),
+            1:17,
+            dynamics = "anisotropic",
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "anisotropic", covariance = "symmetric"),
+            1:17
+        )
+
+        # Symmetric, Symmetric
+        model <- fill(
+            quasi_hyperbolic(d = 2, k = 2),
+            1:15,
+            dynamics = "symmetric",
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "symmetric", covariance = "symmetric"),
+            1:15
+        )
+
+        # Isotropic, Symmetric
+        model <- fill(
+            quasi_hyperbolic(d = 2, k = 2),
+            1:13,
+            dynamics = "isotropic",
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "isotropic", covariance = "symmetric"),
+            1:13
+        )
+
+        # Anisotropic, Isotropic
+        model <- fill(
+            quasi_hyperbolic(d = 2, k = 2),
+            1:16,
+            dynamics = "anisotropic",
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "anisotropic", covariance = "isotropic"),
+            1:16
+        )
+
+        # Symmetric, Isotropic
+        model <- fill(
+            quasi_hyperbolic(d = 2, k = 2),
+            1:14,
+            dynamics = "symmetric",
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "symmetric", covariance = "isotropic"),
+            1:14
+        )
+
+        # Isotropic, Isotropic
+        model <- fill(
+            quasi_hyperbolic(d = 2, k = 2),
+            1:12,
+            dynamics = "isotropic",
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "isotropic", covariance = "isotropic"),
+            1:12
+        )
+    }
+)
+
+test_that(
+    "Check the output of parameters: Double-exponential discounting",
+    {
+        # Anisotropic, Symmetric
+        model <- fill(
+            double_exponential(d = 2, k = 2),
+            1:18,
+            dynamics = "anisotropic",
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "anisotropic", covariance = "symmetric"),
+            1:18
+        )
+
+        # Symmetric, Symmetric
+        model <- fill(
+            double_exponential(d = 2, k = 2),
+            1:16,
+            dynamics = "symmetric",
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "symmetric", covariance = "symmetric"),
+            1:16
+        )
+
+        # Isotropic, Symmetric
+        model <- fill(
+            double_exponential(d = 2, k = 2),
+            1:14,
+            dynamics = "isotropic",
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "isotropic", covariance = "symmetric"),
+            1:14
+        )
+
+        # Anisotropic, Isotropic
+        model <- fill(
+            double_exponential(d = 2, k = 2),
+            1:17,
+            dynamics = "anisotropic",
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "anisotropic", covariance = "isotropic"),
+            1:17
+        )
+
+        # Symmetric, Isotropic
+        model <- fill(
+            double_exponential(d = 2, k = 2),
+            1:15,
+            dynamics = "symmetric",
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "symmetric", covariance = "isotropic"),
+            1:15
+        )
+
+        # Isotropic, Isotropic
+        model <- fill(
+            double_exponential(d = 2, k = 2),
+            1:13,
+            dynamics = "isotropic",
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, dynamics = "isotropic", covariance = "isotropic"),
+            1:13
+        )
     }
 )
