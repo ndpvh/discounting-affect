@@ -76,6 +76,7 @@ setMethod(
         params[["beta"]][] <- (d + 1):(d + d * k)
 
         # Isotropic: Only requires d values on its diagonal. 
+        params[["gamma"]][] <- 0
         if(dynamics == "isotropic") {
             diag(params[["gamma"]]) <- (d + d * k + 1):(d + d * k + d)
         
@@ -108,6 +109,7 @@ setMethod(
 
         # If we need to full the covariance as well, then do so
         if(!parameters_only) {
+            model@covariance[] <- 0
             model@covariance <- index_covariance(
                 d,
                 max(params[["gamma"]]) + 1,
@@ -149,6 +151,8 @@ setMethod(
 
         # Isotropic: Only requires d values on the diagonal of its two dynamic
         # matrices. 
+        params[["nu"]][] <- 0
+        params[["kappa"]][] <- 0
         if(dynamics == "isotropic") {
             diag(params[["nu"]]) <- (d + d * k + 1):(d + d * k + d)
             diag(params[["kappa"]]) <- (d + d * k + d + 1):(d + d * k + 2 * d)
@@ -186,6 +190,7 @@ setMethod(
 
         # If we need to full the covariance as well, then do so
         if(!parameters_only) {
+            model@covariance[] <- 0
             model@covariance <- index_covariance(
                 d,
                 max(params[["kappa"]]) + 1,
@@ -228,6 +233,8 @@ setMethod(
 
         # Isotropic: Only requires d values on the diagonal of its two dynamic
         # matrices. 
+        params[["gamma"]][] <- 0
+        params[["nu"]][] <- 0
         if(dynamics == "isotropic") {
             diag(params[["gamma"]]) <- (d + d * k + 2):(d + d * k + d + 1)
             diag(params[["nu"]]) <- (d + d * k + d + 2):(d + d * k + 2 * d + 1)
@@ -265,6 +272,7 @@ setMethod(
 
         # If we need to full the covariance as well, then do so
         if(!parameters_only) {
+            model@covariance[] <- 0
             model@covariance <- index_covariance(
                 d,
                 max(params[["nu"]]) + 1,
@@ -1728,25 +1736,20 @@ setMethod(
 
 #' Extract model parameters
 #' 
-#' Extract the parameters of a particular model. This includes the covariances,
-#' so not only the deterministic model parameters.
+#' Extract the parameters of a particular model.
 #' 
 #' @param model Instance of the \code{\link[discounting]{model-class}}
-#' @param vector Logical denoting whether to output the parameters in a vector
-#' (\code{TRUE}) or a list (\code{FALSE}). Defaults to \code{TRUE}.
+#' @param parameters_only Logical denoting whether to only extract the 
+#' determinstic parameters of the model (\code{TRUE}) or also include the 
+#' covariance parameters (\code{FALSE}). Defaults to \code{FALSE}.
+#' @param ... Additional arguments passed on to \code{\link[discounting]{index}}
 #' 
 #' @return Numeric vector containing all parameters of the model.
 #' 
 #' @examples 
-#' parameters(
-#'   double_exponential(d = 2, k = 3),
-#'   vector = TRUE
-#' )
+#' parameters(double_exponential(d = 2, k = 3))
 #' 
-#' parameters(
-#'   double_exponential(d = 2, k = 3),
-#'   vector = FALSE
-#' )
+#' parameters(double_exponential(d = 2, k = 3))
 #' 
 #' @rdname parameters
 #' @export 
@@ -1761,24 +1764,32 @@ setMethod(
     "parameters",
     "model",
     function(model,
-             vector = TRUE) {
+             parameters_only = FALSE,
+             ...) {
         
+        # Index the model parameters. 
+        indexed <- index(
+            model,
+            parameters_only = parameters_only,
+            full = FALSE,
+            cholesky = FALSE,
+            ...
+        )
+
         # Extract the unique parameters of the model and return
-        params <- sapply(
+        params <- lapply(
             seq_along(model@parameters),
-            function(i) as.numeric(model@parameters[[i]])
-        )   
+            function(i) model@parameters[[i]][indexed@parameters[[i]] != 0]
+        )
 
         # Add the covariances into the mix
         params <- append(
             params,
-            model@covariance[lower.tri(model@covariance, diag = TRUE)]
+            model@covariance[indexed@covariance != 0]
         )
 
-        # Check whether we want to output the vector or the list
-        if(vector) {
-            params <- unlist(params)
-        }
+        # Unlist these parameters into a single vector
+        params <- unlist(params)
         
         return(params)
     }
