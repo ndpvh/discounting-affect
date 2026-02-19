@@ -194,7 +194,12 @@ setMethod(
                 parameters_only = FALSE,
                 cholesky = TRUE
             )
-            result$simulate[i, ] <- parameters
+            result$simulate[i, ] <- parameters(
+                sim_model,
+                dynamics = sim_dynamics,
+                covariance = sim_covariance,
+                parameters_only = FALSE
+            )
 
             # Simulate data according to the specifications
             data <- simulate(
