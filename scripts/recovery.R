@@ -20,26 +20,26 @@ N <- 140
 
 # Define the models to use for the recovery study
 models <- list(
-    "exponential_11" = exponential(d = 1, k = 1),
-    "exponential_12" = exponential(d = 1, k = 2),
-    "exponential_13" = exponential(d = 1, k = 3),
+    # "exponential_11" = exponential(d = 1, k = 1),
+    # "exponential_12" = exponential(d = 1, k = 2),
+    # "exponential_13" = exponential(d = 1, k = 3),
     "exponential_21" = exponential(d = 2, k = 1),
     "exponential_22" = exponential(d = 2, k = 2),
-    "exponential_23" = exponential(d = 2, k = 3),
+    # "exponential_23" = exponential(d = 2, k = 3),
 
-    "quasi_hyperbolic_11" = quasi_hyperbolic(d = 1, k = 1),
-    "quasi_hyperbolic_12" = quasi_hyperbolic(d = 1, k = 2),
-    "quasi_hyperbolic_13" = quasi_hyperbolic(d = 1, k = 3),
+    # "quasi_hyperbolic_11" = quasi_hyperbolic(d = 1, k = 1),
+    # "quasi_hyperbolic_12" = quasi_hyperbolic(d = 1, k = 2),
+    # "quasi_hyperbolic_13" = quasi_hyperbolic(d = 1, k = 3),
     "quasi_hyperbolic_21" = quasi_hyperbolic(d = 2, k = 1),
     "quasi_hyperbolic_22" = quasi_hyperbolic(d = 2, k = 2),
-    "quasi_hyperbolic_23" = quasi_hyperbolic(d = 2, k = 3),
+    # "quasi_hyperbolic_23" = quasi_hyperbolic(d = 2, k = 3),
 
-    "double_exponential_11" = double_exponential(d = 1, k = 1),
-    "double_exponential_12" = double_exponential(d = 1, k = 2),
-    "double_exponential_13" = double_exponential(d = 1, k = 3),
+    # "double_exponential_11" = double_exponential(d = 1, k = 1),
+    # "double_exponential_12" = double_exponential(d = 1, k = 2),
+    # "double_exponential_13" = double_exponential(d = 1, k = 3),
     "double_exponential_21" = double_exponential(d = 2, k = 1),
-    "double_exponential_22" = double_exponential(d = 2, k = 2),
-    "double_exponential_23" = double_exponential(d = 2, k = 3)
+    "double_exponential_22" = double_exponential(d = 2, k = 2)
+    # "double_exponential_23" = double_exponential(d = 2, k = 3)
 )
 
 # Define the dynamical and covariance characteristics of these models
