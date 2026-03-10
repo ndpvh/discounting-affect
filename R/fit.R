@@ -202,10 +202,17 @@ setMethod(
              dynamics = "isotropic",
              covariance = "symmetric",
              optimizer = "DEoptim",
+             lower = NULL, 
+             upper = NULL,
              ...) {
         
         # Extract the bounds of the model to be optimized
-        bounds <- get_bounds(model, dynamics = dynamics)
+        bounds <- get_bounds(
+            model, 
+            dynamics = dynamics,
+            lower = lower, 
+            upper = upper
+        )
 
         # Prepare the objective function for the optimization
         obj <- function(x) objective_function(
