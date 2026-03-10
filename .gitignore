@@ -55,3 +55,4 @@ rsconnect/
 # Add results and figures to the .gitignore
 scripts/results
 scripts/figures
+inst/doc
