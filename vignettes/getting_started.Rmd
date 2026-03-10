@@ -671,8 +671,8 @@ result$fit <- result$fit[idx, ]
 #| fig.hold = TRUE,
 #| fig.align = "center",
 #| fig.alt = "One sees a scatterplot displaying the relationship between the values of the simulated parameters vs those of the estimated parameters.",
-#| fig.dim = c(8, 5),
-#| dev = "jpeg"
+#| fig.dim = c(9, 5),
+#| dev = "pdf"
 # Define the window for the plots
 par(mfrow = c(1, 2))
 
