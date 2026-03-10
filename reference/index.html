@@ -24,6 +24,12 @@
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="nav-link" href="https://github.com/ndpvh/discounting-affect/" aria-label="Github"><span class="fa fa-github"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul></li>
       </ul></div>
 
 
@@ -36,7 +42,148 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="model-definition">Model definition<a class="anchor" aria-label="anchor" href="#model-definition"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="double_exponential-class.html">double_exponential-class</a></code>
+
+        </dt>
+        <dd>Double-exponential Class</dd>
+
+        <dt>
+
+          <code><a href="double_exponential.html">double_exponential()</a></code>
+
+        </dt>
+        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/double_exponential-class.html" class="external-link">double_exponential-class</a></code></dd>
+
+        <dt>
+
+          <code><a href="exponential-class.html">exponential-class</a></code>
+
+        </dt>
+        <dd>Exponential Class</dd>
+
+        <dt>
+
+          <code><a href="exponential.html">exponential()</a></code>
+
+        </dt>
+        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/exponential-class.html" class="external-link">exponential-class</a></code></dd>
+
+        <dt>
+
+          <code><a href="model-class.html">model-class</a></code>
+
+        </dt>
+        <dd>Model Class</dd>
+
+        <dt>
+
+          <code><a href="model.html">model()</a></code>
+
+        </dt>
+        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/model-class.html" class="external-link">model-class</a></code></dd>
+
+        <dt>
+
+          <code><a href="quasi_hyperbolic-class.html">quasi_hyperbolic-class</a></code>
+
+        </dt>
+        <dd>Quasi-hyperbolic Class</dd>
+
+        <dt>
+
+          <code><a href="quasi_hyperbolic.html">quasi_hyperbolic()</a></code>
+
+        </dt>
+        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/quasi_hyperbolic-class.html" class="external-link">quasi_hyperbolic-class</a></code></dd>
+      </dl></div><div class="section level2">
+      <h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="dataset-class.html">dataset-class</a></code>
+
+        </dt>
+        <dd>Dataset Class</dd>
+
+        <dt>
+
+          <code><a href="dataset.html">dataset()</a></code>
+
+        </dt>
+        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/dataset-class.html" class="external-link">dataset-class</a></code></dd>
+      </dl></div><div class="section level2">
+      <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="predict.html">predict(<i>&lt;exponential&gt;</i>)</a></code> <code><a href="predict.html">predict(<i>&lt;quasi_hyperbolic&gt;</i>)</a></code> <code><a href="predict.html">predict(<i>&lt;double_exponential&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Compute the model expectations</dd>
+
+        <dt>
+
+          <code><a href="recovery.html">recovery()</a></code>
+
+        </dt>
+        <dd>Simulate and estimate a model</dd>
+
+        <dt>
+
+          <code><a href="simulate.html">simulate(<i>&lt;model&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Method for simulating from a model</dd>
+      </dl></div><div class="section level2">
+      <h2 id="estimation">Estimation<a class="anchor" aria-label="anchor" href="#estimation"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="fit.html">fit()</a></code>
+
+        </dt>
+        <dd>Fit a model to data</dd>
+
+        <dt>
+
+          <code><a href="objective_function.html">objective_function()</a></code>
+
+        </dt>
+        <dd>Objective function</dd>
+      </dl></div><div class="section level2">
+      <h2 id="statistics">Statistics<a class="anchor" aria-label="anchor" href="#statistics"></a></h2>
 
 
 
@@ -72,8 +219,17 @@
 
         </dt>
         <dd>Compute the \(BIC\) based on \(SSE\)</dd>
+      </dl></div><div class="section level2">
+      <h2 id="utility">Utility<a class="anchor" aria-label="anchor" href="#utility"></a></h2>
 
-        <dt>
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="count_covariance.html">count_covariance()</a></code>
 
@@ -89,59 +245,10 @@
 
         <dt>
 
-          <code><a href="dataset-class.html">dataset-class</a></code>
-
-        </dt>
-        <dd>Dataset Class</dd>
-
-        <dt>
-
-          <code><a href="dataset.html">dataset()</a></code>
-
-        </dt>
-        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/dataset-class.html" class="external-link">dataset-class</a></code></dd>
-
-        <dt>
-
-          <code><a href="double_exponential-class.html">double_exponential-class</a></code>
-
-        </dt>
-        <dd>Double-exponential Class</dd>
-
-        <dt>
-
-          <code><a href="double_exponential.html">double_exponential()</a></code>
-
-        </dt>
-        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/double_exponential-class.html" class="external-link">double_exponential-class</a></code></dd>
-
-        <dt>
-
-          <code><a href="exponential-class.html">exponential-class</a></code>
-
-        </dt>
-        <dd>Exponential Class</dd>
-
-        <dt>
-
-          <code><a href="exponential.html">exponential()</a></code>
-
-        </dt>
-        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/exponential-class.html" class="external-link">exponential-class</a></code></dd>
-
-        <dt>
-
           <code><a href="fill.html">fill()</a></code>
 
         </dt>
         <dd>Change model parameters</dd>
-
-        <dt>
-
-          <code><a href="fit.html">fit()</a></code>
-
-        </dt>
-        <dd>Fit a model to data</dd>
 
         <dt>
 
@@ -180,27 +287,6 @@
 
         <dt>
 
-          <code><a href="model-class.html">model-class</a></code>
-
-        </dt>
-        <dd>Model Class</dd>
-
-        <dt>
-
-          <code><a href="model.html">model()</a></code>
-
-        </dt>
-        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/model-class.html" class="external-link">model-class</a></code></dd>
-
-        <dt>
-
-          <code><a href="objective_function.html">objective_function()</a></code>
-
-        </dt>
-        <dd>Objective function</dd>
-
-        <dt>
-
           <code><a href="parameter_names.html">parameter_names()</a></code>
 
         </dt>
@@ -219,43 +305,9 @@
 
         </dt>
         <dd>Extract model parameters</dd>
-
-        <dt>
-
-          <code><a href="predict.html">predict(<i>&lt;exponential&gt;</i>)</a></code> <code><a href="predict.html">predict(<i>&lt;quasi_hyperbolic&gt;</i>)</a></code> <code><a href="predict.html">predict(<i>&lt;double_exponential&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Compute the model expectations</dd>
-
-        <dt>
-
-          <code><a href="quasi_hyperbolic-class.html">quasi_hyperbolic-class</a></code>
-
-        </dt>
-        <dd>Quasi-hyperbolic Class</dd>
-
-        <dt>
-
-          <code><a href="quasi_hyperbolic.html">quasi_hyperbolic()</a></code>
-
-        </dt>
-        <dd>Constructor for the <code><a href="https://rdrr.io/pkg/discounting/man/quasi_hyperbolic-class.html" class="external-link">quasi_hyperbolic-class</a></code></dd>
-
-        <dt>
-
-          <code><a href="recovery.html">recovery()</a></code>
-
-        </dt>
-        <dd>Simulate and estimate a model</dd>
-
-        <dt>
-
-          <code><a href="simulate.html">simulate(<i>&lt;model&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Method for simulating from a model</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

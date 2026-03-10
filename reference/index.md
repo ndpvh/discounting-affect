@@ -1,33 +1,6 @@
 # Package index
 
-## All functions
-
-- [`aic()`](https://github.com/ndpvh/discounting-affect/reference/aic.md)
-  : Compute the \\AIC\\ based on \\SSE\\
-
-- [`autocorrelation()`](https://github.com/ndpvh/discounting-affect/reference/autocorrelation.md)
-  : Compute the autocorrelation of the residuals
-
-- [`bias()`](https://github.com/ndpvh/discounting-affect/reference/bias.md)
-  : Compute the mean of the residuals
-
-- [`bic()`](https://github.com/ndpvh/discounting-affect/reference/bic.md)
-  : Compute the \\BIC\\ based on \\SSE\\
-
-- [`count_covariance()`](https://github.com/ndpvh/discounting-affect/reference/count_covariance.md)
-  : Count the number of parameters in the covariance matrix
-
-- [`count_parameters()`](https://github.com/ndpvh/discounting-affect/reference/count_parameters.md)
-  : Count number of parameters for a model
-
-- [`dataset-class`](https://github.com/ndpvh/discounting-affect/reference/dataset-class.md)
-  : Dataset Class
-
-- [`dataset()`](https://github.com/ndpvh/discounting-affect/reference/dataset.md)
-  :
-
-  Constructor for the
-  [`dataset-class`](https://rdrr.io/pkg/discounting/man/dataset-class.html)
+## Model definition
 
 - [`double_exponential-class`](https://github.com/ndpvh/discounting-affect/reference/double_exponential-class.md)
   : Double-exponential Class
@@ -47,27 +20,6 @@
   Constructor for the
   [`exponential-class`](https://rdrr.io/pkg/discounting/man/exponential-class.html)
 
-- [`fill()`](https://github.com/ndpvh/discounting-affect/reference/fill.md)
-  : Change model parameters
-
-- [`fit()`](https://github.com/ndpvh/discounting-affect/reference/fit.md)
-  : Fit a model to data
-
-- [`generate_parameters()`](https://github.com/ndpvh/discounting-affect/reference/generate_parameters.md)
-  : Generate model parameters
-
-- [`get_bounds()`](https://github.com/ndpvh/discounting-affect/reference/get_bounds.md)
-  : Get bounds of the parameters of a model
-
-- [`get_bounds_covariance()`](https://github.com/ndpvh/discounting-affect/reference/get_bounds_covariance.md)
-  : Get bounds for the parameters in the covariance matrix
-
-- [`index()`](https://github.com/ndpvh/discounting-affect/reference/index-topic.md)
-  : Index model parameters
-
-- [`index_covariance()`](https://github.com/ndpvh/discounting-affect/reference/index_covariance.md)
-  : Index the covariance matrix
-
 - [`model-class`](https://github.com/ndpvh/discounting-affect/reference/model-class.md)
   : Model Class
 
@@ -76,23 +28,6 @@
 
   Constructor for the
   [`model-class`](https://rdrr.io/pkg/discounting/man/model-class.html)
-
-- [`objective_function()`](https://github.com/ndpvh/discounting-affect/reference/objective_function.md)
-  : Objective function
-
-- [`parameter_names()`](https://github.com/ndpvh/discounting-affect/reference/parameter_names.md)
-  : Name the relevant parameters of the model
-
-- [`parameter_names_covariance()`](https://github.com/ndpvh/discounting-affect/reference/parameter_names_covariance.md)
-  : Get the names for the parameters in the covariance matrix
-
-- [`parameters()`](https://github.com/ndpvh/discounting-affect/reference/parameters.md)
-  : Extract model parameters
-
-- [`predict(`*`<exponential>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)
-  [`predict(`*`<quasi_hyperbolic>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)
-  [`predict(`*`<double_exponential>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)
-  : Compute the model expectations
 
 - [`quasi_hyperbolic-class`](https://github.com/ndpvh/discounting-affect/reference/quasi_hyperbolic-class.md)
   : Quasi-hyperbolic Class
@@ -103,8 +38,67 @@
   Constructor for the
   [`quasi_hyperbolic-class`](https://rdrr.io/pkg/discounting/man/quasi_hyperbolic-class.html)
 
+## Data
+
+- [`dataset-class`](https://github.com/ndpvh/discounting-affect/reference/dataset-class.md)
+  : Dataset Class
+
+- [`dataset()`](https://github.com/ndpvh/discounting-affect/reference/dataset.md)
+  :
+
+  Constructor for the
+  [`dataset-class`](https://rdrr.io/pkg/discounting/man/dataset-class.html)
+
+## Simulation
+
+- [`predict(`*`<exponential>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)
+  [`predict(`*`<quasi_hyperbolic>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)
+  [`predict(`*`<double_exponential>`*`)`](https://github.com/ndpvh/discounting-affect/reference/predict.md)
+  : Compute the model expectations
 - [`recovery()`](https://github.com/ndpvh/discounting-affect/reference/recovery.md)
   : Simulate and estimate a model
-
 - [`simulate(`*`<model>`*`)`](https://github.com/ndpvh/discounting-affect/reference/simulate.md)
   : Method for simulating from a model
+
+## Estimation
+
+- [`fit()`](https://github.com/ndpvh/discounting-affect/reference/fit.md)
+  : Fit a model to data
+- [`objective_function()`](https://github.com/ndpvh/discounting-affect/reference/objective_function.md)
+  : Objective function
+
+## Statistics
+
+- [`aic()`](https://github.com/ndpvh/discounting-affect/reference/aic.md)
+  : Compute the \\AIC\\ based on \\SSE\\
+- [`autocorrelation()`](https://github.com/ndpvh/discounting-affect/reference/autocorrelation.md)
+  : Compute the autocorrelation of the residuals
+- [`bias()`](https://github.com/ndpvh/discounting-affect/reference/bias.md)
+  : Compute the mean of the residuals
+- [`bic()`](https://github.com/ndpvh/discounting-affect/reference/bic.md)
+  : Compute the \\BIC\\ based on \\SSE\\
+
+## Utility
+
+- [`count_covariance()`](https://github.com/ndpvh/discounting-affect/reference/count_covariance.md)
+  : Count the number of parameters in the covariance matrix
+- [`count_parameters()`](https://github.com/ndpvh/discounting-affect/reference/count_parameters.md)
+  : Count number of parameters for a model
+- [`fill()`](https://github.com/ndpvh/discounting-affect/reference/fill.md)
+  : Change model parameters
+- [`generate_parameters()`](https://github.com/ndpvh/discounting-affect/reference/generate_parameters.md)
+  : Generate model parameters
+- [`get_bounds()`](https://github.com/ndpvh/discounting-affect/reference/get_bounds.md)
+  : Get bounds of the parameters of a model
+- [`get_bounds_covariance()`](https://github.com/ndpvh/discounting-affect/reference/get_bounds_covariance.md)
+  : Get bounds for the parameters in the covariance matrix
+- [`index()`](https://github.com/ndpvh/discounting-affect/reference/index-topic.md)
+  : Index model parameters
+- [`index_covariance()`](https://github.com/ndpvh/discounting-affect/reference/index_covariance.md)
+  : Index the covariance matrix
+- [`parameter_names()`](https://github.com/ndpvh/discounting-affect/reference/parameter_names.md)
+  : Name the relevant parameters of the model
+- [`parameter_names_covariance()`](https://github.com/ndpvh/discounting-affect/reference/parameter_names_covariance.md)
+  : Get the names for the parameters in the covariance matrix
+- [`parameters()`](https://github.com/ndpvh/discounting-affect/reference/parameters.md)
+  : Extract model parameters
