@@ -81,3 +81,4 @@ dataset(
 \seealso{
 \code{\link[discounting]{dataset-class}}
 }
+\concept{data}

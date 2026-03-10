@@ -27,3 +27,4 @@ model}
 \seealso{
 \code{\link[discounting]{quasi_hyperbolic}}
 }
+\concept{models}

@@ -25,3 +25,4 @@ dataset (see \code{\link[discounting]{dataset}}).}
 \seealso{
 \code{\link[discounting]{dataset}}
 }
+\concept{data}

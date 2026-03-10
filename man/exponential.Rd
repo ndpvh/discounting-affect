@@ -127,3 +127,4 @@ exponential(
 \code{\link[discounting]{model-class}}
 \code{\link[discounting]{exponential-class}}
 }
+\concept{models}

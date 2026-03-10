@@ -34,3 +34,4 @@ fitobj <- fit(
 bias(fitobj)
 
 }
+\concept{statistics}

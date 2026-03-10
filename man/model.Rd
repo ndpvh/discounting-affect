@@ -52,3 +52,4 @@ model(
 \seealso{
 \code{\link[discounting]{exponential-class}}
 }
+\concept{models}

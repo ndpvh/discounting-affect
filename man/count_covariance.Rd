@@ -25,3 +25,4 @@ count_covariance(2, "symmetric")
 count_covariance(2, "isotropic")
 
 }
+\concept{utility}

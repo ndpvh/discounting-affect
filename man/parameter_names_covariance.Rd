@@ -27,3 +27,4 @@ parameter_names_covariance(2, covariance = "symmetric")
 parameter_names_covariance(2, covariance = "isotropic")
 
 }
+\concept{utility}

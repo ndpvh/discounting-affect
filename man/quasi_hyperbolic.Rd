@@ -146,3 +146,4 @@ quasi_hyperbolic(
 \code{\link[discounting]{exponential-class}}
 \code{\link[discounting]{quasi_hyperbolic-class}}
 }
+\concept{models}

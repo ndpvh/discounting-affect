@@ -43,3 +43,4 @@ index_covariance(
 )
 
 }
+\concept{utility}

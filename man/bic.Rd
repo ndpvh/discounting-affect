@@ -32,3 +32,4 @@ fitobj <- fit(
 bic(fitobj)
 
 }
+\concept{statistics}
