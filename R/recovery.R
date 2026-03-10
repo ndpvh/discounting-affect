@@ -72,6 +72,9 @@
 #' )
 #' 
 #' @rdname recovery
+#' 
+#' @concept simulation 
+#' 
 #' @export 
 setGeneric(
     "recovery",

@@ -74,6 +74,9 @@
 #' )
 #' 
 #' @rdname objective_function
+#' 
+#' @concept estimation
+#' 
 #' @export 
 setGeneric(
     "objective_function",
@@ -189,6 +192,9 @@ setMethod(
 #' )
 #' 
 #' @rdname fit
+#' 
+#' @concept estimation
+#' 
 #' @export 
 setGeneric(
     "fit",

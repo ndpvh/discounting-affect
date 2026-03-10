@@ -42,6 +42,9 @@
 #' )
 #' 
 #' @rdname predict
+#' 
+#' @concept simulation
+#' 
 #' @export 
 setMethod(
     "predict",

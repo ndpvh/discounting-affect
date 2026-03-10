@@ -45,6 +45,9 @@
 #' )
 #' 
 #' @rdname index
+#' 
+#' @concept utility
+#' 
 #' @export 
 setGeneric(
     "index",
@@ -319,6 +322,9 @@ setMethod(
 #' )
 #' 
 #' @rdname index_covariance
+#' 
+#' @concept utility
+#' 
 #' @export 
 index_covariance <- function(d, 
                              start,
@@ -413,6 +419,9 @@ index_covariance <- function(d,
 #' )
 #' 
 #' @rdname fill
+#' 
+#' @concept utility
+#' 
 #' @export 
 setGeneric(
     "fill",
@@ -590,6 +599,9 @@ setMethod(
 #' )
 #' 
 #' @rdname count_parameters
+#' 
+#' @concept utility
+#' 
 #' @export 
 setGeneric(
     "count_parameters",
@@ -746,6 +758,9 @@ setMethod(
 #' count_covariance(2, "isotropic")
 #' 
 #' @rdname count_covariance
+#' 
+#' @concept utility
+#' 
 #' @export 
 count_covariance <- function(d, 
                              covariance = "symmetric") {
@@ -830,6 +845,9 @@ count_covariance <- function(d,
 #' )
 #' 
 #' @rdname get_bounds
+#' 
+#' @concept utility
+#' 
 #' @export 
 setGeneric(
     "get_bounds",
@@ -1173,6 +1191,9 @@ setMethod(
 #' )
 #' 
 #' @rdname get_bounds_covariance
+#' 
+#' @concept utility
+#' 
 #' @export 
 get_bounds_covariance <- function(d, 
                                   lower,
@@ -1302,6 +1323,9 @@ check_bound_length <- function(n,
 #' )
 #' 
 #' @rdname parameter_names
+#' 
+#' @concept utility
+#' 
 #' @export 
 setGeneric(
     "parameter_names",
@@ -1637,6 +1661,9 @@ setMethod(
 #' parameter_names_covariance(2, covariance = "isotropic")
 #' 
 #' @rdname parameter_names_covariance
+#' 
+#' @concept utility
+#' 
 #' @export 
 parameter_names_covariance <- function(d, 
                                        covariance = "symmetric") {
@@ -1699,6 +1726,9 @@ parameter_names_covariance <- function(d,
 #' )
 #' 
 #' @rdname generate_parameters
+#' 
+#' @concept utility
+#' 
 #' @export 
 setGeneric(
     "generate_parameters",
@@ -1753,6 +1783,9 @@ setMethod(
 #' parameters(double_exponential(d = 2, k = 3))
 #' 
 #' @rdname parameters
+#' 
+#' @concept utility
+#' 
 #' @export 
 setGeneric(
     "parameters",

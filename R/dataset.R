@@ -14,6 +14,8 @@
 #' @seealso 
 #' \code{\link[discounting]{dataset}}
 #' 
+#' @concept data
+#' 
 #' @export
 setClass(
     "dataset",
@@ -89,6 +91,8 @@ setClass(
 #'  
 #' @seealso 
 #' \code{\link[discounting]{dataset-class}}
+#' 
+#' @concept data
 #' 
 #' @export 
 dataset <- function(data = NULL,
