@@ -53,10 +53,127 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-<div class="section level1">
-<div class="page-header"><h1 id="discounting-affect">discounting-affect<a class="anchor" aria-label="anchor" href="#discounting-affect"></a>
+  <main id="main" class="col-md-9"><div class="section level1">
+<div class="page-header"><h1 id="discounting-temporal-discounting-models-to-understand-affect-dynamics">discounting: Temporal discounting models to understand affect dynamics<a class="anchor" aria-label="anchor" href="#discounting-temporal-discounting-models-to-understand-affect-dynamics"></a>
 </h1></div>
+<p>This project revolves around the comparison of several temporal discounting models when applied to affect, following up on the call for such a comparison mentioned in Vanhasbroeck et al. (2024). The code within this project combines the structure of an R package alongside scripts that call upon the functions used within that package, providing its own ecosystem in which functions evolve together with our research purposes. While in-principle the <code>discounting</code> package can be used by others, it is not necessarily meant to and may, therefore, feel user-unfriendly.</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>To install the package and use its functions, one can use the <code>remotes</code> package:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">intall_github</span>(<span class="st">"ndpvh/discounting-affect"</span>)</span></code></pre></div>
+<p>One can then call the <code><a href="https://rdrr.io/r/base/library.html" class="external-link">library()</a></code> function to load the package’s functions:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ndpvh/discounting-affect">discounting</a></span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
+</h2>
+<p>Most of the package’s functionality depends on the definition of an instance of a model, namely of the exponential discounting model (<a href="https://ndpvh.github.io/discounting-affect/reference/exponential.html" class="external-link"><code>exponential()</code></a>; Samuelson, 1937, Rutledge et al., 2014), the quasi-hyperbolic discounting model (<a href="https://ndpvh.github.io/discounting-affect/reference/quasi_hyperbolic.html" class="external-link"><code>quasi_hyperbolic()</code></a>; Laibson, 1997), or the double-exponential discounting model (<a href="https://ndpvh.github.io/discounting-affect/reference/double_exponential.html" class="external-link"><code>double_exponential()</code></a>; van den Bos &amp; McClure, 2013). For example, we can create a one-dimensional exponential discounting model as follows:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">my_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/exponential.html">exponential</a></span><span class="op">(</span></span>
+<span>  parameters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>      <span class="st">"alpha"</span> <span class="op">=</span> <span class="fl">1</span>, </span>
+<span>      <span class="st">"beta"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>      <span class="st">"gamma"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fl">0.5</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  covariance <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">my_model</span></span>
+<span><span class="co">#&gt; Model of class "exponential":</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Dimension: 1</span></span>
+<span><span class="co">#&gt; Number of predictors: 1</span></span>
+<span><span class="co">#&gt; Number of parameters: 4</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Parameters:</span></span>
+<span><span class="co">#&gt;   alpha: |  1.00  |</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   beta: | 1.00 |</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   gamma: | 0.50 |</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Covariance: | 1.00 |</span></span></code></pre></div>
+<p>Simulating from this model can be achieved through the <a href="https://ndpvh.github.io/discounting-affect/reference/simulate.html" class="external-link"><code>simulate()</code></a> function:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span></span>
+<span>  <span class="va">my_model</span>,</span>
+<span>  X <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">100</span>, min <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, max <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">data</span></span>
+<span><span class="co">#&gt; An object of class "dataset"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Slot "Y": 100x1matrix</span></span>
+<span><span class="co">#&gt;             [,1]</span></span>
+<span><span class="co">#&gt; [1,]  0.06461276</span></span>
+<span><span class="co">#&gt; [2,]  1.36331527</span></span>
+<span><span class="co">#&gt; [3,]  0.38434100</span></span>
+<span><span class="co">#&gt; [4,]  0.58480309</span></span>
+<span><span class="co">#&gt; [5,]  1.23406025</span></span>
+<span><span class="co">#&gt; [6,] -0.40797861</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Slot "X": 100x1matrix</span></span>
+<span><span class="co">#&gt;             [,1]</span></span>
+<span><span class="co">#&gt; [1,] -0.19391610</span></span>
+<span><span class="co">#&gt; [2,] -0.34337644</span></span>
+<span><span class="co">#&gt; [3,] -0.96389265</span></span>
+<span><span class="co">#&gt; [4,]  0.25205182</span></span>
+<span><span class="co">#&gt; [5,]  0.92311981</span></span>
+<span><span class="co">#&gt; [6,]  0.03515012</span></span></code></pre></div>
+<p>To estimate parameters of a model based on observed data, we have to transform our dataset to an instance of the <a href="https://ndpvh.github.io/discounting-affect/reference/dataset.html" class="external-link"><code>dataset</code></a> class and can then call the function <a href="https://ndpvh.github.io/discounting-affect/reference/fit.html" class="external-link"><code>fit()</code></a> for a particular instance of the models denoted above:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Define the model you wish to fit</span></span>
+<span><span class="va">fit_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/quasi_hyperbolic.html">quasi_hyperbolic</a></span><span class="op">(</span>d <span class="op">=</span> <span class="fl">1</span>, k <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fit the model to the previously simulated data</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fit.html">fit</a></span><span class="op">(</span></span>
+<span>  <span class="va">fit_model</span>,</span>
+<span>  <span class="va">data</span>,</span>
+<span>  trace <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">model</span> </span>
+<span><span class="co">#&gt; Model of class "quasi_hyperbolic":</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Dimension: 1</span></span>
+<span><span class="co">#&gt; Number of predictors: 1</span></span>
+<span><span class="co">#&gt; Number of parameters: 5</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Parameters:</span></span>
+<span><span class="co">#&gt;   alpha: |  0.9929598  |</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   beta: | 0.9340197 |</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   nu: | 0.8361718 |</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   kappa: | 0.4134251 |</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Covariance: | 0.8733049 |</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="analyses">Analyses<a class="anchor" aria-label="anchor" href="#analyses"></a>
+</h2>
+<p>For those who wish to reproduce or otherwise inspect our analyses, they can find the analysis scripts in the folder <code>scripts</code>. Currently, we provide the following analyses:</p>
+<ul>
+<li>
+<code>recovery.R</code>: Recovery study, providing a sanity check of being able to estimate the models provided by the package.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="further-reading">Further Reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
+</h2>
+<p>One can consult the package’s vignettes for more information on the project, the <a href="https://ndpvh.github.io/discounting-affect/articles/models.html" class="external-link">models</a>, and the <a href="https://ndpvh.github.io/discounting-affect/articles/getting_started.html" class="external-link">package</a>.</p>
+</div>
+</div>
+<div class="section level1">
+<h1 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h1>
+<p>Laibson, D. (1997). Golden eggs and hyperbolic discounting. <em>The Quarterly Journal of Economics, 112</em>(2), 443-477.</p>
+<p>Samuelson, P. A. (1937). A note on measurement of utility. <em>The Review of Economic Studies, 4</em>(2), 155-161.</p>
+<p>Rutledge, R. B., Skandali, N., Dayan, P., &amp; Dolan, R. J. (2014). A computational and neural model of momentary subjective well-being. <em>Proceedings of the National Academy of Sciences of the United States of America, 111</em>(33), 12252–12257. doi: <a href="https://doi.org/10.1073/pnas.1407535111" class="external-link">10.1073/pnas.1407535111</a></p>
+<p>van den Bos, W. &amp; McClure, S. M. (2013). Towards a general model of temporal discounting. <em>Journal of the Experimental Analysis of Behavior, 99</em>, 58–73. doi: <a href="https://doi.org/10.1002/jeab.6" class="external-link">10.1002/jeab.6</a></p>
+<p>Vanhasbroeck, N., Loossens, T., &amp; Tuerlinckx, F. (2024). Two peas in a pod: Discounting models as a special case of the VARMAX. <em>Journal of Mathematical Psychology</em>, Article 102856. doi: <a href="https://doi.org/10.1016/j.jmp.2024.102856" class="external-link">10.1016/j.jmp.2024.102856</a></p>
 </div>
 
   </main><aside class="col-md-3"><div class="links">
@@ -92,15 +209,7 @@
 </ul>
 </div>
 
-<div class="dev-status">
-<h2 data-toc-skip>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://github.com/ndpvh/discounting-affect/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/ndpvh/discounting-affect/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://github.com/ndpvh/discounting-affect/actions/workflows/pkgdown.yaml"><img src="https://github.com/ndpvh/discounting-affect/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
-<li><a href="https://app.codecov.io/gh/ndpvh/discounting-affect" class="external-link"><img src="https://codecov.io/gh/ndpvh/discounting-affect/graph/badge.svg" alt="Codecov test coverage"></a></li>
-<li><a href="https://ndpvh.github.io/discounting-affect" class="external-link"><img src="https://img.shields.io/badge/docs-0.1.0-blue" alt="Documentation"></a></li>
-</ul>
-</div>
+
 
   </aside>
 </div>

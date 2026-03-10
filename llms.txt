@@ -1,4 +1,178 @@
-# discounting-affect
+# discounting: Temporal discounting models to understand affect dynamics
+
+This project revolves around the comparison of several temporal
+discounting models when applied to affect, following up on the call for
+such a comparison mentioned in Vanhasbroeck et al. (2024). The code
+within this project combines the structure of an R package alongside
+scripts that call upon the functions used within that package, providing
+its own ecosystem in which functions evolve together with our research
+purposes. While in-principle the `discounting` package can be used by
+others, it is not necessarily meant to and may, therefore, feel
+user-unfriendly.
+
+## Installation
+
+To install the package and use its functions, one can use the `remotes`
+package:
+
+``` R
+remotes::intall_github("ndpvh/discounting-affect")
+```
+
+One can then call the [`library()`](https://rdrr.io/r/base/library.html)
+function to load the package’s functions:
+
+``` r
+library(discounting)
+```
+
+## Getting Started
+
+Most of the package’s functionality depends on the definition of an
+instance of a model, namely of the exponential discounting model
+([`exponential()`](https://ndpvh.github.io/discounting-affect/reference/exponential.html);
+Samuelson, 1937, Rutledge et al., 2014), the quasi-hyperbolic
+discounting model
+([`quasi_hyperbolic()`](https://ndpvh.github.io/discounting-affect/reference/quasi_hyperbolic.html);
+Laibson, 1997), or the double-exponential discounting model
+([`double_exponential()`](https://ndpvh.github.io/discounting-affect/reference/double_exponential.html);
+van den Bos & McClure, 2013). For example, we can create a
+one-dimensional exponential discounting model as follows:
+
+``` r
+my_model <- exponential(
+  parameters = list(
+      "alpha" = 1, 
+      "beta" = as.matrix(1),
+      "gamma" = as.matrix(0.5)
+  ),
+  covariance = as.matrix(1)
+)
+my_model
+#> Model of class "exponential":
+#> 
+#> Dimension: 1
+#> Number of predictors: 1
+#> Number of parameters: 4
+#> 
+#> Parameters:
+#>   alpha: |  1.00  |
+#> 
+#>   beta: | 1.00 |
+#> 
+#>   gamma: | 0.50 |
+#> 
+#> 
+#> Covariance: | 1.00 |
+```
+
+Simulating from this model can be achieved through the
+[`simulate()`](https://ndpvh.github.io/discounting-affect/reference/simulate.html)
+function:
+
+``` r
+data <- simulate(
+  my_model,
+  X = runif(100, min = -1, max = 1)
+)
+data
+#> An object of class "dataset"
+#> 
+#> Slot "Y": 100x1matrix
+#>             [,1]
+#> [1,]  0.06461276
+#> [2,]  1.36331527
+#> [3,]  0.38434100
+#> [4,]  0.58480309
+#> [5,]  1.23406025
+#> [6,] -0.40797861
+#> 
+#> Slot "X": 100x1matrix
+#>             [,1]
+#> [1,] -0.19391610
+#> [2,] -0.34337644
+#> [3,] -0.96389265
+#> [4,]  0.25205182
+#> [5,]  0.92311981
+#> [6,]  0.03515012
+```
+
+To estimate parameters of a model based on observed data, we have to
+transform our dataset to an instance of the
+[`dataset`](https://ndpvh.github.io/discounting-affect/reference/dataset.html)
+class and can then call the function
+[`fit()`](https://ndpvh.github.io/discounting-affect/reference/fit.html)
+for a particular instance of the models denoted above:
+
+``` r
+# Define the model you wish to fit
+fit_model <- quasi_hyperbolic(d = 1, k = 1)
+
+# Fit the model to the previously simulated data
+result <- fit(
+  fit_model,
+  data,
+  trace = FALSE
+)
+result$model 
+#> Model of class "quasi_hyperbolic":
+#> 
+#> Dimension: 1
+#> Number of predictors: 1
+#> Number of parameters: 5
+#> 
+#> Parameters:
+#>   alpha: |  0.9929598  |
+#> 
+#>   beta: | 0.9340197 |
+#> 
+#>   nu: | 0.8361718 |
+#> 
+#>   kappa: | 0.4134251 |
+#> 
+#> 
+#> Covariance: | 0.8733049 |
+```
+
+## Analyses
+
+For those who wish to reproduce or otherwise inspect our analyses, they
+can find the analysis scripts in the folder `scripts`. Currently, we
+provide the following analyses:
+
+- `recovery.R`: Recovery study, providing a sanity check of being able
+  to estimate the models provided by the package.
+
+## Further Reading
+
+One can consult the package’s vignettes for more information on the
+project, the
+[models](https://ndpvh.github.io/discounting-affect/articles/models.html),
+and the
+[package](https://ndpvh.github.io/discounting-affect/articles/getting_started.html).
+
+# References
+
+Laibson, D. (1997). Golden eggs and hyperbolic discounting. *The
+Quarterly Journal of Economics, 112*(2), 443-477.
+
+Samuelson, P. A. (1937). A note on measurement of utility. *The Review
+of Economic Studies, 4*(2), 155-161.
+
+Rutledge, R. B., Skandali, N., Dayan, P., & Dolan, R. J. (2014). A
+computational and neural model of momentary subjective well-being.
+*Proceedings of the National Academy of Sciences of the United States of
+America, 111*(33), 12252–12257. doi:
+[10.1073/pnas.1407535111](https://doi.org/10.1073/pnas.1407535111)
+
+van den Bos, W. & McClure, S. M. (2013). Towards a general model of
+temporal discounting. *Journal of the Experimental Analysis of Behavior,
+99*, 58–73. doi: [10.1002/jeab.6](https://doi.org/10.1002/jeab.6)
+
+Vanhasbroeck, N., Loossens, T., & Tuerlinckx, F. (2024). Two peas in a
+pod: Discounting models as a special case of the VARMAX. *Journal of
+Mathematical Psychology*, Article 102856. doi:
+[10.1016/j.jmp.2024.102856](https://doi.org/10.1016/j.jmp.2024.102856)
 
 # Package index
 
