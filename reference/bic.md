@@ -37,5 +37,5 @@ fitobj <- fit(
 
 # Compute the BIC based on this fitobj
 bic(fitobj)
-#> [1] -14.20758
+#> [1] -19.28626
 ```

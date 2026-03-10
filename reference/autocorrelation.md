@@ -44,5 +44,5 @@ fitobj <- fit(
 
 # Compute the autocorrelation based on this fitobj
 autocorrelation(fitobj)
-#> [1] -0.1600752
+#> [1] -0.1579376
 ```

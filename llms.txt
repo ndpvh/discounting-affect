@@ -111,3 +111,11 @@
 - [`simulate(`*`<model>`*`)`](https://github.com/ndpvh/discounting-affect/reference/simulate.md)
   : Method for simulating from a model
 
+# Articles
+
+### All vignettes
+
+- [Getting
+  Started](https://github.com/ndpvh/discounting-affect/articles/getting_started.md):
+- [Discounting
+  Models](https://github.com/ndpvh/discounting-affect/articles/models.md):

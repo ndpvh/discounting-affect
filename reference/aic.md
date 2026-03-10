@@ -37,5 +37,5 @@ fitobj <- fit(
 
 # Compute the AIC based on this fitobj
 aic(fitobj)
-#> [1] 12.32387
+#> [1] 13.41917
 ```

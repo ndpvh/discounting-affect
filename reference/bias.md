@@ -39,5 +39,5 @@ fitobj <- fit(
 
 # Compute the autocorrelation based on this fitobj
 bias(fitobj)
-#> [1] -5.459092e-05
+#> [1] 4.810028e-05
 ```

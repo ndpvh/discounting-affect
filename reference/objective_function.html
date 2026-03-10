@@ -20,7 +20,11 @@ meaning the estimation routine makes use of a least-squares procedure."><script 
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item"><h6 class="dropdown-header" data-toc-skip>Usage</h6></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-usage" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Usage</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-usage"><li><a class="dropdown-item" href="../articles/getting_started.html">Getting Started</a></li>
+    <li><a class="dropdown-item" href="../articles/models.html">Discounting Models</a></li>
+  </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="nav-link" href="https://github.com/ndpvh/discounting-affect/" aria-label="Github"><span class="fa fa-github"></span></a></li>
@@ -130,7 +134,7 @@ approach to estimation, as the one used in this package.</p>
 <span class="r-in"><span>  <span class="va">data</span>,</span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">0.75</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 198.5579</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 222.7683</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Evaluate the objective function when using exactly the model and the </span></span></span>
 <span class="r-in"><span><span class="co"># parameters that generated the data</span></span></span>
@@ -139,7 +143,7 @@ approach to estimation, as the one used in this package.</p>
 <span class="r-in"><span>  <span class="va">data</span>,</span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">0.75</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 112.4678</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 114.5312</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
