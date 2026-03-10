@@ -522,7 +522,7 @@ exponential <- function(d = NA,
             )
         )
 
-        parameters[["beta"]] <- matrix(parameters[["beta"]], nrow = 1)
+        parameters[["beta"]] <- matrix(parameters[["beta"]], ncol = 1)
     }
 
     if(!is.matrix(covariance) & length(covariance) == 1) {
@@ -851,7 +851,7 @@ quasi_hyperbolic <- function(d = NA,
             )
         )
 
-        parameters[["beta"]] <- matrix(parameters[["beta"]], nrow = 1)
+        parameters[["beta"]] <- matrix(parameters[["beta"]], ncol = 1)
     }
 
     if(!is.matrix(covariance) & length(covariance) == 1) {
@@ -1194,7 +1194,7 @@ double_exponential <- function(d = NA,
             )
         )
 
-        parameters[["beta"]] <- matrix(parameters[["beta"]], nrow = 1)
+        parameters[["beta"]] <- matrix(parameters[["beta"]], ncol = 1)
     }
 
     if(!is.matrix(covariance) & length(covariance) == 1) {
