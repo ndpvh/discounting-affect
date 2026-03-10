@@ -147,6 +147,9 @@ setMethod(
 #' Can either be \code{"DEoptim"} for the differential evolution algorithm in 
 #' \code{\link[DEoptim]{DEoptim}} or \code{"nloptr"} for the library implemented
 #' in \code{\link[nloptr]{nloptr}}. Defaults to \code{"DEoptim"}.
+#' @param lower,upper Numeric vector containing lower and upper bounds for the 
+#' parameters in the estimation routine. Uses the same defaults as 
+#' \code{\link[discounting]{get_bounds}}.
 #' @param ... Arguments passed on to the control parameters of the optimizer, 
 #' either to \code{\link[DEoptim]{DEoptim.control}} or the \code{opts} 
 #' argument of \code{\link[nloptr]{nloptr}}.

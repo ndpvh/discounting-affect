@@ -13,6 +13,8 @@ fit(model, data, ...)
   dynamics = "isotropic",
   covariance = "symmetric",
   optimizer = "DEoptim",
+  lower = NULL,
+  upper = NULL,
   ...
 )
 }
@@ -43,6 +45,10 @@ Can either by \code{"symmetric"} (symmetric around the diagonal) and
 Can either be \code{"DEoptim"} for the differential evolution algorithm in 
 \code{\link[DEoptim]{DEoptim}} or \code{"nloptr"} for the library implemented
 in \code{\link[nloptr]{nloptr}}. Defaults to \code{"DEoptim"}.}
+
+\item{lower, upper}{Numeric vector containing lower and upper bounds for the 
+parameters in the estimation routine. Uses the same defaults as 
+\code{\link[discounting]{get_bounds}}.}
 }
 \value{
 An named list containing an instance of the 
