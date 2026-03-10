@@ -23,6 +23,8 @@ Imports:
     nloptr
 Suggests: 
     fs,
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
 Remotes:
 Config/testthat/edition: 3
@@ -38,3 +40,4 @@ Collate:
     'fit.R'
     'recovery.R'
     'statistics.R'
+VignetteBuilder: knitr
