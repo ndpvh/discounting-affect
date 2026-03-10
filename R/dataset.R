@@ -51,7 +51,7 @@ setClass(
 #' be thrown asking for more information.
 #' @param Y Numeric vector or numeric matrix containing the values for the 
 #' dependent variable(s). Defaults to \code{NULL}, in which case it will 
-#' become an empty matrix of length \eqn{N x 1}. Ignored if \code{data} is 
+#' become an empty matrix of length \eqn{N \times 1}. Ignored if \code{data} is 
 #' specified instead.
 #' @param X Numeric vector or numeric matrix containing the values for the 
 #' independent variable(s). Defaults to \code{NULL}, in which case the 
