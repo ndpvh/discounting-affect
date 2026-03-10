@@ -248,17 +248,17 @@ test_that(
 
         # Beta should be a matrix, but can have one column
         params <- list(
-            "alpha" = numeric(1),
+            "alpha" = numeric(10),
             "beta" = numeric(10),
-            "gamma" = matrix(0.5, nrow = 1, ncol = 1)
+            "gamma" = diag(10) * 0.5
         )
-        expect_warning(exponential(parameters = params, covariance = diag(1)))
+        expect_warning(exponential(parameters = params, covariance = diag(10)))
 
-        tst <- exponential(parameters = params, covariance = diag(1)) |>
+        tst <- exponential(parameters = params, covariance = diag(10)) |>
             suppressWarnings()
-        expect_equal(tst@d, 1)
-        expect_equal(tst@k, 10)
-        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 1, ncol = 10))
+        expect_equal(tst@d, 10)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 10, ncol = 1))
 
         # Covariance should be a matrix, but one value is defined
         params <- list(
@@ -551,18 +551,18 @@ test_that(
 
         # Beta should be a matrix, but can have one column
         params <- list(
-            "alpha" = numeric(1),
+            "alpha" = numeric(10),
             "beta" = numeric(10),
-            "nu" = matrix(0.5, nrow = 1, ncol = 1),
-            "kappa" = matrix(0.75, nrow = 1, ncol = 1)
+            "nu" = diag(10) * 0.5,
+            "kappa" = diag(10) * 0.75
         )
-        expect_warning(quasi_hyperbolic(parameters = params, covariance = diag(1)))
+        expect_warning(quasi_hyperbolic(parameters = params, covariance = diag(10)))
 
-        tst <- quasi_hyperbolic(parameters = params, covariance = diag(1)) |>
+        tst <- quasi_hyperbolic(parameters = params, covariance = diag(10)) |>
             suppressWarnings()
-        expect_equal(tst@d, 1)
-        expect_equal(tst@k, 10)
-        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 1, ncol = 10))
+        expect_equal(tst@d, 10)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 10, ncol = 1))
 
         # Covariance should be a matrix, but one value is defined
         params <- list(
@@ -893,19 +893,19 @@ test_that(
 
         # Beta should be a matrix, but can have one column
         params <- list(
-            "alpha" = numeric(1),
+            "alpha" = numeric(10),
             "beta" = numeric(10),
             "omega" = 0.25,
-            "gamma" = matrix(0.5, nrow = 1, ncol = 1),
-            "nu" = matrix(0.75, nrow = 1, ncol = 1)
+            "gamma" = diag(10) * 0.5,
+            "nu" = diag(10) * 0.75
         )
-        expect_warning(double_exponential(parameters = params, covariance = diag(1)))
+        expect_warning(double_exponential(parameters = params, covariance = diag(10)))
 
-        tst <- double_exponential(parameters = params, covariance = diag(1)) |>
+        tst <- double_exponential(parameters = params, covariance = diag(10)) |>
             suppressWarnings()
-        expect_equal(tst@d, 1)
-        expect_equal(tst@k, 10)
-        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 1, ncol = 10))
+        expect_equal(tst@d, 10)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 10, ncol = 1))
 
         # Omega should be a single numeric, but multiple values are defined
         params <- list(
