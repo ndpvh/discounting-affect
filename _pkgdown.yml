@@ -28,6 +28,10 @@ navbar:
     articles:
       text: Usage
       menu:
+      - text: Getting Started
+        href: articles/getting_started.html
+      - text: Discounting Models 
+        href: articles/models.html
     github:
       icon: fa-github
       href: https://github.com/ndpvh/discounting-affect/
