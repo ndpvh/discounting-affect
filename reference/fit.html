@@ -73,6 +73,8 @@ as optimization standard.</p>
 <span>  dynamics <span class="op">=</span> <span class="st">"isotropic"</span>,</span>
 <span>  covariance <span class="op">=</span> <span class="st">"symmetric"</span>,</span>
 <span>  optimizer <span class="op">=</span> <span class="st">"DEoptim"</span>,</span>
+<span>  lower <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  upper <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -118,6 +120,12 @@ Can either by <code>"symmetric"</code> (symmetric around the diagonal) and
 Can either be <code>"DEoptim"</code> for the differential evolution algorithm in
 <code><a href="https://rdrr.io/pkg/DEoptim/man/DEoptim.html" class="external-link">DEoptim</a></code> or <code>"nloptr"</code> for the library implemented
 in <code><a href="https://astamm.github.io/nloptr/reference/nloptr.html" class="external-link">nloptr</a></code>. Defaults to <code>"DEoptim"</code>.</p></dd>
+
+
+<dt id="arg-lower-upper">lower, upper<a class="anchor" aria-label="anchor" href="#arg-lower-upper"></a></dt>
+<dd><p>Numeric vector containing lower and upper bounds for the
+parameters in the estimation routine. Uses the same defaults as
+<code><a href="get_bounds.html">get_bounds</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

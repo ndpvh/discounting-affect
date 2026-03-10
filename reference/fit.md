@@ -23,6 +23,8 @@ fit(
   dynamics = "isotropic",
   covariance = "symmetric",
   optimizer = "DEoptim",
+  lower = NULL,
+  upper = NULL,
   ...
 )
 ```
@@ -73,6 +75,12 @@ fit(
   `"nloptr"` for the library implemented in
   [`nloptr`](https://astamm.github.io/nloptr/reference/nloptr.html).
   Defaults to `"DEoptim"`.
+
+- lower, upper:
+
+  Numeric vector containing lower and upper bounds for the parameters in
+  the estimation routine. Uses the same defaults as
+  [`get_bounds`](https://github.com/ndpvh/discounting-affect/reference/get_bounds.md).
 
 ## Value
 

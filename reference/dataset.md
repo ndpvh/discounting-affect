@@ -49,7 +49,7 @@ dataset(
 
   Numeric vector or numeric matrix containing the values for the
   dependent variable(s). Defaults to `NULL`, in which case it will
-  become an empty matrix of length \\N x 1\\. Ignored if `data` is
+  become an empty matrix of length \\N \times 1\\. Ignored if `data` is
   specified instead.
 
 - X:
