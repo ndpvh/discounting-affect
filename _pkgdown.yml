@@ -23,7 +23,7 @@ repo:
 navbar:
   structure:
     left: [reference, articles]
-    right: [search, github]
+    right: [search, github, lightswitch]
   components:
     articles:
       text: Usage
@@ -36,3 +36,17 @@ navbar:
       icon: fa-github
       href: https://github.com/ndpvh/discounting-affect/
       aria-label: Github
+
+reference:
+- title: Model definition
+  contents: has_concept("models")
+- title: Data
+  contents: has_concept("data")
+- title: Simulation
+  contents: has_concept("simulation")
+- title: Estimation
+  contents: has_concept("estimation")
+- title: Statistics
+  contents: has_concept("statistics")
+- title: Utility
+  contents: has_concept("utility")
