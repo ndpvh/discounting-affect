@@ -92,6 +92,18 @@ setMethod(
              data,
              parameters,
              dynamics = "isotropic") {
+
+        # Check whether the parameters are inside the bounds. If not, return a 
+        # penalty
+        bounds <- get_bounds(
+            model,
+            dynamics = dynamics,
+            parameters_only = TRUE
+        )
+
+        if(any(parameters < bounds$lower | parameters > bounds$upper)) {
+            return(Inf)
+        }
         
         # Put the parameters inside the model format
         model <- fill(
