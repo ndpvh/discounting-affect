@@ -248,7 +248,7 @@ setMethod(
         # by the user
         if(optimizer == "DEoptim") {
             # Check whether DEoptim is installed
-            if(!require("DEoptim", quietly = FALSE)) {
+            if(!require("DEoptim", quietly = TRUE)) {
                 stop("The package \"DEoptim\" is required for the estimation but not installed.")
             }
 
@@ -268,7 +268,7 @@ setMethod(
 
         } else if(optimizer == "nloptr") {
             # Check whether DEoptim is installed
-            if(!require("nloptr", quietly = FALSE)) {
+            if(!require("nloptr", quietly = TRUE)) {
                 stop("The package \"nloptr\" is required for the estimation but not installed.")
             }
 
