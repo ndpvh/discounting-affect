@@ -222,7 +222,7 @@ setMethod(
              data, 
              dynamics = "isotropic",
              covariance = "symmetric",
-             optimizer = "DEoptim",
+             optimizer = "optim",
              lower = NULL, 
              upper = NULL,
              ...) {
