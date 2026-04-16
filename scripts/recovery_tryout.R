@@ -39,6 +39,22 @@ fx <- list(
 # Define the different optimizers to try out and provide them with an informative
 # name
 optim_configs <- list(
+    "neldermead" = list(
+        optimizer = "optim",
+        method = "Nelder-Mead",
+        trace = 0,
+        maxit = 1e5,
+        abstol = 1e-15,
+        reltol = 1e-15
+    ),
+    "bfgs" = list(
+        optimizer = "optim",
+        method = "L-BFGS-B",
+        trace = 0,
+        maxit = 1e5,
+        abstol = 1e-15,
+        reltol = 1e-15
+    ),
     "bobyqa" = list(
         optimizer = "nloptr",
         algorithm = "NLOPT_LN_BOBYQA",
@@ -143,7 +159,7 @@ empty <- lapply(
                         steptol = optim_configs[[i]]$steptol,
                         trace = optim_configs[[i]]$trace
                     )
-                } else {
+                } else if(optim_configs[[i]]$optimizer == "nloptr") {
                     result <- shell(
                         optimizer = optim_configs[[i]]$optimizer,
                         algorithm = optim_configs[[i]]$algorithm,
@@ -151,6 +167,15 @@ empty <- lapply(
                         maxeval = optim_configs[[i]]$maxeval,   
                         ftol_abs = optim_configs[[i]]$ftol_abs,
                         restarts = optim_configs[[i]]$restarts
+                    )
+                } else if(optim_configs[[i]]$optimize == "optim") {
+                    result <- shell(
+                        optimizer = optim_configs[[i]]$optimizer, 
+                        method = optim_configs[[i]]$method,
+                        trace = optim_configs[[i]]$trace,
+                        maxit = optim_configs[[i]]$maxit,
+                        abstol = optim_configs[[i]]$abstol,
+                        reltol = optim_configs[[i]]$reltol
                     )
                 }
 
