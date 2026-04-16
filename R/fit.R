@@ -225,6 +225,7 @@ setMethod(
              optimizer = "optim",
              lower = NULL, 
              upper = NULL,
+             method = "Nelder-Mead",
              ...) {
         
         # Extract the bounds of the model to be optimized
@@ -305,12 +306,17 @@ setMethod(
             result <- stats::optim(
                 x0, 
                 fn = obj,
+                method = method,
                 lower = bounds$lower,
                 upper = bounds$upper,
                 control = list(
                     ...
                 )
             )
+
+            # Extract those things we definitely need
+            parameters <- result$par
+            objective <- result$value
 
         } else {
             stop("Optimizer is not recognized. Please use \"DEoptim\", \"nloptr\", or \"optim\".")
