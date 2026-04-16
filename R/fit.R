@@ -302,6 +302,14 @@ setMethod(
                 max = bounds$upper
             )
 
+            # Change the upper and lower bounds if necessary: Only L-BFGS-B 
+            # allows for bounded estimation in optim. Change back to the 
+            # defaults in this case
+            if(method != "L-BFGS-B") {
+                bounds$lower <- -Inf
+                bounds$upper <- Inf
+            }
+
             # Run the optimization
             result <- stats::optim(
                 x0, 
