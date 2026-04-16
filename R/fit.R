@@ -246,6 +246,11 @@ setMethod(
         # Perform the estimation procedure according to the optimizer chosen
         # by the user
         if(optimizer == "DEoptim") {
+            # Check whether DEoptim is installed
+            if(!require("DEoptim", quietly = FALSE)) {
+                stop("The package \"DEoptim\" is required for the estimation but not installed.")
+            }
+
             # Run the optimization
             result <- DEoptim::DEoptim(
                 obj,
@@ -261,6 +266,11 @@ setMethod(
             objective <- result$optim$bestval
 
         } else if(optimizer == "nloptr") {
+            # Check whether DEoptim is installed
+            if(!require("nloptr", quietly = FALSE)) {
+                stop("The package \"nloptr\" is required for the estimation but not installed.")
+            }
+
             # Define the initial condition
             x0 <- runif(
                 length(bounds$lower),
@@ -283,8 +293,27 @@ setMethod(
             parameters <- result$solution
             objective <- result$objective
 
+        } else if(optimizer == "optim") {
+            # Define the initial condition
+            x0 <- runif(
+                length(bounds$lower),
+                min = bounds$lower, 
+                max = bounds$upper
+            )
+
+            # Run the optimization
+            result <- stats::optim(
+                x0, 
+                fn = obj,
+                lower = bounds$lower,
+                upper = bounds$upper,
+                control = list(
+                    ...
+                )
+            )
+
         } else {
-            stop("Optimizer is not recognized. Please use \"DEoptim\" or \"nloptr\".")
+            stop("Optimizer is not recognized. Please use \"DEoptim\", \"nloptr\", or \"optim\".")
         }
 
         # Add the parameters to the model that was estimated
