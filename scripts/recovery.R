@@ -150,7 +150,7 @@ empty <- lapply(
                         upper,
                         algorithms = optim_configs[i, c("Var1", "Var2")],
                         ...
-                    )
+                    ),
                     maxeval = 1e5,
                     xtol_abs = 1e-20,
                     ftol_abs = 1e-20,
