@@ -86,7 +86,7 @@ optimizer <- function(obj,
 # name
 optim_configs <- expand.grid(
     c("NLOPT_GN_DIRECT", "NLOPT_GN_DIRECT_L", "NLOPT_GN_CRS2_LM", "NLOPT_GN_ESCH"),
-    c("NLOPT_LN_COBYLA", "NLOPT_LN_BOBYQA", "NLOPT_LN_NELDERMEAD", "NLOPT_LD_LBFGS")
+    c("NLOPT_LN_COBYLA", "NLOPT_LN_BOBYQA", "NLOPT_LN_NELDERMEAD")
 ) |>
     dplyr::mutate(
         truncated_1 = Var1 |>
@@ -108,7 +108,7 @@ optim_configs <- expand.grid(
 # Loop over the optimizers and over the different models, performing model 
 # estimation in parallel.
 empty <- lapply(
-    seq_along(optim_configs),
+    seq_len(nrow(optim_configs)),
     function(i) {
         # Provide some information on the optimizer used
         cat(optim_configs$name[i], "\n")
@@ -148,13 +148,14 @@ empty <- lapply(
                         obj, 
                         lower,
                         upper,
-                        algorithms = optim_configs[i, c("Var1", "Var2")],
+                        algorithms = optim_configs[i, c("Var1", "Var2")] |>
+                            unlist() |>
+                            as.character(),
                         ...
                     ),
                     maxeval = 1e5,
                     xtol_abs = 1e-20,
-                    ftol_abs = 1e-20,
-                    restarts = 3
+                    ftol_abs = 1e-20
                 )
 
                 # Save the result
