@@ -16,55 +16,17 @@ devtools::load_all()
 
 # Define the number of recoveries `iterations` and the number of datapoints `N`
 iterations <- 20
-N <- 140
+N <- 1400
 
 # Define the models to use for the recovery study
 models <- list(
-    # "exponential_11" = exponential(d = 1, k = 1),
-    # "exponential_12" = exponential(d = 1, k = 2),
-    # "exponential_13" = exponential(d = 1, k = 3),
     "exponential_21" = exponential(d = 2, k = 1),
-    "exponential_22" = exponential(d = 2, k = 2),
-    # "exponential_23" = exponential(d = 2, k = 3),
-
-    # "quasi_hyperbolic_11" = quasi_hyperbolic(d = 1, k = 1),
-    # "quasi_hyperbolic_12" = quasi_hyperbolic(d = 1, k = 2),
-    # "quasi_hyperbolic_13" = quasi_hyperbolic(d = 1, k = 3),
     "quasi_hyperbolic_21" = quasi_hyperbolic(d = 2, k = 1),
-    "quasi_hyperbolic_22" = quasi_hyperbolic(d = 2, k = 2),
-    # "quasi_hyperbolic_23" = quasi_hyperbolic(d = 2, k = 3),
-
-    # "double_exponential_11" = double_exponential(d = 1, k = 1),
-    # "double_exponential_12" = double_exponential(d = 1, k = 2),
-    # "double_exponential_13" = double_exponential(d = 1, k = 3),
-    "double_exponential_21" = double_exponential(d = 2, k = 1),
-    "double_exponential_22" = double_exponential(d = 2, k = 2)
-    # "double_exponential_23" = double_exponential(d = 2, k = 3)
-)
-
-# Define the dynamical and covariance characteristics of these models
-# characteristics <- cbind(
-#     rep(c("anisotropic", "isotropic", "symmetric"), each = 2),
-#     rep(c("isotropic", "symmetric"), times = 3)
-# )
-characteristics <- rbind(
-    c("anisotropic", "symmetric"),
-    c("isotropic", "symmetric")
+    "double_exponential_21" = double_exponential(d = 2, k = 1)
 )
 
 # Define functions for generating the values of X in the simulation
-x_functions <- list(
-    \(x) runif(x, min = -2, max = 2),
-    \(x) cbind(
-        runif(x, min = -2, max = 2),
-        runif(x, min = -2, max = 2)
-    ),
-    \(x) cbind(
-        runif(x, min = -2, max = 2),
-        runif(x, min = -2, max = 2),
-        runif(x, min = -2, max = 2)
-    )
-)
+x_function <- \(x) runif(x, min = -2, max = 2)
 
 # Define the different functions that you want to perform on the fitobj
 fx <- list(
@@ -74,199 +36,267 @@ fx <- list(
     "bias" = bias
 )
 
+# Define a function that will make use of multiple nloptr optimizers as specified 
+# by the user. These can then be varied so that different combinations are tried
+# out, typically combining a global optimizer with a local one.
+#
+# Assumption: We use the same control parameters for both estimation procedures.
+optimizer <- function(obj, 
+                      lower, 
+                      upper,
+                      algorithms,
+                      ...) {
+    
+    # Generate an initial condition for the first optimization procedure
+    x0 <- runif(
+        length(lower), 
+        min = lower, 
+        max = upper
+    )
+
+    # Loop over all algorithms that should be tried and tested. Update the 
+    # initial condition after every estimation round.
+    for(i in seq_along(algorithms)) {
+        # Perform the estimation
+        result <- nloptr::nloptr(
+            x0,
+            obj,
+            lb = lower, 
+            ub = upper, 
+            opts = list(
+                algorithm = algorithms[i],
+                ...
+            )
+        )
+
+        # Update the initial condition
+        x0 <- result$solution
+    }
+
+    # Return the results in a named list, as required by the fit function
+    return(
+        list(
+            "parameters" = result$solution, 
+            "objective" = result$objective
+        )
+    )
+}
+
+# Define the different optimizers to try out and provide them with an informative
+# name
+optim_configs <- expand.grid(
+    c("NLOPT_GN_DIRECT", "NLOPT_GN_DIRECT_L", "NLOPT_GN_CRS2_LM", "NLOPT_GN_ESCH"),
+    c("NLOPT_LN_COBYLA", "NLOPT_LN_BOBYQA", "NLOPT_LN_NELDERMEAD", "NLOPT_LD_LBFGS")
+) |>
+    dplyr::mutate(
+        truncated_1 = Var1 |>
+            as.character() |>
+            substring(10),
+        truncated_2 = Var2 |>
+            as.character() |>
+            substring(10),
+        name = paste(truncated_1, truncated_2, sep = "-"),
+        name = tolower(name)
+    ) |>
+    dplyr::select(Var1, Var2, name)
+
 
 
 ################################################################################
 # PERFORM THE RECOVERY
 
-# Loop over the different models. Perform this in parallel on Mac and Ubuntu
-# and in sequence on Windows
-empty <- parallel::mclapply(
-    seq_along(models),
+# Loop over the optimizers and over the different models, performing model 
+# estimation in parallel.
+empty <- lapply(
+    seq_along(optim_configs),
     function(i) {
-        # Extract the model of choice
-        my_model <- models[[i]]
+        # Provide some information on the optimizer used
+        cat(optim_configs$name[i], "\n")
 
-        # Determine which of the functions for X will serve as the one in this 
-        # recovery
-        Xfun <- x_functions[[as.integer(my_model@k)]]
+        # Loop over the models
+        empty <- parallel::mclapply(
+            seq_along(models),
+            function(j) {
+                # Extract the model of choice
+                my_model <- models[[j]]
 
-        # Loop over the different characteristics of the models
-        for(j in seq_len(nrow(characteristics))) {
-            # Perform the recovery study
-            result <- recovery(
-                my_model,
-                iterations = iterations,
-                fx = fx,
+                # Perform the recovery for the specified combination of functions,
+                # providing them to the optimizer
+                result <- recovery(
+                    my_model,
+                    iterations = iterations,
+                    fx = fx,
 
-                # Simulation characteristics
-                Xfun = Xfun,
-                N = N,
+                    # Simulation characteristics
+                    Xfun = x_function,
+                    N = N,
 
-                # Model characteristics
-                dynamics = characteristics[j, 1],
-                covariance = characteristics[j, 2],
+                    # Model characteristics
+                    dynamics = "isotropic",
+                    covariance = "symmetric",
 
-                # DEoptim characteristics
-                itermax = 500,
-                strategy = 6,
-                p = 0.5, 
-                NP = 200,
-                reltol = 1e-5,
-                steptol = 100,
-                trace = FALSE,
+                    # Additional stuff
+                    print_iteration = TRUE,
+                    print_content = paste(
+                        names(models)[j], 
+                        ": anisotropic - symmetric",
+                        sep = ""
+                    ),
 
-                # Additional stuff
-                print_iteration = TRUE,
-                print_content = paste(
-                    names(models)[i], 
-                    ": ",
-                    characteristics[j, 1], 
-                    " - ",
-                    characteristics[j, 2],
-                    ": ",
-                    sep = ""
+                    # Optimization characteristics
+                    optimizer = function(obj, lower, upper, ...) optimizer(
+                        obj, 
+                        lower,
+                        upper,
+                        algorithms = optim_configs[i, c("Var1", "Var2")],
+                        ...
+                    )
+                    maxeval = 1e5,
+                    xtol_abs = 1e-20,
+                    ftol_abs = 1e-20,
+                    restarts = 3
                 )
-            )
 
-            # Save the result
-            saveRDS(
-                result,
-                file.path(
-                    "scripts", 
-                    "results", 
-                    "recovery",
-                    paste0(
-                        names(models)[i], 
-                        "__", 
-                        characteristics[j, 1], 
-                        "_",
-                        characteristics[j, 2], 
-                        ".Rds"
+                # Save the result
+                saveRDS(
+                    result,
+                    file.path(
+                        "scripts", 
+                        "results", 
+                        "niels",
+                        paste0(
+                            names(models)[j], 
+                            "__",  
+                            optim_configs$name[i], 
+                            ".Rds"
+                        )
                     )
                 )
-            )
 
-            # Create recovery plots
-            plt <- lapply(
-                colnames(result$simulate),
-                function(col) {
-                    # Create a dataframe of simulated parameters values (x) and 
-                    # estimated ones (y)
-                    plot_data <- cbind(
-                        result$simulate[, col],
-                        result$fit[, col]
-                    ) |>
-                        as.data.frame() |>
-                        `colnames<-` (c("x", "y"))
+                # Create recovery plots
+                plt <- lapply(
+                    colnames(result$simulate),
+                    function(col) {
+                        # Create a dataframe of simulated parameters values (x) and 
+                        # estimated ones (y)
+                        plot_data <- cbind(
+                            result$simulate[, col],
+                            result$fit[, col]
+                        ) |>
+                            as.data.frame() |>
+                            `colnames<-` (c("x", "y"))
 
-                    # Get the range of values
-                    limits <- range(c(plot_data$x, plot_data$y))
+                        # Get the range of values
+                        limits <- range(c(plot_data$x, plot_data$y))
 
-                    # Create a plot for the recovery
-                    plt <- ggplot2::ggplot(
-                        data = plot_data, 
-                        ggplot2::aes(
-                            x = x, 
-                            y = y
-                        )
-                    ) +
-                        ggplot2::geom_abline(
-                            intercept = 0, 
-                            slope = 1, 
-                            linewidth = 2, 
-                            color = "black"
+                        # Create a plot for the recovery
+                        plt <- ggplot2::ggplot(
+                            data = plot_data, 
+                            ggplot2::aes(
+                                x = x, 
+                                y = y
+                            )
                         ) +
-                        ggplot2::geom_point(
-                            shape = 21,
-                            alpha = 0.25, 
-                            color = "black",
-                            fill = "cornflowerblue",
-                            size = 5
-                        ) +
-                        ggplot2::annotate(
-                            "text",
-                            x = limits[1] + 0.05 * diff(limits),
-                            y = limits[1] + 0.95 * diff(limits),
-                            label = format(
-                                round(
-                                    cor(
-                                        plot_data$x, 
-                                        plot_data$y
-                                    ),
-                                    digits = 2
-                                ),
-                                nsmall = 2
-                            ),
-                            size = 5,
-                            hjust = 0
-                        ) +
-                        ggplot2::lims(
-                            x = limits,
-                            y = limits
-                        ) +
-                        ggplot2::labs(
-                            title = col,
-                            x = "Simulated",
-                            y = "Estimated"
-                        ) +
-                        ggplot2::theme(
-                            panel.background = ggplot2::element_rect(
-                                fill = "white"
-                            ),
-                            panel.border = ggplot2::element_rect(
-                                fill = NA, 
+                            ggplot2::geom_abline(
+                                intercept = 0, 
+                                slope = 1, 
+                                linewidth = 2, 
+                                color = "black"
+                            ) +
+                            ggplot2::geom_point(
+                                shape = 21,
+                                alpha = 0.25, 
                                 color = "black",
-                                linewidth = 1
-                            ),
-                            axis.title = ggplot2::element_text(size = 15),
-                            plot.title = ggplot2::element_text(size = 20)
-                        )
-                    
-                    return(plt)
+                                fill = "cornflowerblue",
+                                size = 5
+                            ) +
+                            ggplot2::annotate(
+                                "text",
+                                x = limits[1] + 0.05 * diff(limits),
+                                y = limits[1] + 0.95 * diff(limits),
+                                label = format(
+                                    round(
+                                        cor(
+                                            plot_data$x, 
+                                            plot_data$y
+                                        ),
+                                        digits = 2
+                                    ),
+                                    nsmall = 2
+                                ),
+                                size = 5,
+                                hjust = 0
+                            ) +
+                            ggplot2::lims(
+                                x = limits,
+                                y = limits
+                            ) +
+                            ggplot2::labs(
+                                title = col,
+                                x = "Simulated",
+                                y = "Estimated"
+                            ) +
+                            ggplot2::theme(
+                                panel.background = ggplot2::element_rect(
+                                    fill = "white"
+                                ),
+                                panel.border = ggplot2::element_rect(
+                                    fill = NA, 
+                                    color = "black",
+                                    linewidth = 1
+                                ),
+                                axis.title = ggplot2::element_text(size = 15),
+                                plot.title = ggplot2::element_text(size = 20)
+                            )
+                        
+                        return(plt)
+                    }
+                )
+
+                if(length(plt) %% 2 == 1) {
+                    plt[[length(plt) + 1]] <- ggplot2::ggplot() +
+                        ggplot2::theme_void()
                 }
-            )
-            if(length(plt) %% 2 == 1) {
-                plt[[length(plt) + 1]] <- ggplot2::ggplot() +
-                    ggplot2::theme_void()
-            }
 
-            plt <- cowplot::plot_grid(
-                plotlist = plt,
-                nrow = my_model@d,
-                ncol = round(length(plt) / my_model@d),
-                byrow = FALSE
-            )
+                plt <- cowplot::plot_grid(
+                    plotlist = plt,
+                    nrow = my_model@d,
+                    ncol = round(length(plt) / my_model@d),
+                    byrow = FALSE
+                )
 
-            ggplot2::ggsave(
-                file.path(
-                    "scripts",
-                    "figures",
-                    "recovery",
-                    paste0(
-                        names(models)[i], 
-                        "__", 
-                        characteristics[j, 1], 
-                        "_",
-                        characteristics[j, 2], 
-                        ".png"
-                    )
-                ),
-                plt,
-                width = ceiling(ncol(result$simulate) * 1500 / my_model@d), 
-                height = my_model@d * 1550,
-                unit = "px",
-                limitsize = FALSE
+                ggplot2::ggsave(
+                    file.path(
+                        "scripts",
+                        "figures",
+                        "niels",
+                        paste0(
+                            names(models)[j], 
+                            "__", 
+                            optim_configs$name[i], 
+                            ".png"
+                        )
+                    ),
+                    plt,
+                    width = ceiling(ncol(result$simulate) * 1500 / my_model@d), 
+                    height = my_model@d * 1550,
+                    unit = "px",
+                    limitsize = FALSE
+                )
+
+                cat("\n")
+
+                return(NULL)
+            },
+            mc.cores = ifelse(
+                Sys.info()["sysname"] == "Windows",
+                1,
+                parallel::detectCores() - 1
             )
-        }
+        )
 
         return(NULL)
-    },
-    mc.cores = ifelse(
-        Sys.info()["sysname"] == "Windows",
-        1,
-        parallel::detectCores() - 1
-    )
+    }
 )
 
 cat("\n")
