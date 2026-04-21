@@ -56,3 +56,4 @@ rsconnect/
 scripts/results
 scripts/figures
 inst/doc
+*depr*
