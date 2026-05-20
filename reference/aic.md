@@ -34,8 +34,9 @@ fitobj <- fit(
   itermax = 50,
   trace = FALSE
 )
+#> Warning: unknown names in control: itermax
 
 # Compute the AIC based on this fitobj
 aic(fitobj)
-#> [1] 13.41917
+#> [1] 13.80677
 ```

@@ -34,8 +34,9 @@ fitobj <- fit(
   itermax = 50,
   trace = FALSE
 )
+#> Warning: unknown names in control: itermax
 
 # Compute the BIC based on this fitobj
 bic(fitobj)
-#> [1] -19.28626
+#> [1] 14.86431
 ```

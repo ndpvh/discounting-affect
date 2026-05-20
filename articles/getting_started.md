@@ -5,25 +5,33 @@ discounting models when applied to affect, following up on the call for
 such a comparison mentioned in Vanhasbroeck et al. (2024). These models
 can generally be defined as follows:
 
-$$\mathbf{y}_{t} = {\mathbf{α}} + \sum\limits_{j = 0}^{t}F(\mathbf{\Theta},t,j)B\mathbf{x}_{t - j} + {\mathbf{ϵ}}_{t}$$
-where $\mathbf{y}_{t}$ is a $d \times 1$ vector containing the dependent
-variables at time $t$, $\mathbf{x}_{t}$ is a $k \times 1$ vector
-containing the predictor variables at time $t$, $\mathbf{α}$ is a
-$d \times 1$ vector representing the mean of the dependent variables,
-$F{()}$ is a function that outputs a $d \times d$ matrix defining the
-dynamics of the system, $B$ is a $d \times k$ matrix of slopes
+``` math
+\begin{equation}
+  \bm{y}_t = \bm{\alpha} + \sum_{j = 0}^t F(\bm{\Theta}, t, j) B \bm{x}_{t - j} + \bm{\epsilon}_t
+\end{equation}
+```
+where $`\bm{y}_t`$ is a $`d \times 1`$ vector containing the dependent
+variables at time $`t`$, $`\bm{x}_t`$ is a $`k \times 1`$ vector
+containing the predictor variables at time $`t`$, $`\bm{\alpha}`$ is a
+$`d \times 1`$ vector representing the mean of the dependent variables,
+$`F()`$ is a function that outputs a $`d \times d`$ matrix defining the
+dynamics of the system, $`B`$ is a $`d \times k`$ matrix of slopes
 connecting the predictor variables to the dependent variables, and
-${\mathbf{ϵ}}_{t}$ represents the residuals of the system, where we
+$`\bm{\epsilon}_t`$ represents the residuals of the system, where we
 assume that:
 
-$${\mathbf{ϵ}} \sim N(\mathbf{0},\Sigma)$$ where $\Sigma$ is the
-residual covariance matrix.
+``` math
+\begin{equation}
+  \bm{\epsilon} \sim N(\bm{0}, \Sigma)
+\end{equation}
+```
+where $`\Sigma`$ is the residual covariance matrix.
 
-Importantly, the dynamics defined by the function $F$ requires the
-specification of some dynamic parameters $\mathbf{\Theta}$ and the lag
-between the current time $t$ and the time $j$ at which the predictor was
-observed. In other words, these models assume that the influence of the
-predictor variables on the dependent variables are *forgotten* or
+Importantly, the dynamics defined by the function $`F`$ requires the
+specification of some dynamic parameters $`\bm{\Theta}`$ and the lag
+between the current time $`t`$ and the time $`j`$ at which the predictor
+was observed. In other words, these models assume that the influence of
+the predictor variables on the dependent variables are *forgotten* or
 *regulated* over time (Rutledge et al., 2014). Using them to model
 affect dynamics therefore represents an interesting opportunity.
 
@@ -94,6 +102,7 @@ the following command will create an empty model with the specified
 dimensionality:
 
 ``` r
+
 my_model <- exponential(d = 2, k = 3)
 my_model
 #> Model of class "exponential":
@@ -122,6 +131,7 @@ model, you can alternatively specify the `parameters` and `covariance`
 arguments, for example:
 
 ``` r
+
 # Create some parameters to be provided to the constructor
 params <- list(
   "alpha" = c(-1, 1), 
@@ -168,6 +178,7 @@ Using the constructor, one can specify the arguments `d`, `k`,
 `parameters`, and `covariance` simultaneously, for example:
 
 ``` r
+
 # Create some parameters to be provided to the constructor
 params <- list(
   "alpha" = c(-1, 1), 
@@ -211,6 +222,7 @@ covariances for the case where `d = 2` and `k = 3`. Providing different
 values in the constructor will lead to an error:
 
 ``` r
+
 # Misspecify the dimensionality of d and k
 my_model <- exponential(
   d = 1, 
@@ -228,6 +240,7 @@ case, `"alpha"`, `"beta"`, and `"gamma"`) but a one-dimensional
 covariance will also lead to errors:
 
 ``` r
+
 # Redefine the covariance
 cov <- as.matrix(1)
 
@@ -243,6 +256,7 @@ my_model <- exponential(
 This is also true for misspecified determinstic parameters. For example:
 
 ``` r
+
 # Redefine the beta parameter so that it doesn't match anymore
 params[["beta"]] <- matrix(1:3, nrow = 1, ncol = 3)
 
@@ -268,6 +282,7 @@ relevant parameters are specified. If this isn’t the case, an error will
 be thrown:
 
 ``` r
+
 my_model <- exponential(
   parameters = list(),
   covariance = cov
@@ -282,6 +297,7 @@ alternatively, create an empty model and inspect its output to see the
 characteristic parameters of the discounting model, for example:
 
 ``` r
+
 quasi_hyperbolic()
 #> Model of class "quasi_hyperbolic":
 #> 
@@ -306,6 +322,7 @@ Note that if you specify too many parameters in the list, that they will
 be discarded while constructing the model. For example:
 
 ``` r
+
 # Add a useless parameter to the list
 params[["test"]] <- matrix(0, nrow = 2, ncol = 2)
 
@@ -348,6 +365,7 @@ all three models (`"gamma"`, `"nu"`, `"kappa"`) should lie between 0 and
 the constructor do not comply to these bounds, an error will be thrown:
 
 ``` r
+
 # Create parameters with out-of-bounds values
 params <- list(
   "alpha" = c(-1, 1),
@@ -373,6 +391,7 @@ which may lead to either a warning when it is possible to transform the
 parameters to a matrix, or to an error otherwise. For example:
 
 ``` r
+
 # Create a parameters set for which it is possible to transform the parameters 
 # to a matrix
 params <- list(
@@ -421,6 +440,7 @@ example, accessing the parameters for `my_model` can be achieved by
 calling:
 
 ``` r
+
 my_model@parameters
 #> $alpha
 #> [1] -1  1
@@ -449,6 +469,7 @@ To change these attributes, you can assign a new value to the slot
 through the assignment operator `<-`:
 
 ``` r
+
 my_model@d <- 3
 my_model
 #> Model of class "exponential":
@@ -487,6 +508,7 @@ First, one has to specify the kind of model they wish to use and its
 dimensionality, leaving the parameters unspecified. For example:
 
 ``` r
+
 my_model <- double_exponential(d = 3, k = 2)
 my_model
 #> Model of class "double_exponential":
@@ -543,6 +565,7 @@ For example, creating a double exponential model with diagonal dynamic
 matrices and a symmetric covariance matrix can be achieved as follows:
 
 ``` r
+
 params <- generate_parameters(
   my_model,
   dynamics = "isotropic",
@@ -568,6 +591,7 @@ parameters of the model. This can be achieved with the function
 using the same specifications as previously:
 
 ``` r
+
 my_model <- fill(
   my_model,
   params,
@@ -615,6 +639,7 @@ one can use the
 function:
 
 ``` r
+
 my_model@n <- count_parameters(
   my_model,
   dynamics = "isotropic",
@@ -650,6 +675,7 @@ the prespecification of the predictor variable(s) can be achieved
 through specifying the `X` argument, for example:
 
 ``` r
+
 data <- simulate(
   my_model,
   X = matrix(1:20, nrow = 10, ncol = 2)
@@ -677,9 +703,9 @@ data
 ```
 
 A few things are of note here. First, notice that `X` needs to be a
-$N \times k$ matrix, where $N$ represents the number of time-points you
-want to simulate and $k$ represents the number of independent variables.
-Second, notice that the output is of a class
+$`N \times k`$ matrix, where $`N`$ represents the number of time-points
+you want to simulate and $`k`$ represents the number of independent
+variables. Second, notice that the output is of a class
 [`dataset`](https://ndpvh.github.io/discounting-affect/reference/dataset.html),
 containing the (generated) values for the dependent variables in a slot
 `Y` and the (provided) values for the independent variables in a slot
@@ -688,6 +714,7 @@ this project. Similar to the models, one can access these slots through
 the `@` operator:
 
 ``` r
+
 data@Y 
 #>             [,1]       [,2]      [,3]
 #>  [1,]   7.033362 -17.708057  31.51762
@@ -723,6 +750,7 @@ positive values and the other negative values, then we may simulate data
 as follows:
 
 ``` r
+
 data <- simulate(
   my_model,
   Xfun = list(
@@ -774,6 +802,7 @@ to get the deterministic predictions from a particular model. For
 example:
 
 ``` r
+
 # Create an instance of the dataset class with predefined dimensionality
 # corresponding to the model's
 data <- dataset(
@@ -823,6 +852,7 @@ this is limited to the number of predictors not corresponding to the
 model-specified number of predictors `k`, for example:
 
 ``` r
+
 # Check the number of predictors assumed by the model
 my_model@k
 #> [1] 2
@@ -847,6 +877,7 @@ Note that the function will make dimensionalities match up when it has
 sufficient information to do so:
 
 ``` r
+
 # Providing too many predictors through X or Xfun
 data <- simulate(
   my_model,
@@ -921,6 +952,7 @@ both the number of dependent variables `d` and the number of predictors
 latter will lead to an error. For example:
 
 ``` r
+
 # Check the number of dependent and independent variables need by the model
 my_model@d 
 #> [1] 3
@@ -974,6 +1006,7 @@ Furthermore note that in the creation of the
 the number of rows in `X` and `Y` may also mismatch:
 
 ``` r
+
 dataset(
   Y = matrix(0, nrow = 10, ncol = 2),
   X = matrix(0, nrow = 20, ncol = 2)
@@ -987,6 +1020,7 @@ dataset(
 Imagine that you have the following data saved in a variable `data`:
 
 ``` r
+
 dim(data)
 #> [1] 100   3
 head(data)
@@ -1007,6 +1041,7 @@ The first step involves transforming a `data.frame` to a
 which can be achieved through using its constructor:
 
 ``` r
+
 data <- dataset(
   data, 
   y_cols = c("positive_affect", "negative_affect"),
@@ -1036,9 +1071,10 @@ data
 
 Next, one should specify the model to be estimated. In this example, we
 will estimate a quasi-hyperbolic discounting model, specifying an empty
-model with dimensions $d = 2$ and $k = 1$:
+model with dimensions $`d = 2`$ and $`k = 1`$:
 
 ``` r
+
 my_model <- quasi_hyperbolic(
   d = 2, 
   k = 1
@@ -1051,6 +1087,7 @@ function to estimate the specified model on the data, further specifying
 the structure of the dynamics and the covariance matrix:
 
 ``` r
+
 result <- fit(
   my_model,
   data, 
@@ -1076,6 +1113,7 @@ following information:
 The estimated model can thus be accessed through calling:
 
 ``` r
+
 result$model
 #> Model of class "quasi_hyperbolic":
 #> 
@@ -1084,21 +1122,21 @@ result$model
 #> Number of parameters: 11
 #> 
 #> Parameters:
-#>   alpha: |  0.5026342  |
-#>          |  0.4935457  |
+#>   alpha: |  0.9986517  |
+#>          |  0.9978726  |
 #> 
-#>   beta: | 0.02530127 |
-#>         | -0.0124281 |
+#>   beta: | 0.8272387 |
+#>         | 0.3252004 |
 #> 
-#>   nu: | 0.8784477  0.00 |
-#>       | 0.00  0.872398 |
+#>   nu: | 0.8606142  0.00 |
+#>       | 0.00  0.8071062 |
 #> 
-#>   kappa: | 0.8600623  0.00 |
-#>          | 0.00  0.892485 |
+#>   kappa: | 0.002180453  0.00 |
+#>          | 0.00  0.5089467 |
 #> 
 #> 
-#> Covariance: | 8.092268e-05  -2.067372e-05 |
-#>             | -2.067372e-05  6.060043e-05 |
+#> Covariance: | 18.59273  7.357626 |
+#>             | 7.357626  4.561416 |
 ```
 
 #### Optimizer
@@ -1123,6 +1161,7 @@ belonging to either `DEoptim.control` for `DEoptim` or `opts` for
 algorithm in `nloptr` in the following way:
 
 ``` r
+
 result <- fit(
   my_model,
   data, 
@@ -1150,21 +1189,21 @@ result$model
 #> Number of parameters: 11
 #> 
 #> Parameters:
-#>   alpha: |  0.5033122  |
-#>          |  0.4944639  |
+#>   alpha: |  0.5458638  |
+#>          |  0.4937737  |
 #> 
-#>   beta: | 0.02529582 |
-#>         | -0.01247399 |
+#>   beta: | 0.02284083 |
+#>         | -0.01217532 |
 #> 
-#>   nu: | 0.8785277  0.00 |
-#>       | 0.00  0.8772852 |
+#>   nu: | 0.05921263  0.00 |
+#>       | 0.00  0.8730869 |
 #> 
-#>   kappa: | 0.8604844  0.00 |
-#>          | 0.00  0.8818714 |
+#>   kappa: | 1.00  0.00 |
+#>          | 0.00  0.9198872 |
 #> 
 #> 
-#> Covariance: | 8.091217e-05  -2.078007e-05 |
-#>             | -2.078007e-05  5.880502e-05 |
+#> Covariance: | 0.02936576  0.0001380047 |
+#>             | 0.0001380047  6.24054e-05 |
 ```
 
 Note that in this version, we specified lower and upper bounds for the
@@ -1189,6 +1228,7 @@ and
 [`fit()`](https://ndpvh.github.io/discounting-affect/reference/fit.html):
 
 ``` r
+
 set.seed(1)
 
 # Define the model for which to run the recovery study
@@ -1227,6 +1267,7 @@ can be recovered, for example by creating a scatterplot showing
 simulated vs estimated values of the parameters:
 
 ``` r
+
 # Define the window for the plots
 par(mfrow = c(1, 2))
 
@@ -1298,6 +1339,7 @@ each other, tackling model mimicry (Navarro et al., 2004; Wagenmakers et
 al., 2004). For this, one can specify the optional `fit_model` argument:
 
 ``` r
+
 set.seed(1)
 
 # Define the model for which to run the recovery study
@@ -1365,7 +1407,7 @@ analyses, as well as any results (in `scripts/results`), figures (in
 purpose of each script can be summarized as follows:
 
 - `recovery.R`: Contains the recovery study for the models of interest,
-  each varying in dimensionalities $d$ and $k$ ranging from 1 to 3.
+  each varying in dimensionalities $`d`$ and $`k`$ ranging from 1 to 3.
 
 For the results of our analyses, we refer the interested reader to the
 article published alongside this code.

@@ -36,8 +36,9 @@ fitobj <- fit(
   itermax = 50,
   trace = FALSE
 )
+#> Warning: unknown names in control: itermax
 
 # Compute the autocorrelation based on this fitobj
 bias(fitobj)
-#> [1] 4.810028e-05
+#> [1] -0.0001269307
 ```

@@ -99,7 +99,7 @@ objective_function(
   data,
   c(1, 2, 0.75)
 )
-#> [1] 222.7683
+#> [1] 161.8327
 
 # Evaluate the objective function when using exactly the model and the 
 # parameters that generated the data
@@ -108,5 +108,5 @@ objective_function(
   data,
   c(1, 2, 0.75, 0.5)
 )
-#> [1] 114.5312
+#> [1] 72.44621
 ```

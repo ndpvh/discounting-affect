@@ -23,6 +23,7 @@ One can then call the [`library()`](https://rdrr.io/r/base/library.html)
 function to load the package’s functions:
 
 ``` r
+
 library(discounting)
 ```
 
@@ -40,6 +41,7 @@ van den Bos & McClure, 2013). For example, we can create a
 one-dimensional exponential discounting model as follows:
 
 ``` r
+
 my_model <- exponential(
   parameters = list(
       "alpha" = 1, 
@@ -71,6 +73,7 @@ Simulating from this model can be achieved through the
 function:
 
 ``` r
+
 data <- simulate(
   my_model,
   X = runif(100, min = -1, max = 1)
@@ -105,6 +108,7 @@ class and can then call the function
 for a particular instance of the models denoted above:
 
 ``` r
+
 # Define the model you wish to fit
 fit_model <- quasi_hyperbolic(d = 1, k = 1)
 

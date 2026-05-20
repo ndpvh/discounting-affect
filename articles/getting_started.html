@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Getting Started • discounting</title>
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started">
 <script type="text/javascript" async="" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML"></script>
@@ -78,7 +78,7 @@
 discounting models when applied to affect, following up on the call for
 such a comparison mentioned in Vanhasbroeck et al. (2024). These models
 can generally be defined as follows:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐲</mi><mi>t</mi></msub><mo>=</mo><mi>𝛂</mi><mo>+</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mi>t</mi></munderover><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>𝚯</mi><mo>,</mo><mi>t</mi><mo>,</mo><mi>j</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>B</mi><msub><mi>𝐱</mi><mrow><mi>t</mi><mo>−</mo><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>𝛜</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\begin{equation}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐲</mi><mi>t</mi></msub><mo>=</mo><mi>𝛂</mi><mo>+</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>0</mn></mrow><mi>t</mi></munderover><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>𝚯</mi><mo>,</mo><mi>t</mi><mo>,</mo><mi>j</mi><mo stretchy="false" form="postfix">)</mo><mi>B</mi><msub><mi>𝐱</mi><mrow><mi>t</mi><mo>−</mo><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>𝛜</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\begin{equation}
   \bm{y}_t = \bm{\alpha} + \sum_{j = 0}^t F(\bm{\Theta}, t, j) B \bm{x}_{t - j} + \bm{\epsilon}_t
 \end{equation}</annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐲</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\bm{y}_t</annotation></semantics></math>
@@ -95,7 +95,7 @@ vector containing the predictor variables at time
 is a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>×</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">d \times 1</annotation></semantics></math>
 vector representing the mean of the dependent variables,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F()</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">F()</annotation></semantics></math>
 is a function that outputs a
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi><mo>×</mo><mi>d</mi></mrow><annotation encoding="application/x-tex">d \times d</annotation></semantics></math>
 matrix defining the dynamics of the system,
@@ -106,10 +106,10 @@ matrix of slopes connecting the predictor variables to the dependent
 variables, and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝛜</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\bm{\epsilon}_t</annotation></semantics></math>
 represents the residuals of the system, where we assume that:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝛜</mi><mo>∼</mo><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>𝟎</mn><mo>,</mo><mi>Σ</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\begin{equation}
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝛜</mi><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>𝟎</mn><mo>,</mo><mi mathvariant="normal">Σ</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\begin{equation}
   \bm{\epsilon} \sim N(\bm{0}, \Sigma)
 \end{equation}</annotation></semantics></math> where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Σ</mi><annotation encoding="application/x-tex">\Sigma</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi mathvariant="normal">Σ</mi><annotation encoding="application/x-tex">\Sigma</annotation></semantics></math>
 is the residual covariance matrix.</p>
 <p>Importantly, the dynamics defined by the function
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
@@ -1129,21 +1129,21 @@ the optimization procedure;</li>
 <span><span class="co">#&gt; Number of parameters: 11</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Parameters:</span></span>
-<span><span class="co">#&gt;   alpha: |  0.5026342  |</span></span>
-<span><span class="co">#&gt;          |  0.4935457  |</span></span>
+<span><span class="co">#&gt;   alpha: |  0.9986517  |</span></span>
+<span><span class="co">#&gt;          |  0.9978726  |</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   beta: | 0.02530127 |</span></span>
-<span><span class="co">#&gt;         | -0.0124281 |</span></span>
+<span><span class="co">#&gt;   beta: | 0.8272387 |</span></span>
+<span><span class="co">#&gt;         | 0.3252004 |</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   nu: | 0.8784477  0.00 |</span></span>
-<span><span class="co">#&gt;       | 0.00  0.872398 |</span></span>
+<span><span class="co">#&gt;   nu: | 0.8606142  0.00 |</span></span>
+<span><span class="co">#&gt;       | 0.00  0.8071062 |</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   kappa: | 0.8600623  0.00 |</span></span>
-<span><span class="co">#&gt;          | 0.00  0.892485 |</span></span>
+<span><span class="co">#&gt;   kappa: | 0.002180453  0.00 |</span></span>
+<span><span class="co">#&gt;          | 0.00  0.5089467 |</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Covariance: | 8.092268e-05  -2.067372e-05 |</span></span>
-<span><span class="co">#&gt;             | -2.067372e-05  6.060043e-05 |</span></span></code></pre></div>
+<span><span class="co">#&gt; Covariance: | 18.59273  7.357626 |</span></span>
+<span><span class="co">#&gt;             | 7.357626  4.561416 |</span></span></code></pre></div>
 <div class="section level4">
 <h4 id="optimizer">Optimizer<a class="anchor" aria-label="anchor" href="#optimizer"></a>
 </h4>
@@ -1195,21 +1195,21 @@ example, we can estimate the same model through the BOBYQA algorithm in
 <span><span class="co">#&gt; Number of parameters: 11</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Parameters:</span></span>
-<span><span class="co">#&gt;   alpha: |  0.5033122  |</span></span>
-<span><span class="co">#&gt;          |  0.4944639  |</span></span>
+<span><span class="co">#&gt;   alpha: |  0.5458638  |</span></span>
+<span><span class="co">#&gt;          |  0.4937737  |</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   beta: | 0.02529582 |</span></span>
-<span><span class="co">#&gt;         | -0.01247399 |</span></span>
+<span><span class="co">#&gt;   beta: | 0.02284083 |</span></span>
+<span><span class="co">#&gt;         | -0.01217532 |</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   nu: | 0.8785277  0.00 |</span></span>
-<span><span class="co">#&gt;       | 0.00  0.8772852 |</span></span>
+<span><span class="co">#&gt;   nu: | 0.05921263  0.00 |</span></span>
+<span><span class="co">#&gt;       | 0.00  0.8730869 |</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   kappa: | 0.8604844  0.00 |</span></span>
-<span><span class="co">#&gt;          | 0.00  0.8818714 |</span></span>
+<span><span class="co">#&gt;   kappa: | 1.00  0.00 |</span></span>
+<span><span class="co">#&gt;          | 0.00  0.9198872 |</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Covariance: | 8.091217e-05  -2.078007e-05 |</span></span>
-<span><span class="co">#&gt;             | -2.078007e-05  5.880502e-05 |</span></span></code></pre></div>
+<span><span class="co">#&gt; Covariance: | 0.02936576  0.0001380047 |</span></span>
+<span><span class="co">#&gt;             | 0.0001380047  6.24054e-05 |</span></span></code></pre></div>
 <p>Note that in this version, we specified lower and upper bounds for
 the parameters via the <code>lower</code> and <code>upper</code>
 arguments. These are specific to the <code>discounting</code> package
