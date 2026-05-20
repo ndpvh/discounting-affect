@@ -56,3 +56,10 @@ rsconnect/
 scripts/results
 scripts/figures
 inst/doc
+*depr*
+
+# Some other stuff that is not useful to have on the github
+scripts/data/*.R 
+scripts/data/RUTLEDGE*/
+*.zip
+*.pdf

@@ -144,6 +144,29 @@ setMethod(
 #' covariance matrix is left out of the objective function. If maximum-likelihood
 #' were needed instead, then this function would need to change.
 #' 
+#' By default, the \code{fit} function performs optimizations through the 
+#' \code{optim} function in R, alternatively allowing users to make use of the
+#' \code{DEoptim} or \code{nloptr} packages instead. For more difficult models,
+#' however, it may be useful to have greater control over the optimization 
+#' procedure, for example by specifying your own initial conditions, by using 
+#' a combination of different optimization algorithms at once, or by using 
+#' another library not provided through this package. 
+#' 
+#' In these cases, one can provide a function to the argument \code{optimizer}
+#' instead of a string. This function should at least take in 3 argument: A
+#' function representing the objective function, a lower bound for the 
+#' parameters, and an upper bound for these same parameters (cf. \code{optim}, 
+#' \code{DEoptim}, and \code{nloptr}). This function can furthermore take in 
+#' additional argument, for example specifying the maximal number of iterations
+#' or controlling other aspects of the estimation routine. These can be specified
+#' in the \code{fit} function through the optional arguments \code{...}.
+#' 
+#' The custom optimization function should, minimally, output a named list with 
+#' slots \code{"parameters"} and \code{"objective"}, containing the final 
+#' result of the parameter estimation and the value of the objective function 
+#' for this final parameter set respectively. These will then be used by the 
+#' \code{fit} function as final results of the optimization procedure. 
+#' 
 #' @param model Instance of the \code{\link[discounting]{model-class}}, 
 #' defining the model to evaluate the objective function for.
 #' @param data Instance of the \code{\link[discounting]{dataset-class}}
@@ -160,14 +183,20 @@ setMethod(
 #' \code{"isotropic"} (diagonal). Defaults to \code{"symmetric"}.
 #' @param optimizer Character denoting the optimizer to use for the estimation.
 #' Can either be \code{"DEoptim"} for the differential evolution algorithm in 
-#' \code{\link[DEoptim]{DEoptim}} or \code{"nloptr"} for the library implemented
-#' in \code{\link[nloptr]{nloptr}}. Defaults to \code{"DEoptim"}.
+#' \code{\link[DEoptim]{DEoptim}}, \code{"nloptr"} for the library implemented
+#' in \code{\link[nloptr]{nloptr}}, or \code{"optim"} for the default 
+#' optimization library in R. Defaults to \code{"optim"}. Alternatively, 
+#' \code{optimizer} can also be a custom function that defines the estimation 
+#' routine. To see what this function should look like, we refer the interested
+#' reader to the details.
 #' @param lower,upper Numeric vector containing lower and upper bounds for the 
 #' parameters in the estimation routine. Uses the same defaults as 
 #' \code{\link[discounting]{get_bounds}}.
 #' @param ... Arguments passed on to the control parameters of the optimizer, 
-#' either to \code{\link[DEoptim]{DEoptim.control}} or the \code{opts} 
-#' argument of \code{\link[nloptr]{nloptr}}.
+#' either to \code{\link[DEoptim]{DEoptim.control}}, the \code{opts} 
+#' argument of \code{\link[nloptr]{nloptr}}, the \code{control} list of the 
+#' \code{\link[optim]{optim}} function, or to the additional arguments of your
+#' own \code{optimizer} function (see Details).
 #' 
 #' @return An named list containing an instance of the 
 #' \code{\link[discounting]{model-class}} with the estimated parameters 
@@ -199,6 +228,7 @@ setMethod(
 #'   data,
 #'   dynamics = "isotropic",
 #'   covariance = "isotropic",
+#'   optimizer = "DEoptim",
 #'   itermax = 50,
 #'   trace = FALSE
 #' )
@@ -222,9 +252,10 @@ setMethod(
              data, 
              dynamics = "isotropic",
              covariance = "symmetric",
-             optimizer = "DEoptim",
+             optimizer = "optim",
              lower = NULL, 
              upper = NULL,
+             method = "Nelder-Mead",
              ...) {
         
         # Extract the bounds of the model to be optimized
@@ -245,7 +276,25 @@ setMethod(
 
         # Perform the estimation procedure according to the optimizer chosen
         # by the user
-        if(optimizer == "DEoptim") {
+        if(!is.character(optimizer) & is.function(optimizer)) {
+            # Run the custom optimization
+            result <- optimizer(
+                obj, 
+                lower = bounds$lower, 
+                upper = bounds$upper,
+                ...
+            )
+
+            # Extract those things we need
+            parameters <- result$parameters 
+            objective <- result$objective
+        
+        } else if(optimizer == "DEoptim") {
+            # Check whether DEoptim is installed
+            if(!require("DEoptim", quietly = TRUE)) {
+                stop("The package \"DEoptim\" is required for the estimation but not installed.")
+            }
+
             # Run the optimization
             result <- DEoptim::DEoptim(
                 obj,
@@ -261,6 +310,11 @@ setMethod(
             objective <- result$optim$bestval
 
         } else if(optimizer == "nloptr") {
+            # Check whether DEoptim is installed
+            if(!require("nloptr", quietly = TRUE)) {
+                stop("The package \"nloptr\" is required for the estimation but not installed.")
+            }
+
             # Define the initial condition
             x0 <- runif(
                 length(bounds$lower),
@@ -283,8 +337,40 @@ setMethod(
             parameters <- result$solution
             objective <- result$objective
 
+        } else if(optimizer == "optim") {
+            # Define the initial condition
+            x0 <- runif(
+                length(bounds$lower),
+                min = bounds$lower, 
+                max = bounds$upper
+            )
+
+            # Change the upper and lower bounds if necessary: Only L-BFGS-B 
+            # allows for bounded estimation in optim. Change back to the 
+            # defaults in this case
+            if(method != "L-BFGS-B") {
+                bounds$lower <- -Inf
+                bounds$upper <- Inf
+            }
+
+            # Run the optimization
+            result <- stats::optim(
+                x0, 
+                fn = obj,
+                method = method,
+                lower = bounds$lower,
+                upper = bounds$upper,
+                control = list(
+                    ...
+                )
+            )
+
+            # Extract those things we definitely need
+            parameters <- result$par
+            objective <- result$value
+
         } else {
-            stop("Optimizer is not recognized. Please use \"DEoptim\" or \"nloptr\".")
+            stop("Optimizer is not recognized. Please use \"DEoptim\", \"nloptr\", or \"optim\".")
         }
 
         # Add the parameters to the model that was estimated
