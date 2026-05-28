@@ -7,8 +7,8 @@ with the ones provided in a numeric vector. Used in
 to allow for predictions with the model while cohering to the input
 typical numerical optimizers such as
 [`DEoptim`](https://rdrr.io/pkg/DEoptim/man/DEoptim.html) and
-[`nloptr`](https://astamm.github.io/nloptr/reference/nloptr.html)
-provide within the objective function.
+[`nloptr`](https://rdrr.io/pkg/nloptr/man/nloptr.html) provide within
+the objective function.
 
 ## Usage
 
