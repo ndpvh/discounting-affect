@@ -52,6 +52,9 @@
 #' )
 #' 
 #' @rdname simulate
+#' 
+#' @concept simulation 
+#' 
 #' @export
 setMethod(
     "simulate",

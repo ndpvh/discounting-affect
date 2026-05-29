@@ -1,0 +1,22 @@
+---
+title: "Discounting Models"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Discounting Models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+#| echo = FALSE
+library(discounting)
+```
+
+This page is under construction.

@@ -36,3 +36,4 @@ fitobj <- fit(
 autocorrelation(fitobj)
 
 }
+\concept{statistics}

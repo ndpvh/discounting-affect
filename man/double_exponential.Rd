@@ -132,3 +132,4 @@ double_exponential(
 \code{\link[discounting]{quasi_hyperbolic-class}}
 \code{\link[discounting]{double_exponential-class}}
 }
+\concept{models}

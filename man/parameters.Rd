@@ -30,3 +30,4 @@ parameters(double_exponential(d = 2, k = 3))
 parameters(double_exponential(d = 2, k = 3))
 
 }
+\concept{utility}

@@ -32,3 +32,4 @@ fitobj <- fit(
 aic(fitobj)
 
 }
+\concept{statistics}

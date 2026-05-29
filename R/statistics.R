@@ -21,6 +21,9 @@
 #' aic(fitobj)
 #' 
 #' @rdname aic 
+#' 
+#' @concept statistics
+#' 
 #' @export 
 aic <- function(fitobj) {
 
@@ -56,6 +59,9 @@ aic <- function(fitobj) {
 #' bic(fitobj)
 #' 
 #' @rdname bic 
+#' 
+#' @concept statistics
+#' 
 #' @export 
 bic <- function(fitobj) {
 
@@ -94,6 +100,9 @@ bic <- function(fitobj) {
 #' autocorrelation(fitobj)
 #' 
 #' @rdname autocorrelation 
+#' 
+#' @concept statistics
+#' 
 #' @export 
 autocorrelation <- function(fitobj,
                             lag = 1) {
@@ -145,6 +154,9 @@ autocorrelation <- function(fitobj,
 #' bias(fitobj)
 #' 
 #' @rdname bias 
+#' 
+#' @concept statistics
+#' 
 #' @export 
 bias <- function(fitobj) {
 

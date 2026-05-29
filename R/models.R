@@ -14,6 +14,8 @@
 #' @seealso 
 #' \code{\link[discounting]{model}}
 #' 
+#' @concept models
+#' 
 #' @export 
 setClass(
     "model",
@@ -64,6 +66,8 @@ setClass(
 #' 
 #' @seealso 
 #' \code{\link[discounting]{exponential-class}}
+#' 
+#' @concept models
 #' 
 #' @export 
 model <- function(d = 1, 
@@ -303,6 +307,8 @@ setMethod(
 #' @seealso 
 #' \code{\link[discounting]{exponential}}
 #' 
+#' @concept models
+#' 
 #' @export 
 setClass(
     "exponential",
@@ -436,6 +442,8 @@ setClass(
 #' \code{\link[discounting]{model-class}}
 #' \code{\link[discounting]{exponential-class}}
 #' 
+#' @concept models
+#' 
 #' @export 
 exponential <- function(d = NA, 
                         k = NA,
@@ -522,7 +530,7 @@ exponential <- function(d = NA,
             )
         )
 
-        parameters[["beta"]] <- matrix(parameters[["beta"]], nrow = 1)
+        parameters[["beta"]] <- matrix(parameters[["beta"]], ncol = 1)
     }
 
     if(!is.matrix(covariance) & length(covariance) == 1) {
@@ -601,6 +609,8 @@ exponential <- function(d = NA,
 #' 
 #' @seealso 
 #' \code{\link[discounting]{quasi_hyperbolic}}
+#' 
+#' @concept models
 #' 
 #' @export 
 setClass(
@@ -755,6 +765,8 @@ setClass(
 #' \code{\link[discounting]{exponential-class}}
 #' \code{\link[discounting]{quasi_hyperbolic-class}}
 #' 
+#' @concept models
+#' 
 #' @export 
 quasi_hyperbolic <- function(d = NA, 
                              k = NA,
@@ -851,7 +863,7 @@ quasi_hyperbolic <- function(d = NA,
             )
         )
 
-        parameters[["beta"]] <- matrix(parameters[["beta"]], nrow = 1)
+        parameters[["beta"]] <- matrix(parameters[["beta"]], ncol = 1)
     }
 
     if(!is.matrix(covariance) & length(covariance) == 1) {
@@ -939,6 +951,8 @@ quasi_hyperbolic <- function(d = NA,
 #' 
 #' @seealso 
 #' \code{\link[discounting]{double_exponential}}
+#' 
+#' @concept models
 #' 
 #' @export 
 setClass(
@@ -1080,6 +1094,8 @@ setClass(
 #' \code{\link[discounting]{quasi_hyperbolic-class}}
 #' \code{\link[discounting]{double_exponential-class}}
 #' 
+#' @concept models
+#' 
 #' @export 
 double_exponential <- function(d = NA, 
                                k = NA,
@@ -1194,7 +1210,7 @@ double_exponential <- function(d = NA,
             )
         )
 
-        parameters[["beta"]] <- matrix(parameters[["beta"]], nrow = 1)
+        parameters[["beta"]] <- matrix(parameters[["beta"]], ncol = 1)
     }
 
     if(!is.matrix(covariance) & length(covariance) == 1) {
