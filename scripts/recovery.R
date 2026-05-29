@@ -6,11 +6,6 @@
 # such as AIC and BIC, as well as some checks for the residual structure to 
 # ensure everything is going well.
 ################################################################################
-
-devtools::load_all()
-
-
-
 ################################################################################
 # PRELIMINARIES
 
