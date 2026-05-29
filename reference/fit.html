@@ -61,7 +61,7 @@ as optimization standard."><script type="text/javascript" async="" src="https://
     <p>This method enables the user to fit a model (defined in <code>model</code>) on a
 particular dataset (defined in <code>data</code>). The estimation procedure makes
 use of numerical optimization using either <code><a href="https://rdrr.io/pkg/DEoptim/man/DEoptim.html" class="external-link">DEoptim</a></code> or
-<code><a href="https://rdrr.io/pkg/nloptr/man/nloptr.html" class="external-link">nloptr</a></code>, as specified by the user. Estimation proceeds
+<code><a href="https://astamm.github.io/nloptr/reference/nloptr.html" class="external-link">nloptr</a></code>, as specified by the user. Estimation proceeds
 through an optimization according to the output of the objective function
 of the provided model, as defined through
 <code><a href="objective_function.html">objective_function</a></code>, thus using least-squares
@@ -102,7 +102,7 @@ containing the data to fit the model to.</p></dd>
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Arguments passed on to the control parameters of the optimizer,
 either to <code><a href="https://rdrr.io/pkg/DEoptim/man/DEoptim.control.html" class="external-link">DEoptim.control</a></code> or the <code>opts</code>
-argument of <code><a href="https://rdrr.io/pkg/nloptr/man/nloptr.html" class="external-link">nloptr</a></code>.</p></dd>
+argument of <code><a href="https://astamm.github.io/nloptr/reference/nloptr.html" class="external-link">nloptr</a></code>.</p></dd>
 
 
 <dt id="arg-dynamics">dynamics<a class="anchor" aria-label="anchor" href="#arg-dynamics"></a></dt>
@@ -125,7 +125,7 @@ Can either by <code>"symmetric"</code> (symmetric around the diagonal) and
 <dd><p>Character denoting the optimizer to use for the estimation.
 Can either be <code>"DEoptim"</code> for the differential evolution algorithm in
 <code><a href="https://rdrr.io/pkg/DEoptim/man/DEoptim.html" class="external-link">DEoptim</a></code> or <code>"nloptr"</code> for the library implemented
-in <code><a href="https://rdrr.io/pkg/nloptr/man/nloptr.html" class="external-link">nloptr</a></code>. Defaults to <code>"DEoptim"</code>.</p></dd>
+in <code><a href="https://astamm.github.io/nloptr/reference/nloptr.html" class="external-link">nloptr</a></code>. Defaults to <code>"DEoptim"</code>.</p></dd>
 
 
 <dt id="arg-lower-upper">lower, upper<a class="anchor" aria-label="anchor" href="#arg-lower-upper"></a></dt>

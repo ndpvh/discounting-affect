@@ -4,10 +4,10 @@ This method enables the user to fit a model (defined in `model`) on a
 particular dataset (defined in `data`). The estimation procedure makes
 use of numerical optimization using either
 [`DEoptim`](https://rdrr.io/pkg/DEoptim/man/DEoptim.html) or
-[`nloptr`](https://rdrr.io/pkg/nloptr/man/nloptr.html), as specified by
-the user. Estimation proceeds through an optimization according to the
-output of the objective function of the provided model, as defined
-through
+[`nloptr`](https://astamm.github.io/nloptr/reference/nloptr.html), as
+specified by the user. Estimation proceeds through an optimization
+according to the output of the objective function of the provided model,
+as defined through
 [`objective_function`](https://github.com/ndpvh/discounting-affect/reference/objective_function.md),
 thus using least-squares as optimization standard.
 
@@ -49,7 +49,7 @@ fit(
   to
   [`DEoptim.control`](https://rdrr.io/pkg/DEoptim/man/DEoptim.control.html)
   or the `opts` argument of
-  [`nloptr`](https://rdrr.io/pkg/nloptr/man/nloptr.html).
+  [`nloptr`](https://astamm.github.io/nloptr/reference/nloptr.html).
 
 - dynamics:
 
@@ -73,8 +73,8 @@ fit(
   be `"DEoptim"` for the differential evolution algorithm in
   [`DEoptim`](https://rdrr.io/pkg/DEoptim/man/DEoptim.html) or
   `"nloptr"` for the library implemented in
-  [`nloptr`](https://rdrr.io/pkg/nloptr/man/nloptr.html). Defaults to
-  `"DEoptim"`.
+  [`nloptr`](https://astamm.github.io/nloptr/reference/nloptr.html).
+  Defaults to `"DEoptim"`.
 
 - lower, upper:
 
