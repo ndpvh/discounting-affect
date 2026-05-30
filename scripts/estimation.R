@@ -165,6 +165,15 @@ estimate_participant <- function(ds,
       ...
     )
  
+    # Keeping only observed rows in the residuals
+    observed          <- complete.cases(ds@Y)
+    fitobj$residuals  <- fitobj$residuals[observed, , drop = FALSE]
+
+    # Computing Sigma from the filtered residuals
+    fitobj$parameters[grepl("^sigma", names(fitobj$parameters))] <- 
+      fitobj$model@covariance[lower.tri(fitobj$model@covariance, diag = TRUE)] <-
+      var(as.numeric(fitobj$residuals))    
+
     params <- fitobj$parameters
  
     stats <- c(
