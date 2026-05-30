@@ -77,12 +77,57 @@ optimizer <- function(obj,
   )
 }
 
+################################################################################
+# NA-AWARE OBJECTIVE FUNCTION
+#
+# Why this is needed:
+#   In the 2021 dataset, happiness (Y) is only measured on some trials.
+#   Rows with no happiness rating have Y = NA. The standard objective_function()
+#   computes sum((Y - Y_hat)^2) over all rows. When Y is NA it returns
+#   NaN, and sum(NaN) = NaN, so the optimizer receives NaN for every
+#   parameter set it tries and cannot make progress.
+#
+# What this function does:
+#   1. Runs predict() over ALL rows.
+#   2. Computes SSE only on rows where Y is actually observed (not NA).
+#
+################################################################################
+ 
+na_aware_objective_function <- function(model, data, parameters, dynamics) {
+ 
+  # Bounds check - return a large penalty if parameters are out of range
+  bounds <- get_bounds(model, dynamics = dynamics, parameters_only = TRUE)
+  if (any(parameters < bounds$lower | parameters > bounds$upper)) {
+    return(Inf)
+  }
+ 
+  # Fill the model with the candidate parameters
+  model <- fill(model, parameters, dynamics = dynamics, parameters_only = TRUE)
+ 
+  # Predict over the FULL time series (all rows, including NA ones)
+  prediction <- predict(model, data)
+ 
+  # Identify rows where Y is fully observed (complete.cases returns TRUE
+  # for rows that have no NA in any column)
+  observed <- complete.cases(data@Y)
+ 
+  # SSE on observed rows only
+  residuals <- data@Y[observed, , drop = FALSE] -
+               prediction@Y[observed, , drop = FALSE]
+ 
+  sum(residuals^2)
+}
+
+
 
 ################################################################################
 # ESTIMATE ONE PARTICIPANT
 #
 # estimate_participant() wraps a single call to fit() and assembles the results
 # into a named numeric vector that can later become one row of a data.frame.
+# The optimizer the optimizer argument passed to fit() wraps
+# na_aware_objective_function() instead of letting fit() use its internal
+# objective_function() to deal with the 2021 dataset.
 #
 # Arguments:
 #   ds          – a dataset object (loaded from an RDS file)
@@ -99,26 +144,29 @@ estimate_participant <- function(ds,
                                  dynamics   = "isotropic",
                                  covariance = "symmetric",
                                  ...) {
-
-  
   tryCatch({
-
+ 
     fitobj <- fit(
       model_empty,
       ds,
-      dynamics  = dynamics,
+      dynamics   = dynamics,
       covariance = covariance,
+ 
+      # fit() accepts a function here instead of a string like "DEoptim".
+      # fit() calls it as: optimizer(obj, lower, upper, ...)
+      # We ignore the obj that fit() would pass (which uses the standard SSE)
+      # and substitute the NA-aware version instead.
       optimizer = function(obj, lower, upper, ...) {
-        optimizer(obj, lower, upper, ...)
+        na_obj <- function(x) {
+          na_aware_objective_function(model_empty, ds, x, dynamics)
+        }
+        optimizer(na_obj, lower, upper, ...)
       },
       ...
     )
-
-    # Collect estimated parameters (already named by fit())
+ 
     params <- fitobj$parameters
-
-    # Compute summary statistics defined in R/statistics.R 
-    # (This can be changed to add or remove any statistics necessary for the analysis later)
+ 
     stats <- c(
       aic             = aic(fitobj),
       bic             = bic(fitobj),
@@ -126,15 +174,15 @@ estimate_participant <- function(ds,
       bias            = bias(fitobj),
       objective_sse   = fitobj$objective
     )
-
-    c(params, stats)        # single named numeric vector → becomes one row
-
+ 
+    c(params, stats)
+ 
   }, error = function(e) {
-    # If estimation failed, warn the user and return NULL so we can skip
     message("  Estimation failed: ", conditionMessage(e))
     NULL
   })
 }
+ 
 
 
 ################################################################################
