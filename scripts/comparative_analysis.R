@@ -15,7 +15,7 @@
 # Mock data simulating what the estimation output will look like
 # TO DELETE ONCE WE HAVE REAL PARAMETERS
 set.seed(123)
-n_participants <- 10
+n_participants <- 200
 models <- c("exponential", "quasi_hyperbolic", "double_exponential")
 
 long_2021 <- do.call(rbind, lapply(models, function(m) {
@@ -93,9 +93,20 @@ run_pairwise <- function(long_df, model_a, model_b, metric = "aic") {
 }
 
 # Comparison 1: quasi-hyperbolic vs double-exponential
-pw_qh_de  <- run_pairwise(long_2021, "quasi_hyperbolic", "double_exponential", metric)
-print(pw_qh_de$summary)
+pw_qh_de_aic  <- run_pairwise(long_2021, "quasi_hyperbolic", "double_exponential", metric)
+pw_qh_de_bic  <- run_pairwise(long_2021, "quasi_hyperbolic", "double_exponential", metric = "bic")
+print(pw_qh_de_aic$summary)
+print(pw_qh_de_bic$summary)
 
 # Comparison 2: exponential vs double-exponential
-pw_exp_de <- run_pairwise(long_2021, "exponential", "double_exponential", metric)
-print(pw_exp_de$summary)
+pw_exp_de_aic <- run_pairwise(long_2021, "exponential", "double_exponential", metric)
+pw_exp_de_bic <- run_pairwise(long_2021, "exponential", "double_exponential", metric = "bic")
+print(pw_exp_de_aic$summary)
+print(pw_exp_de_bic$summary)
+
+# Comparison 3: quasi-hyperbolic vs exponential
+pw_exp_qu_aic <- run_pairwise(long_2021, "quasi_hyperbolic", "exponential", metric)
+pw_exp_qu_bic <- run_pairwise(long_2021, "quasi_hyperbolic", "exponential", metric = "bic")
+print(pw_exp_qu_aic$summary)
+print(pw_exp_qu_bic$summary)
+
