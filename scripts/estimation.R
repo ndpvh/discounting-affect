@@ -211,7 +211,7 @@ estimate_participant <- function(ds,
 #   ...        – extra arguments forwarded to optimizer via estimate_participant
 ################################################################################
 
-run_estimation <- function(folder, d, k, ...) {
+run_estimation <- function(folder, d, k, base_name, ...) {
 
   # Find all RDS files
   rds_files <- list.files(folder, pattern = "\\.rds$", full.names = TRUE,
@@ -226,8 +226,8 @@ run_estimation <- function(folder, d, k, ...) {
   # Define the three empty models for this dataset's dimensionality
   # fit() will fill them in during estimation.
   models <- list(
-    exponential       = exponential(d = d, k = k),
-    quasi_hyperbolic  = quasi_hyperbolic(d = d, k = k),
+    exponential        = exponential(d = d, k = k),
+    quasi_hyperbolic   = quasi_hyperbolic(d = d, k = k),
     double_exponential = double_exponential(d = d, k = k)
   )
 
@@ -303,11 +303,24 @@ run_estimation <- function(folder, d, k, ...) {
 
     df <- do.call(rbind, df_rows)
     rownames(df) <- NULL
-    df
+
+    # Save the results
+    write.csv(
+      df, 
+      file.path(
+        "scripts", 
+        "results",
+        "estimation", 
+        paste0(base_name, "_", model_name, ".csv")
+      ),
+      row.names = FALSE
+    )
+
+    # Return nothing
+    return(NULL)
   })
 
-  names(results) <- names(models)
-  results
+  return(NULL)
 }
 
 
@@ -366,7 +379,7 @@ path_2024 <- file.path("scripts", "data", "VANHASBROECK_2024_per_participant")
 message("\n========== VANHASBROECK 2021 (d=1, k=3) ==========")
 results_2021 <- do.call(
   run_estimation,
-  c(list(folder = path_2021, d = 1, k = 3), optim_settings)
+  c(list(folder = path_2021, d = 1, k = 3, base_name = "VANHASBROECK_2021"), optim_settings)
 )
 
 #  VANHASBROECK_2022  (d = 3, k = 2)
@@ -375,7 +388,7 @@ results_2021 <- do.call(
 message("\n========== VANHASBROECK 2022 (d=3, k=2) ==========")
 results_2022 <- do.call(
   run_estimation,
-  c(list(folder = path_2022, d = 3, k = 2), optim_settings)
+  c(list(folder = path_2022, d = 3, k = 2, base_name = "VANHASBROECK_2022"), optim_settings)
 )
 
 # VANHASBROECK_2024  (d = 3, k = 1)
@@ -383,49 +396,5 @@ results_2022 <- do.call(
 message("\n========== VANHASBROECK 2024 (d=3, k=1) ==========")
 results_2024 <- do.call(
   run_estimation,
-  c(list(folder = path_2024, d = 3, k = 1), optim_settings)
+  c(list(folder = path_2024, d = 3, k = 1, base_name = "VANHASBROECK_2024"), optim_settings)
 )
-
-
-################################################################################
-# SAVE RESULTS
-#
-# Each results_* object is a named list with three data.frames:
-#   $exponential
-#   $quasi_hyperbolic
-#   $double_exponential
-#
-# We save them both as RDS and as CSV.
-################################################################################
-
-output_dir <- file.path("scripts", "results", "estimation")
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-
-datasets <- list(
-  "2021" = results_2021,
-  "2022" = results_2022,
-  "2024" = results_2024
-)
-
-for (year in names(datasets)) {
-  dataset_results <- datasets[[year]]
-
-  for (model_name in names(dataset_results)) {
-    df <- dataset_results[[model_name]]
-
-    if (is.null(df)) next   # skip if all participants failed
-
-    base_name <- paste0("VANHASBROECK_", year, "_", model_name)
-
-    # Save as RDS (preserves column types perfectly)
-    saveRDS(df, file.path(output_dir, paste0(base_name, ".rds")))
-
-    # Save as CSV (human-readable)
-    write.csv(df, file.path(output_dir, paste0(base_name, ".csv")),
-              row.names = FALSE)
-
-    message("Saved: ", base_name)
-  }
-}
-
-message("\nAll done! ", output_dir)
