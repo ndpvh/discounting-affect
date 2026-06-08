@@ -115,7 +115,7 @@ na_aware_objective_function <- function(model, data, parameters, dynamics) {
   residuals <- data@Y[observed, , drop = FALSE] -
                prediction@Y[observed, , drop = FALSE]
  
-  sum(residuals^2)
+  return(sum(residuals^2))
 }
 
 
