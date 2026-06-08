@@ -63,3 +63,4 @@ scripts/data/*.R
 scripts/data/RUTLEDGE*/
 *.zip
 *.pdf
+scripts/data/*participant*/
