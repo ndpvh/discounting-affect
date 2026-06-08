@@ -232,40 +232,50 @@ run_estimation <- function(folder, d, k, ...) {
   )
 
   # Loop over model types
-  results <- lapply(names(models), function(model_name) {
+  results <- lapply(
+    names(models), 
+    function(model_name) {
 
     message("\n  Fitting model: ", model_name)
 
     model_empty <- models[[model_name]]
 
     # Loop over participants
-    rows <- lapply(seq_along(rds_files), function(idx) {
+    rows <- parallel::mclapply(
+      seq_along(rds_files), 
+      function(idx) {
 
-      rds_path       <- rds_files[idx]
-      participant_id <- tools::file_path_sans_ext(basename(rds_path))
+        rds_path       <- rds_files[idx]
+        participant_id <- tools::file_path_sans_ext(basename(rds_path))
 
-      message("    Participant ", idx, " / ", length(rds_files),
-              "  (", participant_id, ")")
+        message("    Participant ", idx, " / ", length(rds_files),
+                "  (", participant_id, ")")
 
-      # Load the pre-saved dataset object
-      ds <- readRDS(rds_path)
+        # Load the pre-saved dataset object
+        ds <- readRDS(rds_path)
 
-      # Run estimation
-      row_values <- estimate_participant(
-        ds          = ds,
-        model_empty = model_empty,
-        ...
+        # Run estimation
+        row_values <- estimate_participant(
+          ds          = ds,
+          model_empty = model_empty,
+          ...
+        )
+
+        if (is.null(row_values)) {
+          # Estimation failed – build an all-NA row so the data.frame stays
+          # rectangular. We don't know column names yet, so we signal with NULL
+          # and handle it after the loop.
+          return(list(id = participant_id, values = NULL))
+        }
+
+        return(list(id = participant_id, values = row_values))
+      },
+      mc.cores = ifelse(
+        Sys.info()["sysname"] == "Windows",
+        1,
+        round(parallel::detectCores() / 2) - 1  # Optimized for my own Mac/Linux system
       )
-
-      if (is.null(row_values)) {
-        # Estimation failed – build an all-NA row so the data.frame stays
-        # rectangular. We don't know column names yet, so we signal with NULL
-        # and handle it after the loop.
-        return(list(id = participant_id, values = NULL))
-      }
-
-      list(id = participant_id, values = row_values)
-    })
+    )
 
     # Determine column names from the first successful row
     # (needed to build NA rows for failed participants)
