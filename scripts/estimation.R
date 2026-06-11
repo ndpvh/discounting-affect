@@ -107,15 +107,12 @@ na_aware_objective_function <- function(model, data, parameters, dynamics) {
   # Predict over the FULL time series (all rows, including NA ones)
   prediction <- predict(model, data)
  
-  # Identify rows where Y is fully observed (complete.cases returns TRUE
-  # for rows that have no NA in any column)
-  observed <- complete.cases(data@Y)
+  # Residuals over the full aligned time series
+  residuals <- data@Y - prediction@Y
  
-  # SSE on observed rows only
-  residuals <- data@Y[observed, , drop = FALSE] -
-               prediction@Y[observed, , drop = FALSE]
- 
-  return(sum(residuals^2))
+  #SSE ignoring NA cells
+  return(sum(residuals^2, na.rm = TRUE))
+
 }
 
 
@@ -327,6 +324,9 @@ run_estimation <- function(folder, d, k, base_name, ...) {
 ################################################################################
 # RUN ESTIMATION FOR EACH DATASET
 #
+# PLEASE REMEMBER TO RUN THE "processing_data.R" script
+# BEFORE THE FOLLOWING ESTIMATION!
+# 
 # Here we call run_estimation() three times, once per dataset.
 # The DEoptim / nloptr settings are passed as ... arguments and mirror
 # exactly those used in recovery.R.
@@ -366,11 +366,13 @@ optim_settings <- list(
 # The standard layout assumed here:
 #   scripts/data/VANHASBROECK_2021_per_participant/
 #   scripts/data/VANHASBROECK_2022_per_participant/
-#   scripts/data/VANHASBROECK_2024_per_participant/
+#   scripts/data/VANHASBROECK_2024_full_per_participant/
+#   scripts/data/VANHASBROECK_2024_valence_per_participant/
 
 path_2021 <- file.path("scripts", "data", "VANHASBROECK_2021_per_participant")
 path_2022 <- file.path("scripts", "data", "VANHASBROECK_2022_per_participant")
-path_2024 <- file.path("scripts", "data", "VANHASBROECK_2024_per_participant")
+path_2024_full     <- file.path("scripts", "data", "VANHASBROECK_2024_full_per_participant")
+path_2024_valence  <- file.path("scripts", "data", "VANHASBROECK_2024_valence_per_participant")
 
 # VANHASBROECK_2021  (d = 1, k = 3)
 # One dependent variable (happiness) and three predictors (cr, ev, rpe).
@@ -382,19 +384,25 @@ results_2021 <- do.call(
   c(list(folder = path_2021, d = 1, k = 3, base_name = "VANHASBROECK_2021"), optim_settings)
 )
 
-#  VANHASBROECK_2022  (d = 3, k = 2)
-# Three dependent variables (PA, NA, valence) and two predictors
-# (outcome, total).
+#  VANHASBROECK_2022  (d = 2, k = 1)
+# Two dependent variables (PA, NA) and one predictor (outcome).
 message("\n========== VANHASBROECK 2022 (d=3, k=2) ==========")
 results_2022 <- do.call(
   run_estimation,
-  c(list(folder = path_2022, d = 3, k = 2, base_name = "VANHASBROECK_2022"), optim_settings)
+  c(list(folder = path_2022, d = 2, k = 1, base_name = "VANHASBROECK_2022"), optim_settings)
 )
 
-# VANHASBROECK_2024  (d = 3, k = 1)
-# Three dependent variables (PA, NA, valence) and one predictor (outcome).
-message("\n========== VANHASBROECK 2024 (d=3, k=1) ==========")
-results_2024 <- do.call(
+# ── 2024 full: PA + NA (d=2, k=1) ────────────────────────────────────────────
+message("\n========== VANHASBROECK 2024 full (d=2, k=1) ==========")
+results_2024_full <- do.call(
   run_estimation,
-  c(list(folder = path_2024, d = 3, k = 1, base_name = "VANHASBROECK_2024"), optim_settings)
+  c(list(folder = path_2024_full, d = 2, k = 1, base_name = "VANHASBROECK_2024_FULL"), optim_settings)
 )
+ 
+# ── 2024 valence-only: valence (d=1, k=1) ────────────────────────────────────
+message("\n========== VANHASBROECK 2024 valence-only (d=1, k=1) ==========")
+results_2024_valence <- do.call(
+  run_estimation,
+  c(list(folder = path_2024_valence, d = 1, k = 1, base_name = "VANHASBROECK_2024_VALENCE"), optim_settings)
+)
+
