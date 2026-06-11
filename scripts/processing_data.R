@@ -78,8 +78,8 @@ output_dir  <- file.path("scripts/data", "VANHASBROECK_2022_per_participant")
 
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
-y_cols          <- c("positive_affect","negative_affect","valence")
-x_cols          <- c("outcome", "total")
+y_cols          <- c("positive_affect","negative_affect")
+x_cols          <- c("outcome")
 sorting_variable <- "trial"
 
 # Load data
