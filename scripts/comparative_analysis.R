@@ -12,58 +12,109 @@
 
 # ── 1. DATA ───────────────────────────────────────────────────────────────────
 
-# Mock data simulating what the estimation output will look like
-# TO DELETE ONCE WE HAVE REAL PARAMETERS
-set.seed(123)
-n_participants <- 200
+# Define the models to be compared to each other
 models <- c("exponential", "quasi_hyperbolic", "double_exponential")
 
-long_2021 <- do.call(rbind, lapply(models, function(m) {
-  data.frame(
-    participant_id = paste0("ppt_", 1:n_participants),
-    model          = m,
-    aic            = rnorm(n_participants, mean = -100, sd = 20),
-    bic            = rnorm(n_participants, mean = -95,  sd = 20)
-  )
-}))
+# Define the datasets to compare the results for
+datasets <- c(
+  "VANHASBROECK_2021",
+  "VANHASBROECK_2022",
+  "VANHASBROECK_2024"
+)
 
-# REAL DATA - uncomment once parameters are estimated
-#input_dir <- file.path("scripts", "results", "estimation")
-#year <- "2021"
-#long_2021 <- do.call(rbind, lapply(models, function(m) {
-#  path <- file.path(input_dir, paste0("VANHASBROECK_", year, "_", m, ".rds"))
-#  df <- readRDS(path)
-#  df$model <- m
-#  df[, c("participant_id", "model", "aic", "bic")]
-#}))
+# Define the metrics to use for the comparison
+metrics <- c("aic", "bic")
+
+# Load the results for each of the datasets
+input_dir <- file.path("scripts", "results", "estimation")
+long <- lapply(
+  datasets,
+  function(x) do.call(
+    rbind, 
+    lapply(
+      models, 
+      function(m) {
+        path <- file.path(input_dir, paste0(x, "_", m, ".csv"))
+        df <- read.csv(path)
+        df$model <- m
+        return(df[, c("participant_id", "model", metrics)])
+      }
+    )
+  )
+) |>
+  `names<-` (datasets) 
 
 
 # ── 2. BEST MODEL PER PARTICIPANT ─────────────────────────────────────────────
 
 # For each participant, find the model with the lowest AIC (or BIC)
-# Returns one row per participant showing their best model
-metric      <- "aic"   # switch to "bic" to repeat analysis with BIC
-best_models <- do.call(rbind, lapply(split(long_2021, long_2021$participant_id), function(df) {
-  df[which.min(df[[metric]]), ]
-}))
+# Returns one row per participant showing their best model.
+#
+# Not the most beautiful result (three implicit loops in one), but works just 
+# fine for our purposes. List structure is as follows:
+#   - Metric
+#       - Dataset
+#           - Best model per participant
+best <- lapply(
+  metrics,
+  function(x) lapply(
+    names(long),
+    function(y) do.call(
+      rbind,
+      lapply(
+        split(long[[y]], long[[y]]$participant_id), 
+        function(df) df[which.min(df[[x]]), ]
+      )
+    )
+  ) |>
+    `names<-` (names(long))
+) |>
+  `names<-` (metrics)
 
 
 # ── 3. SUMMARY: % OF PARTICIPANTS EACH MODEL WON ─────────────────────────────
 
 # Counts how many (and what %) of participants were best described by each model
-counts <- table(best_models$model)
-model_summary <- data.frame(
-  model          = names(counts),
-  n_best         = as.numeric(counts),
-  percentage_best = round(100 * as.numeric(counts) / nrow(best_models), 1)
-)
-print(model_summary)
+#
+# List structure is the same as before, specifically
+#   - Metric
+#       - Dataset
+#           - Number/Percentage of time a model performed best
+# The results will be merged in one dataset, however, somewhat easing interpreting
+# the results
+counts <- lapply(
+  metrics, 
+  function(x) do.call(
+    rbind, 
+    lapply(
+      names(long), 
+      function(y) {
+        count <- table(best[[x]][[y]]$model)
+        
+        return(
+          data.frame(
+            metric = x, 
+            dataset = y,
+            model = names(count),
+            n_best = as.numeric(count),
+            percentage_best = round(100 * as.numeric(count) / sum(count), 1)
+          )
+        )
+      }   
+    )   
+  )
+) 
+counts <- do.call(rbind, counts)
+
 
 
 # ── 4. PAIRWISE COMPARISONS ───────────────────────────────────────────────────
 
 # Head-to-head comparison between two specific models, per participant
 # Lower AIC/BIC = better fitting model
+#
+# Importantly, this pairwise comparison is done for each dataset separately and
+# the function is used in this way
 run_pairwise <- function(long_df, model_a, model_b, metric = "aic") {
   
   # Keep only the two models being compared
