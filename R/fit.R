@@ -390,25 +390,26 @@ setMethod(
         # Estimate the covariance matrix according to the structure of the 
         # model
         residuals <- data@Y - predict(model, data)@Y
+        non_missing_residuals <- residuals[!is.na(rowSums(residuals)), , drop = FALSE]
+
         if(covariance == "symmetric") {
-            v <- cov(residuals)
+            v <- cov(non_missing_residuals)
 
             model@covariance <- as.matrix(v)
             parameters <- c(parameters, v[lower.tri(v, diag = TRUE)])
 
         } else if(covariance == "isotropic") {
-            if(is.matrix(residuals)) {
+            if(is.matrix(non_missing_residuals)) {
                 v <- sapply(
-                    seq_len(ncol(residuals)),
-                    \(i) var(residuals[, i])
+                    seq_len(ncol(non_missing_residuals)),
+                    \(i) var(non_missing_residuals[, i])
                 )
             } else {
-                v <- var(residuals)
+                v <- var(non_missing_residuals)
             }
 
             diag(model@covariance) <- v
             parameters <- c(parameters, v)
-
         }
 
         # Define the number of parameters of the model and adjust accordingly
