@@ -82,22 +82,22 @@ data
 #> An object of class "dataset"
 #> 
 #> Slot "Y": 100x1matrix
-#>             [,1]
-#> [1,]  0.06461276
-#> [2,]  1.36331527
-#> [3,]  0.38434100
-#> [4,]  0.58480309
-#> [5,]  1.23406025
-#> [6,] -0.40797861
+#>            [,1]
+#> [1,]  4.2225277
+#> [2,]  2.4368320
+#> [3,]  0.4041583
+#> [4,] -0.4269641
+#> [5,] -0.6454699
+#> [6,]  1.9700771
 #> 
 #> Slot "X": 100x1matrix
 #>             [,1]
-#> [1,] -0.19391610
-#> [2,] -0.34337644
-#> [3,] -0.96389265
-#> [4,]  0.25205182
-#> [5,]  0.92311981
-#> [6,]  0.03515012
+#> [1,]  0.80786670
+#> [2,] -0.85736842
+#> [3,]  0.07069873
+#> [4,] -0.83287115
+#> [5,]  0.49305778
+#> [6,] -0.62901857
 ```
 
 To estimate parameters of a model based on observed data, we have to
@@ -154,6 +154,18 @@ project, the
 [models](https://ndpvh.github.io/discounting-affect/articles/models.html),
 and the
 [package](https://ndpvh.github.io/discounting-affect/articles/getting_started.html).
+
+# License
+
+The work in this repository is shared under a dual license. The GNU
+GPL-3.0 license applies to the analysis code, the package code, and most
+of the datasets (VANHASBROECK_2021, VANHASBROECK_2022,
+VANHASBROECK_2024). The CC BY-NC 4.0 license applies to the other
+datasets (NIEMEIJER_2022), disallowing the commercial use of these data
+without reference to or contacting the original authors
+(<koen.niemeijer@kuleuven.be>).
+
+`SPDX-License-Identifier: GPL-3.0 OR CC BY-NC 4.0`
 
 # References
 
