@@ -66,6 +66,16 @@ setMethod(
 
         # Loop over the values of X and define compute the values of Y
         for(i in seq_len(data@N)) {
+            # If the current value of the predictor variables is NA, then we 
+            # have to restart the sum we we're creating. No value for Y[i, ]
+            # exists here, and so the prediction will be NA as well.
+            if(any(is.na(X[i, ]))) {
+                Y[i, ] <- NA
+                S <- numeric(object@d)
+
+                next
+            }
+
             # Define the new instance of the sum
             S[] <- params[["beta"]] %*% X[i, ] + params[["gamma"]] %*% S
 
@@ -105,6 +115,17 @@ setMethod(
 
         # Loop over the values of X and define compute the values of Y
         for(i in seq_len(data@N)) {
+            # If the current value of the predictor variables is NA, then we 
+            # have to restart the sums we we're creating. No value for Y[i, ]
+            # exists here, and so the prediction will be NA as well.
+            if(any(is.na(X[i, ]))) {
+                Y[i, ] <- NA
+                S <- numeric(object@d)
+                KS <- numeric(object@d)
+                
+                next
+            }
+
             # Define the new instance of the sum
             S[] <- params[["beta"]] %*% X[i, ] + params[["nu"]] %*% KS[]
             KS[] <- params[["kappa"]] %*% params[["beta"]] %*% X[i, ] + params[["nu"]] %*% KS[]
@@ -143,6 +164,17 @@ setMethod(
 
         # Loop over the values of X and define compute the values of Y
         for(i in seq_len(data@N)) {
+            # If the current value of the predictor variables is NA, then we 
+            # have to restart the sums we we're creating. No value for Y[i, ]
+            # exists here, and so the prediction will be NA as well.
+            if(any(is.na(X[i, ]))) {
+                Y[i, ] <- NA
+                GS <- numeric(object@d)
+                NS <- numeric(object@d)
+                
+                next
+            }
+
             # Define the new instance of the sum for \Gamma and N
             GS[] <- params[["beta"]] %*% X[i, ] + params[["gamma"]] %*% GS
             NS[] <- params[["beta"]] %*% X[i, ] + params[["nu"]] %*% NS 

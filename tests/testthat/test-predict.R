@@ -658,3 +658,93 @@ test_that(
         )
     }
 )
+
+test_that(
+    "Test the robustness against NAs in the predictor variables",
+    {
+        # Create a dataset to consider in which NAs are introduced
+        data <- dataset(
+            Y = matrix(0, nrow = 12, ncol = 1),
+            X = cbind(
+                c(1, 1, 1, NA, 1, 1, 1, NA, 1, 1, 1, 1),
+                c(1, 1, 1, NA, 1, 1, 1, 1, 1, 1, 1, NA)
+            )
+        )
+
+        # Create an exponential model with the required parameters
+        model <- exponential(
+            parameters = list(
+                "alpha" = 0, 
+                "beta" = matrix(1, nrow = 1, ncol = 2),
+                "gamma" = as.matrix(0.5)
+            )
+        )
+
+        # Use predict to create new values for Y that can be tested against.
+        # With two stimuli 1, and beta's 1, then at the first iteration, we 
+        # expected the discounted sum to be equal to 2 = 1 + 1. At the second
+        # iteration, this same value is discounted to only 0.5 of this, which 
+        # makes 1. Together with the new stimuli (1, 1), we then get 3 at the 
+        # second iteration. At the third iteration, we again have the current 
+        # 2, the discounted 1, but now additionally discount this with 0.5 * 1
+        # for a total of 2 + 1 + 0.5 = 3.5 at the third iteration
+        y <- predict(model, data)
+        expect_equal(
+            as.numeric(y@Y),
+            rep(c(2, 3, 3.5, NA), times = 3)
+        )
+
+
+
+        # Create a quasi-hyperbolic model with the required parameters
+        model <- quasi_hyperbolic(
+            parameters = list(
+                "alpha" = 0, 
+                "beta" = matrix(1, nrow = 1, ncol = 2),
+                "nu" = as.matrix(0.5),
+                "kappa" = as.matrix(0.75)
+            )
+        )
+
+        # Use predict to create new values for Y that can be tested against.
+        # With two stimuli 1, and beta's 1, then at the first iteration, we 
+        # expected the discounted sum to be equal to 2 = 1 + 1. At the second
+        # iteration, this same value is discounted to only 0.75 * 0.5 of this,
+        # which makes 0.75. Together with the new stimuli (1, 1), we then get 
+        # 2.75. At the third iteration, we again have the current 2, the 
+        # discounted 0.75, and now an additional discounted 0.75 * 0.5 = 0.375
+        # for a total of 3.125. 
+        y <- predict(model, data)
+        expect_equal(
+            as.numeric(y@Y),
+            rep(c(2, 2.75, 3.125, NA), times = 3)
+        )
+
+
+
+        # Create a quasi-hyperbolic model with the required parameters
+        model <- double_exponential(
+            parameters = list(
+                "alpha" = 0, 
+                "beta" = matrix(1, nrow = 1, ncol = 2),
+                "omega" = 0.25,
+                "gamma" = as.matrix(0.5),
+                "nu" = as.matrix(0.75)
+            )
+        )
+
+        # Use predict to create new values for Y that can be tested against.
+        # With two stimuli 1, and beta's 1, then at the first iteration, we 
+        # expected the discounted sum to be equal to 2 = 1 + 1. At the second
+        # iteration, this same value is discounted to only 0.25 * 0.5 + 
+        # 0.75 * 0.75 of this, which makes 0.6875. Multiplying by 2 and summing 
+        # with the new stimuli (1, 1) makes 3.375. At the third iteration, this
+        # becomes 0.25 * 0.25 + 0.75 * 0.75^2, which makes about 0.484375, which
+        # multiplied by 2 and together with the 3.375 makes a total of 4.34375
+        y <- predict(model, data)
+        expect_equal(
+            as.numeric(y@Y),
+            rep(c(2, 3.375, 4.34375, NA), times = 3)
+        )
+    }
+)
