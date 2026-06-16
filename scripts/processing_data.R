@@ -229,7 +229,7 @@ for (pid in participant_ids) {
 
   out_file <- file.path(
     output_dir,
-    paste0("NIEMEIJER_2022", pid, ".rds")
+    paste0("NIEMEIJER_2022_", pid, ".rds")
   ) 
   saveRDS(ds, file = out_file)
 }
