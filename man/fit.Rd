@@ -12,9 +12,10 @@ fit(model, data, ...)
   data,
   dynamics = "isotropic",
   covariance = "symmetric",
-  optimizer = "DEoptim",
+  optimizer = "optim",
   lower = NULL,
   upper = NULL,
+  method = "Nelder-Mead",
   ...
 )
 }
@@ -26,8 +27,10 @@ defining the model to evaluate the objective function for.}
 containing the data to fit the model to.}
 
 \item{...}{Arguments passed on to the control parameters of the optimizer, 
-either to \code{\link[DEoptim]{DEoptim.control}} or the \code{opts} 
-argument of \code{\link[nloptr]{nloptr}}.}
+either to \code{\link[DEoptim]{DEoptim.control}}, the \code{opts} 
+argument of \code{\link[nloptr]{nloptr}}, the \code{control} list of the 
+\code{\link[stats]{optim}} function, or to the additional arguments of your
+own \code{optimizer} function (see Details).}
 
 \item{dynamics}{Character denoting the structure of the dynamical matrices.
 Can either be \code{"anisotropic"} (completely free), \code{"symmetric"}
@@ -43,12 +46,20 @@ Can either by \code{"symmetric"} (symmetric around the diagonal) and
 
 \item{optimizer}{Character denoting the optimizer to use for the estimation.
 Can either be \code{"DEoptim"} for the differential evolution algorithm in 
-\code{\link[DEoptim]{DEoptim}} or \code{"nloptr"} for the library implemented
-in \code{\link[nloptr]{nloptr}}. Defaults to \code{"DEoptim"}.}
+\code{\link[DEoptim]{DEoptim}}, \code{"nloptr"} for the library implemented
+in \code{\link[nloptr]{nloptr}}, or \code{"optim"} for the default 
+optimization library in R. Defaults to \code{"optim"}. Alternatively, 
+\code{optimizer} can also be a custom function that defines the estimation 
+routine. To see what this function should look like, we refer the interested
+reader to the details.}
 
 \item{lower, upper}{Numeric vector containing lower and upper bounds for the 
 parameters in the estimation routine. Uses the same defaults as 
 \code{\link[discounting]{get_bounds}}.}
+
+\item{method}{Character denoting the method to be used for estimation. Ignored
+if \code{optimizer} is not \code{"optim"}, in which case the native arguments
+of the other optimization packages can be used.}
 }
 \value{
 An named list containing an instance of the 
@@ -73,6 +84,29 @@ as optimization standard.
 Note that currently, least-squares estimation is assumed, meaning that the 
 covariance matrix is left out of the objective function. If maximum-likelihood
 were needed instead, then this function would need to change.
+
+By default, the \code{fit} function performs optimizations through the 
+\code{optim} function in R, alternatively allowing users to make use of the
+\code{DEoptim} or \code{nloptr} packages instead. For more difficult models,
+however, it may be useful to have greater control over the optimization 
+procedure, for example by specifying your own initial conditions, by using 
+a combination of different optimization algorithms at once, or by using 
+another library not provided through this package. 
+
+In these cases, one can provide a function to the argument \code{optimizer}
+instead of a string. This function should at least take in 3 argument: A
+function representing the objective function, a lower bound for the 
+parameters, and an upper bound for these same parameters (cf. \code{optim}, 
+\code{DEoptim}, and \code{nloptr}). This function can furthermore take in 
+additional argument, for example specifying the maximal number of iterations
+or controlling other aspects of the estimation routine. These can be specified
+in the \code{fit} function through the optional arguments \code{...}.
+
+The custom optimization function should, minimally, output a named list with 
+slots \code{"parameters"} and \code{"objective"}, containing the final 
+result of the parameter estimation and the value of the objective function 
+for this final parameter set respectively. These will then be used by the 
+\code{fit} function as final results of the optimization procedure.
 }
 \examples{
 # Simulate data to use for this example
@@ -96,6 +130,7 @@ fit(
   data,
   dynamics = "isotropic",
   covariance = "isotropic",
+  optimizer = "DEoptim",
   itermax = 50,
   trace = FALSE
 )

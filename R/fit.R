@@ -192,10 +192,13 @@ setMethod(
 #' @param lower,upper Numeric vector containing lower and upper bounds for the 
 #' parameters in the estimation routine. Uses the same defaults as 
 #' \code{\link[discounting]{get_bounds}}.
+#' @param method Character denoting the method to be used for estimation. Ignored
+#' if \code{optimizer} is not \code{"optim"}, in which case the native arguments
+#' of the other optimization packages can be used.
 #' @param ... Arguments passed on to the control parameters of the optimizer, 
 #' either to \code{\link[DEoptim]{DEoptim.control}}, the \code{opts} 
 #' argument of \code{\link[nloptr]{nloptr}}, the \code{control} list of the 
-#' \code{\link[optim]{optim}} function, or to the additional arguments of your
+#' \code{\link[stats]{optim}} function, or to the additional arguments of your
 #' own \code{optimizer} function (see Details).
 #' 
 #' @return An named list containing an instance of the 
