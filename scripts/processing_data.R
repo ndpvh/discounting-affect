@@ -6,6 +6,7 @@
 #   - VANHASBROECK_2021
 #   - VANHASBROECK_2022
 #   - VANHASBROECK_2024
+#   - NIEMEIJER_2022
 #
 ################################################################################
 
@@ -31,8 +32,8 @@ output_dir  <- file.path("scripts/data", "VANHASBROECK_2021_per_participant")
 
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
-y_cols          <- "happiness"
-x_cols          <- c("cr", "ev", "rpe")
+y_cols           <- "happiness"
+x_cols           <- c("cr", "ev", "rpe")
 sorting_variable <- "trial"
 
 # Load data
@@ -64,9 +65,9 @@ for (pid in participant_ids) {
 # VANHASBROECK_2022
 #
 # Variable roles (based on Vanhasbroeck et al., 2022):
-#   Y (dependent variable)   : possitive_affect, negative_affect, valence
-#   X (independent variables): outcome, total
-#   Ignored                  : trial, id, door_clicked, time
+#   Y (dependent variable)   : possitive_affect, negative_affect
+#   X (independent variables): outcome
+#   Ignored                  : trial, id, total, door_clicked, time
 #
 # NAs are kept as-is (as requested).
 # Data are saved per participant, sorted by trial number.
@@ -78,8 +79,8 @@ output_dir  <- file.path("scripts/data", "VANHASBROECK_2022_per_participant")
 
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
-y_cols          <- c("positive_affect","negative_affect")
-x_cols          <- c("outcome")
+y_cols           <- c("positive_affect","negative_affect")
+x_cols           <- c("outcome")
 sorting_variable <- "trial"
 
 # Load data
@@ -89,7 +90,6 @@ raw <- read.csv(input_file)
 participant_ids <- sort(unique(raw$id))
 
 for (pid in participant_ids) {
-  
   participant_data <- raw[raw$id == pid, ]
   participant_data <- participant_data[order(participant_data[[sorting_variable]]), ]
   
@@ -102,7 +102,6 @@ for (pid in participant_ids) {
   
   out_file <- file.path(output_dir, paste0("VANHASBROECK_2022_", pid, ".rds"))
   saveRDS(ds, file = out_file)
-  
 }
 
 
@@ -117,26 +116,21 @@ for (pid in participant_ids) {
 # This dataset contains two participant types:
 #   - 939 full participants: positive_affect and negative_affect observed
 #       Y = positive_affect, negative_affect   (d = 2, valence dropped)
-#       Saved to: VANHASBROECK_2024_full_per_participant/
 #
 #   - 459 valence-only participants: only valence observed
 #       Y = valence                             (d = 1)
-#       Saved to: VANHASBROECK_2024_valence_per_participant/
-#
-# It was indeed much easier to change the processing of the data into two separate
-# folders rather then separating them in the estimation.R script
 #
 # How we detect the participant type:
-#   We check whether positive_affect has any non-NA values. If yes -> full.
-#   If all positive_affect values are NA -> valence-only.
+#   We check whether positive_affect has any non-NA values. If yes, then the 2D
+#   variant is used. If all positive_affect values are NA, then the 1D variant 
+#   is used. 
 #
 # NAs are kept as-is.
 # Data are saved per participant, sorted by trial number.
  
 # Settings
-input_file         <- file.path("scripts/data", "VANHASBROECK_2024.csv")
-output_dir_full    <- file.path("scripts/data", "VANHASBROECK_2024_full_per_participant")
-output_dir_valence <- file.path("scripts/data", "VANHASBROECK_2024_valence_per_participant")
+input_file <- file.path("scripts/data", "VANHASBROECK_2024.csv")
+output_dir <- file.path("scripts/data", "VANHASBROECK_2024_per_participant")
  
 dir.create(output_dir_full,    recursive = TRUE, showWarnings = FALSE)
 dir.create(output_dir_valence, recursive = TRUE, showWarnings = FALSE)
@@ -149,9 +143,6 @@ raw <- read.csv(input_file)
  
 # Loop over participants, detect type, and save to the correct folder
 participant_ids <- sort(unique(raw$id))
- 
-n_full    <- 0
-n_valence <- 0
  
 for (pid in participant_ids) {
  
@@ -170,9 +161,6 @@ for (pid in participant_ids) {
       x_cols           = x_cols,
       sorting_variable = sorting_variable
     )
-    out_file <- file.path(output_dir_full,
-                          paste0("VANHASBROECK_2024_", pid, ".rds"))
-    n_full <- n_full + 1
  
   } else {
     # Valence-only participant: save valence only (d=1)
@@ -182,11 +170,12 @@ for (pid in participant_ids) {
       x_cols           = x_cols,
       sorting_variable = sorting_variable
     )
-    out_file <- file.path(output_dir_valence,
-                          paste0("VANHASBROECK_2024_", pid, ".rds"))
-    n_valence <- n_valence + 1
   }
- 
+
+  out_file <- file.path(
+    output_dir,
+    paste0("VANHASBROECK_2024_", pid, ".rds")
+  ) 
   saveRDS(ds, file = out_file)
 
 }
