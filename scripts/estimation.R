@@ -77,44 +77,6 @@ optimizer <- function(obj,
   )
 }
 
-################################################################################
-# NA-AWARE OBJECTIVE FUNCTION
-#
-# Why this is needed:
-#   In the 2021 dataset, happiness (Y) is only measured on some trials.
-#   Rows with no happiness rating have Y = NA. The standard objective_function()
-#   computes sum((Y - Y_hat)^2) over all rows. When Y is NA it returns
-#   NaN, and sum(NaN) = NaN, so the optimizer receives NaN for every
-#   parameter set it tries and cannot make progress.
-#
-# What this function does:
-#   1. Runs predict() over ALL rows.
-#   2. Computes SSE only on rows where Y is actually observed (not NA).
-#
-################################################################################
- 
-na_aware_objective_function <- function(model, data, parameters, dynamics) {
- 
-  # Bounds check - return a large penalty if parameters are out of range
-  bounds <- get_bounds(model, dynamics = dynamics, parameters_only = TRUE)
-  if (any(parameters < bounds$lower | parameters > bounds$upper)) {
-    return(Inf)
-  }
- 
-  # Fill the model with the candidate parameters
-  model <- fill(model, parameters, dynamics = dynamics, parameters_only = TRUE)
- 
-  # Predict over the FULL time series (all rows, including NA ones)
-  prediction <- predict(model, data)
- 
-  # Residuals over the full aligned time series
-  residuals <- data@Y - prediction@Y
- 
-  #SSE ignoring NA cells
-  return(sum(residuals^2, na.rm = TRUE))
-
-}
-
 
 
 ################################################################################
@@ -155,7 +117,7 @@ estimate_participant <- function(ds,
       # and substitute the NA-aware version instead.
       optimizer = function(obj, lower, upper, ...) {
         na_obj <- function(x) {
-          na_aware_objective_function(model_empty, ds, x, dynamics)
+          objective_function(model_empty, ds, x, dynamics)
         }
         optimizer(na_obj, lower, upper, ...)
       },

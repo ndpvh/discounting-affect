@@ -37,6 +37,8 @@
 #' \eqn{\Gamma} for the exponential discounting model, \eqn{N} and \eqn{K} for
 #' the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
 #' double-exponential discounting model. Defaults to \code{"isotropic"}.
+#' @param na.rm Logical denoting whether to remove NAs in the calculation of the 
+#' sum squared error. Defaults to \code{TRUE}.
 #' @param ... Additional arguments passed on to the methods.
 #' 
 #' @return The sum of squared error or \eqn{SSE}, quantifying misfit of the model
@@ -91,7 +93,8 @@ setMethod(
     function(model, 
              data,
              parameters,
-             dynamics = "isotropic") {
+             dynamics = "isotropic",
+             na.rm = TRUE) {
 
         # Check whether the parameters are inside the bounds. If not, return a 
         # penalty
@@ -121,7 +124,7 @@ setMethod(
         residuals <- data@Y - prediction@Y 
 
         # Compute the sum squared error and return
-        SSE <- sum(residuals^2)
+        SSE <- sum(residuals^2, na.rm = na.rm)
 
         return(SSE)
     }
