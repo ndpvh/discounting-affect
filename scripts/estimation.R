@@ -98,57 +98,44 @@ optimizer <- function(obj,
 #
 ################################################################################
 
-estimate_participant <- function(ds,
-                                 model_empty,
-                                 dynamics   = "isotropic",
-                                 covariance = "symmetric",
-                                 ...) {
-  tryCatch({
- 
-    fitobj <- fit(
-      model_empty,
-      ds,
-      dynamics   = dynamics,
-      covariance = covariance,
- 
-      # fit() accepts a function here instead of a string like "DEoptim".
-      # fit() calls it as: optimizer(obj, lower, upper, ...)
-      # We ignore the obj that fit() would pass (which uses the standard SSE)
-      # and substitute the NA-aware version instead.
-      optimizer = function(obj, lower, upper, ...) {
-        na_obj <- function(x) {
-          objective_function(model_empty, ds, x, dynamics)
-        }
-        optimizer(na_obj, lower, upper, ...)
-      },
-      ...
-    )
- 
-    # Keeping only observed rows in the residuals
-    observed          <- complete.cases(ds@Y)
-    fitobj$residuals  <- fitobj$residuals[observed, , drop = FALSE]
+fit_participant <- function(data,
+                            model,
+                            dynamics   = "isotropic",
+                            covariance = "symmetric",
+                            ...) {
 
-    # Computing Sigma from the filtered residuals
-    fitobj$parameters[grepl("^sigma", names(fitobj$parameters))] <- 
-      fitobj$model@covariance[lower.tri(fitobj$model@covariance, diag = TRUE)] <-
-      var(as.numeric(fitobj$residuals))    
+  # Wrapped in a tryCatch so that potential problems are caught and dealt with
+  tryCatch(
+    {
+      # Use the dataset "data" and an empty model object "model" to peform the 
+      # estimation, using the optimizer defined above.
+      fitobj <- fit(
+        model,
+        data,
+        dynamics   = dynamics,
+        covariance = covariance,
+        optimizer = optimizer,
+        ...
+      )
 
-    params <- fitobj$parameters
- 
-    stats <- c(
-      aic             = aic(fitobj),
-      bic             = bic(fitobj),
-      autocorrelation = autocorrelation(fitobj),
-      bias            = bias(fitobj),
-      objective_sse   = fitobj$objective
-    )
- 
-    c(params, stats)
- 
-  }, error = function(e) {
-    message("  Estimation failed: ", conditionMessage(e))
-    NULL
-  })
+      # Extract the parameters and the statistics computed based on the 
+      # fitobj. 
+      params <- fitobj$parameters  
+      stats <- c(
+        aic             = aic(fitobj),
+        bic             = bic(fitobj),
+        autocorrelation = autocorrelation(fitobj),
+        bias            = bias(fitobj),
+        objective_sse   = fitobj$objective
+      )
+  
+      return(c(params, stats))
+    }, 
+    error = function(e) {
+      message("  Estimation failed: ", conditionMessage(e))
+      return(NULL)
+    }
+  )
 }
  
 
@@ -165,122 +152,145 @@ estimate_participant <- function(ds,
 #
 # Arguments:
 #   folder     – path to the folder that holds the per-participant RDS files
-#   d          – number of dependent variables (outcome dimensions)
-#   k          – number of independent variables (predictors)
 #   ...        – extra arguments forwarded to optimizer via estimate_participant
 ################################################################################
 
-run_estimation <- function(folder, d, k, base_name, ...) {
+run_estimation <- function(folder, 
+                           base_name, 
+                           models,
+                           ...) {
 
   # Find all RDS files
-  rds_files <- list.files(folder, pattern = "\\.rds$", full.names = TRUE,
-                          ignore.case = TRUE)
+  rds_files <- list.files(
+    folder, pattern = "\\.rds$", 
+    full.names = TRUE,
+    ignore.case = TRUE
+  )
 
   if (length(rds_files) == 0) {
     stop("No RDS files found in: ", folder)
   }
-
   message("Found ", length(rds_files), " participants in ", basename(folder))
 
-  # Define the three empty models for this dataset's dimensionality
-  # fit() will fill them in during estimation.
-  models <- list(
-    exponential        = exponential(d = d, k = k),
-    quasi_hyperbolic   = quasi_hyperbolic(d = d, k = k),
-    double_exponential = double_exponential(d = d, k = k)
-  )
-
-  # Loop over model types
+  # Loop over the different model types and perform the estimation for these.
+  # Note that looping across models is done in sequence while the estimation per
+  # participant is done in parallel
   results <- lapply(
     names(models), 
     function(model_name) {
+      message("\n  Fitting model: ", model_name)
 
-    message("\n  Fitting model: ", model_name)
+      # Loop over participants
+      rows <- parallel::mclapply(
+        seq_along(rds_files), 
+        function(idx) {
+          # Load the dataset object with the data for this participant
+          rds_path       <- rds_files[idx]
+          ds <- readRDS(rds_path)
 
-    model_empty <- models[[model_name]]
+          # Provide some feedback to the user
+          participant_id <- tools::file_path_sans_ext(basename(rds_path))
+          message(
+            "    Participant ", 
+            idx, 
+            " / ", 
+            length(rds_files),
+            "  (", 
+            participant_id, 
+            ")"
+          )
 
-    # Loop over participants
-    rows <- parallel::mclapply(
-      seq_along(rds_files), 
-      function(idx) {
+          # Define an empty version of the model to be estimated with the
+          # dimensionality of this dataset: fit() will fill this empty model 
+          # during estimation. Here, we infer the dimensionality from the data 
+          # directly.
+          d <- ncol(ds@Y)
+          k <- ncol(ds@X)
+          model_empty <- models[[model_name]](d = d, k = k)        
 
-        rds_path       <- rds_files[idx]
-        participant_id <- tools::file_path_sans_ext(basename(rds_path))
+          # Run estimation
+          row_values <- fit_participant(
+            data  = ds,
+            model = model_empty,
+            ...
+          )
 
-        message("    Participant ", idx, " / ", length(rds_files),
-                "  (", participant_id, ")")
+          if (is.null(row_values)) {
+            # Estimation failed – build an all-NA row so the data.frame stays
+            # rectangular. We don't know column names yet, so we signal with NULL
+            # and handle it after the loop.
+            return(list(id = participant_id, values = NULL))
+          }
 
-        # Load the pre-saved dataset object
-        ds <- readRDS(rds_path)
+          return(list(id = participant_id, values = row_values))
+        },
+        mc.cores = ifelse(
+          Sys.info()["sysname"] == "Windows",
+          1,
+          round(parallel::detectCores() / 2) - 1  # Optimized for Niels' Mac/Linux system
+        )
+      )
 
-        # Run estimation
-        row_values <- estimate_participant(
-          ds          = ds,
-          model_empty = model_empty,
-          ...
+      # Determine column names from the first successful row (needed to build NA 
+      # rows for failed participants)
+      first_ok <- Filter(
+        function(r) !is.null(r$values), 
+        rows
+      )
+
+      if (length(first_ok) == 0) {
+        warning(
+          "All participants failed for model ", 
+          model_name,
+          " in folder ", 
+          basename(folder)
         )
 
-        if (is.null(row_values)) {
-          # Estimation failed – build an all-NA row so the data.frame stays
-          # rectangular. We don't know column names yet, so we signal with NULL
-          # and handle it after the loop.
-          return(list(id = participant_id, values = NULL))
+        return(NULL)
+      }
+
+      col_names <- names(first_ok[[1]]$values)
+      na_row    <- setNames(rep(NA_real_, length(col_names)), col_names)
+
+      # Stack rows into a data.frame
+      df_rows <- lapply(
+        rows, 
+        function(r) {
+          vals <- if (is.null(r$values)) na_row else r$values
+          
+          return(
+            data.frame(
+              participant_id = r$id,
+              t(vals),           # transpose so one participant = one row
+              check.names = FALSE,
+              stringsAsFactors = FALSE
+            )
+          )
         }
-
-        return(list(id = participant_id, values = row_values))
-      },
-      mc.cores = ifelse(
-        Sys.info()["sysname"] == "Windows",
-        1,
-        round(parallel::detectCores() / 2) - 1  # Optimized for my own Mac/Linux system
       )
-    )
+      df <- do.call(rbind, df_rows) |>
+        `rownames<-` (NULL)
 
-    # Determine column names from the first successful row
-    # (needed to build NA rows for failed participants)
-    first_ok <- Filter(function(r) !is.null(r$values), rows)
+      # Save the results
+      write.csv(
+        df, 
+        file.path(
+          "scripts", 
+          "results",
+          "estimation", 
+          paste0(base_name, "_", model_name, ".csv")
+        ),
+        row.names = FALSE
+      )
 
-    if (length(first_ok) == 0) {
-      warning("All participants failed for model ", model_name,
-              " in folder ", basename(folder))
+      # Return nothing
       return(NULL)
     }
-
-    col_names <- names(first_ok[[1]]$values)
-    na_row    <- setNames(rep(NA_real_, length(col_names)), col_names)
-
-    # Stack rows into a data.frame
-    df_rows <- lapply(rows, function(r) {
-      vals <- if (is.null(r$values)) na_row else r$values
-      data.frame(
-        participant_id = r$id,
-        t(vals),           # transpose so one participant = one row
-        check.names = FALSE,
-        stringsAsFactors = FALSE
-      )
-    })
-
-    df <- do.call(rbind, df_rows)
-    rownames(df) <- NULL
-
-    # Save the results
-    write.csv(
-      df, 
-      file.path(
-        "scripts", 
-        "results",
-        "estimation", 
-        paste0(base_name, "_", model_name, ".csv")
-      ),
-      row.names = FALSE
-    )
-
-    # Return nothing
-    return(NULL)
-  })
+  )
 
   return(NULL)
 }
+
 
 
 ################################################################################
@@ -309,62 +319,63 @@ run_estimation <- function(folder, d, k, base_name, ...) {
 
 # Common optimizer settings
 optim_settings <- list(
+  # General settings
+  dynamics   = "isotropic",
+  covariance = "symmetric",
+
   # DEoptim control arguments
-  itermax  = 1e3,
-  NP       = 150,
-  CR       = 0.75,
-  strategy = 6,
-  p        = 0.8,
-  reltol   = 1e-15,
-  steptol  = 100,
-  trace    = FALSE,
+  itermax    = 1e3,
+  NP         = 150,
+  CR         = 0.75,
+  strategy   = 6,
+  p          = 0.8,
+  reltol     = 1e-15,
+  steptol    = 100,
+  trace      = FALSE,
+
   # nloptr arguments
-  maxeval  = 1e5,
-  xtol_abs = 1e-20,
-  ftol_abs = 1e-20
+  maxeval    = 1e5,
+  xtol_abs   = 1e-20,
+  ftol_abs   = 1e-20
 )
 
-# Dataset paths
-# The standard layout assumed here:
-#   scripts/data/VANHASBROECK_2021_per_participant/
-#   scripts/data/VANHASBROECK_2022_per_participant/
-#   scripts/data/VANHASBROECK_2024_full_per_participant/
-#   scripts/data/VANHASBROECK_2024_valence_per_participant/
-
-path_2021 <- file.path("scripts", "data", "VANHASBROECK_2021_per_participant")
-path_2022 <- file.path("scripts", "data", "VANHASBROECK_2022_per_participant")
-path_2024_full     <- file.path("scripts", "data", "VANHASBROECK_2024_full_per_participant")
-path_2024_valence  <- file.path("scripts", "data", "VANHASBROECK_2024_valence_per_participant")
-
-# VANHASBROECK_2021  (d = 1, k = 3)
-# One dependent variable (happiness) and three predictors (cr, ev, rpe).
-# Because d = 1 the covariance "matrix" is just a single variance, so
-# symmetric and isotropic covariance are identical here.
-message("\n========== VANHASBROECK 2021 (d=1, k=3) ==========")
-results_2021 <- do.call(
-  run_estimation,
-  c(list(folder = path_2021, d = 1, k = 3, base_name = "VANHASBROECK_2021"), optim_settings)
+# Define the names of the datasets considered in our analysis. 
+datasets <- c(
+  "VANHASBROECK_2021",
+  "VANHASBROECK_2022",
+  "VANHASBROECK_2024",
+  "NIEMEIJER_2022"
 )
 
-#  VANHASBROECK_2022  (d = 2, k = 1)
-# Two dependent variables (PA, NA) and one predictor (outcome).
-message("\n========== VANHASBROECK 2022 (d=3, k=2) ==========")
-results_2022 <- do.call(
-  run_estimation,
-  c(list(folder = path_2022, d = 2, k = 1, base_name = "VANHASBROECK_2022"), optim_settings)
+# Define the functions that contain the models of choice. Importantly, we don't
+# provide it with a dimensionality yet: This is automatically done under the 
+# hood.
+models <- list(
+  exponential        = exponential,
+  quasi_hyperbolic   = quasi_hyperbolic,
+  double_exponential = double_exponential
 )
 
-# ── 2024 full: PA + NA (d=2, k=1) ────────────────────────────────────────────
-message("\n========== VANHASBROECK 2024 full (d=2, k=1) ==========")
-results_2024_full <- do.call(
-  run_estimation,
-  c(list(folder = path_2024_full, d = 2, k = 1, base_name = "VANHASBROECK_2024_FULL"), optim_settings)
-)
- 
-# ── 2024 valence-only: valence (d=1, k=1) ────────────────────────────────────
-message("\n========== VANHASBROECK 2024 valence-only (d=1, k=1) ==========")
-results_2024_valence <- do.call(
-  run_estimation,
-  c(list(folder = path_2024_valence, d = 1, k = 1, base_name = "VANHASBROECK_2024_VALENCE"), optim_settings)
-)
+# Loop over these datasets and perform the estimation. Note that we asssume a 
+# same path structure as the one created in "processing_data.R"
+for(i in seq_along(datasets)) {
+  message(paste0("\n========== ", datasets[i], " =========="))
 
+  empty <- do.call(
+    run_estimation, 
+    c(
+      append(
+        list(
+          folder = file.path(
+            "scripts", 
+            "data", 
+            paste0(datasets[i], "_per_participant")
+          ),
+          base_name = datasets[i], 
+          models = models
+        ),
+        optim_settings
+      )
+    )
+  )
+}
