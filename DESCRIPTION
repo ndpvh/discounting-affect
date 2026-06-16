@@ -8,12 +8,12 @@ Author: person(
     "Vanhasbroeck", 
     email = "niels.vanhasbroeck@gmail.com", 
     role = c("aut", "cre"), 
-    comment = c(ORCID = 0000-0002-7423-0090))
+    comment = c(ORCID = "0000-0002-7423-0090"))
 Maintainer: Niels Vanhasbroeck <niels.vanhasbroeck@gmail.com>
 Description: Project around the discounting of stimuli within the context
     of affect dynamics.  Applies and compares several discounting models
     in experimental and daily-life data.
-License: GPL-3 + file LICENSE
+License: GPL-3.0 + CC-BY-NC-4.0 + file LICENSE
 URL: https://github.com/ndpvh/discounting-affect
 BugReports: https://github.com/ndpvh/discounting-affect/issues
 Imports: 
