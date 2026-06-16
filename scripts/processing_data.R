@@ -132,8 +132,7 @@ for (pid in participant_ids) {
 input_file <- file.path("scripts/data", "VANHASBROECK_2024.csv")
 output_dir <- file.path("scripts/data", "VANHASBROECK_2024_per_participant")
  
-dir.create(output_dir_full,    recursive = TRUE, showWarnings = FALSE)
-dir.create(output_dir_valence, recursive = TRUE, showWarnings = FALSE)
+dir.create(output_dir,    recursive = TRUE, showWarnings = FALSE)
  
 x_cols           <- "outcome"
 sorting_variable <- "trial"
@@ -177,6 +176,62 @@ for (pid in participant_ids) {
     paste0("VANHASBROECK_2024_", pid, ".rds")
   ) 
   saveRDS(ds, file = out_file)
-
 }
  
+
+
+################################################################################
+# NIEMEIJER_2022
+#
+# Variable roles:
+#   Y (dependent variables):   positive_affect, negative_affect     (d = 2)
+#   X (independent variables): context_pos, context_neg             (k = 2)
+#   Ignored                  : study_day, participant, beep_nr, positive, negative
+#
+# We perform a special trick here: We keep NAs in both the dependent and 
+# independent variables (10 beeps a day) and add an additional NA at the end of 
+# the day (beep 11). This will trigger a restart of the discounting under the 
+# hood, conforming to how autoregressive models are usually estimated within 
+# these data and furthermore conforming to efforts taken in a related package 
+# (impulseR)
+#
+# NAs are kept as-is.
+# Data are saved per participant, sorted by study_day and beep_nr.
+
+# Settings
+input_file <- file.path("scripts/data", "NIEMEIJER_2022.csv")
+output_dir <- file.path("scripts/data", "NIEMEIJER_2022_per_participant")
+ 
+dir.create(output_dir,    recursive = TRUE, showWarnings = FALSE)
+ 
+y_cols           <- c("positive_affect", "negative_affect")
+x_cols           <- c("context_pos", "context_neg")
+sorting_variable <- "sorting_variable"
+ 
+# Load data
+raw <- read.csv(input_file)
+ 
+# Loop over participants, detect type, and save to the correct folder
+participant_ids <- sort(unique(raw$participant))
+ 
+for (pid in participant_ids) {
+ 
+  participant_data <- raw[raw$participant == pid, ]
+  participant_data <- participant_data[order(participant_data[[sorting_variable]]), ]
+ 
+  # Full participant: save PA + NA only (d=2), drop valence
+  ds <- dataset(
+    data             = participant_data,
+    y_cols           = y_cols,
+    x_cols           = x_cols,
+    sorting_variable = sorting_variable
+  )
+
+  out_file <- file.path(
+    output_dir,
+    paste0("NIEMEIJER_2022", pid, ".rds")
+  ) 
+  saveRDS(ds, file = out_file)
+}
+
+
