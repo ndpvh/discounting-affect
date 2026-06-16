@@ -11,7 +11,13 @@ least-squares procedure.
 objective_function(model, data, parameters, ...)
 
 # S4 method for class 'model,dataset'
-objective_function(model, data, parameters, dynamics = "isotropic")
+objective_function(
+  model,
+  data,
+  parameters,
+  dynamics = "isotropic",
+  na.rm = TRUE
+)
 ```
 
 ## Arguments
@@ -46,6 +52,11 @@ objective_function(model, data, parameters, dynamics = "isotropic")
   exponential discounting model, \\N\\ and \\K\\ for the
   quasi-hyperbolic discounting model, and \\\Gamma\\ and \\N\\ for the
   double-exponential discounting model. Defaults to `"isotropic"`.
+
+- na.rm:
+
+  Logical denoting whether to remove NAs in the calculation of the sum
+  squared error. Defaults to `TRUE`.
 
 ## Value
 

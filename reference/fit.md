@@ -26,6 +26,7 @@ fit(
   lower = NULL,
   upper = NULL,
   method = "Nelder-Mead",
+  na.rm = TRUE,
   ...
 )
 ```
@@ -94,6 +95,11 @@ fit(
   Character denoting the method to be used for estimation. Ignored if
   `optimizer` is not `"optim"`, in which case the native arguments of
   the other optimization packages can be used.
+
+- na.rm:
+
+  Logical denoting whether to remove NAs in the calculation of the sum
+  squared error. Defaults to `TRUE`.
 
 ## Value
 
