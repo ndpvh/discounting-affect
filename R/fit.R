@@ -198,6 +198,8 @@ setMethod(
 #' @param method Character denoting the method to be used for estimation. Ignored
 #' if \code{optimizer} is not \code{"optim"}, in which case the native arguments
 #' of the other optimization packages can be used.
+#' @param na.rm Logical denoting whether to remove NAs in the calculation of the 
+#' sum squared error. Defaults to \code{TRUE}.
 #' @param ... Arguments passed on to the control parameters of the optimizer, 
 #' either to \code{\link[DEoptim]{DEoptim.control}}, the \code{opts} 
 #' argument of \code{\link[nloptr]{nloptr}}, the \code{control} list of the 
@@ -262,6 +264,7 @@ setMethod(
              lower = NULL, 
              upper = NULL,
              method = "Nelder-Mead",
+             na.rm = TRUE,
              ...) {
         
         # Extract the bounds of the model to be optimized
@@ -277,7 +280,8 @@ setMethod(
             model,
             data,
             x, 
-            dynamics = dynamics
+            dynamics = dynamics,
+            na.rm = na.rm
         )
 
         # Perform the estimation procedure according to the optimizer chosen

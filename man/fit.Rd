@@ -16,6 +16,7 @@ fit(model, data, ...)
   lower = NULL,
   upper = NULL,
   method = "Nelder-Mead",
+  na.rm = TRUE,
   ...
 )
 }
@@ -60,6 +61,9 @@ parameters in the estimation routine. Uses the same defaults as
 \item{method}{Character denoting the method to be used for estimation. Ignored
 if \code{optimizer} is not \code{"optim"}, in which case the native arguments
 of the other optimization packages can be used.}
+
+\item{na.rm}{Logical denoting whether to remove NAs in the calculation of the 
+sum squared error. Defaults to \code{TRUE}.}
 }
 \value{
 An named list containing an instance of the 

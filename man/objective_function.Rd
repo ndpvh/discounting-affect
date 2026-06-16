@@ -7,7 +7,13 @@
 \usage{
 objective_function(model, data, parameters, ...)
 
-\S4method{objective_function}{model,dataset}(model, data, parameters, dynamics = "isotropic")
+\S4method{objective_function}{model,dataset}(
+  model,
+  data,
+  parameters,
+  dynamics = "isotropic",
+  na.rm = TRUE
+)
 }
 \arguments{
 \item{model}{Instance of the \code{\link[discounting]{model-class}}, 
@@ -28,6 +34,9 @@ this influences different parameters for different models, namely
 \eqn{\Gamma} for the exponential discounting model, \eqn{N} and \eqn{K} for
 the quasi-hyperbolic discounting model, and \eqn{\Gamma} and \eqn{N} for the
 double-exponential discounting model. Defaults to \code{"isotropic"}.}
+
+\item{na.rm}{Logical denoting whether to remove NAs in the calculation of the 
+sum squared error. Defaults to \code{TRUE}.}
 }
 \value{
 The sum of squared error or \eqn{SSE}, quantifying misfit of the model
