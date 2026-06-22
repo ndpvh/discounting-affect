@@ -19,7 +19,9 @@ models <- c("exponential", "quasi_hyperbolic", "double_exponential")
 datasets <- c(
   "VANHASBROECK_2021",
   "VANHASBROECK_2022",
-  "VANHASBROECK_2024"
+  "VANHASBROECK_2024_1",
+  "VANHASBROECK_2024_2",
+  "NIEMEIJER_2022"
 )
 
 # Define the metrics to use for the comparison
