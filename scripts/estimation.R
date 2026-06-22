@@ -293,9 +293,9 @@ run_estimation <- function(folder,
         )
 
       } else {
-        for(x in unique(cols)) {
+        for(j in unique(cols)) {
           # Bind the data.frame with the same number of columns together
-          idx <- cols == x
+          idx <- cols == cols[j]
           df <- do.call(rbind, df_rows[idx]) |>
             `rownames<-` (NULL)
 
@@ -306,7 +306,7 @@ run_estimation <- function(folder,
               "scripts", 
               "results",
               "estimation", 
-              paste0(base_name, "_", model_name, x, ".csv")
+              paste0(base_name, "_", j, "_", model_name, ".csv")
             ),
             row.names = FALSE
           )
