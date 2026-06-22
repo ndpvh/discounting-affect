@@ -53,7 +53,8 @@ rsconnect/
 .DS_Store
 
 # Add results and figures to the .gitignore
-scripts/results
+scripts/results/niels
+scripts/results/recovery
 scripts/figures
 inst/doc
 *depr*
