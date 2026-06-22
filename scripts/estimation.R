@@ -268,20 +268,50 @@ run_estimation <- function(folder,
           )
         }
       )
-      df <- do.call(rbind, df_rows) |>
-        `rownames<-` (NULL)
 
-      # Save the results
-      write.csv(
-        df, 
-        file.path(
-          "scripts", 
-          "results",
-          "estimation", 
-          paste0(base_name, "_", model_name, ".csv")
-        ),
-        row.names = FALSE
-      )
+      # Check whether all data.frames have the same number of columns. If so, 
+      # we assume we can bind them all together. If not, then we have to create
+      # multiple data.frames, each with a different name. This is a fix imposed
+      # for the VANHASBROECK_2024 dataset, which contains both 2D and 1D 
+      # estimates.
+      cols <- sapply(df_rows, ncol)
+      if(length(unique(cols)) == 1) {
+        # Bind the data.frame together
+        df <- do.call(rbind, df_rows) |>
+          `rownames<-` (NULL)
+
+        # Save the results
+        write.csv(
+          df, 
+          file.path(
+            "scripts", 
+            "results",
+            "estimation", 
+            paste0(base_name, "_", model_name, ".csv")
+          ),
+          row.names = FALSE
+        )
+
+      } else {
+        for(x in unique(cols)) {
+          # Bind the data.frame with the same number of columns together
+          idx <- cols == x
+          df <- do.call(rbind, df_rows[idx]) |>
+            `rownames<-` (NULL)
+
+          # Save the results
+          write.csv(
+            df, 
+            file.path(
+              "scripts", 
+              "results",
+              "estimation", 
+              paste0(base_name, "_", model_name, x, ".csv")
+            ),
+            row.names = FALSE
+          )
+        }
+      }
 
       # Return nothing
       return(NULL)
