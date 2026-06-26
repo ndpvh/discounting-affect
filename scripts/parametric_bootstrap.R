@@ -175,7 +175,7 @@ bimodality <- function(dataset, ...) {
 ################################################################################
 
 # Define the number of datasets to be generated per person per model per dataset
-N <- 1000
+N <- 10000
 
 # Define the phenomena, the models, and the datasets of interest
 datasets <- list(
@@ -280,14 +280,29 @@ results <- parallel::mclapply(
                 # Compute the empirical values of the phenomena of interest. 
                 # For this, we load the dataset and then loop over each function
                 # while providing this dataset to the functions
-                data <- readRDS(
-                    file.path(
-                        "scripts",
-                        "data",
-                        paste0(conditions[i, 1], "_per_participant"),
-                        paste0(id, ".rds")
+                #
+                # Special trick needed for the VANHASBROECK_2024 data.
+                if(conditions[i, 1] %in% c("VANHASBROECK_2024_1", "VANHASBROECK_2024_2")) {
+                    data <- readRDS(
+                        file.path(
+                            "scripts",
+                            "data",
+                            "VANHASBROECK_2024_per_participant",
+                            paste0(id, ".rds")
+                        )
                     )
-                )
+                
+                } else {
+                    data <- readRDS(
+                        file.path(
+                            "scripts",
+                            "data",
+                            paste0(conditions[i, 1], "_per_participant"),
+                            paste0(id, ".rds")
+                        )
+                    )
+                }
+                
 
                 true <- lapply(
                     names(phenomena), 
@@ -400,6 +415,7 @@ results <- parallel::mclapply(
 
         # Save the results in a .csv file
         write.csv(
+            results,
             file.path(
                 "scripts",
                 "results",
