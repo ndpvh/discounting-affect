@@ -5,6 +5,8 @@
 # checking whether the models can capture interesting phenomena in the data.
 ################################################################################
 
+devtools::load_all()
+
 ################################################################################
 # PHENOMENA OF INTEREST
 ################################################################################
@@ -173,13 +175,15 @@ bimodality <- function(dataset, ...) {
 ################################################################################
 
 # Define the number of datasets to be generated per person per model per dataset
-N <- 1000
+N <- 10
 
 # Define the phenomena, the models, and the datasets of interest
 datasets <- list(
     "VANHASBROECK_2021" = c(1, 3),
     "VANHASBROECK_2022" = c(2, 1),
-    "VANHASBROECK_2024" = c(2, 1)
+    "VANHASBROECK_2024_1" = c(1, 1),
+    "VANHASBROECK_2024_2" = c(2, 1),
+    "NIEMEIJER_2022" = c(2, 2)
 )
 models <- list(
     "exponential" = exponential,
