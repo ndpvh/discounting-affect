@@ -224,7 +224,7 @@ conditions <- cbind(
 )
 
 # Loop over datasets and models to perform the analyses
-results <- lapply(#parallel::mclapply(
+results <- parallel::mclapply(
     seq_len(nrow(conditions)), 
     function(i) {
         set.seed(conditions[i, 3])
@@ -317,7 +317,6 @@ results <- lapply(#parallel::mclapply(
                 # participant. For each of these datasets, then compute the 
                 # values of the statistics, and finally summarize into one 
                 # coherent data.frame
-                browser()
                 simulated <- lapply(
                     1:N, 
                     function(k) {
@@ -327,6 +326,11 @@ results <- lapply(#parallel::mclapply(
                             X = data@X
                         )
 
+                        # Add the names of the dependent and independent variables
+                        # to the dataset
+                        colnames(simdata@Y) <- colnames(data@Y)
+                        colnames(simdata@X) <- colnames(data@X)
+
                         # Loop over the phenomena and return a data.frame
                         simulated <- lapply(
                             names(phenomena), 
@@ -334,7 +338,7 @@ results <- lapply(#parallel::mclapply(
                                 # Compute the values of the statistics that serve to 
                                 # quanify our phenomena of interest
                                 statistic <- phenomena[[x]](
-                                    data, 
+                                    simdata, 
                                     model = model
                                 )
 
@@ -357,6 +361,7 @@ results <- lapply(#parallel::mclapply(
                         return(do.call("rbind", simulated))
                     }
                 )
+
                 simulated <- do.call("rbind", simulated) |>
                     dplyr::group_by(dataset, model, phenomenon, variables) |>
                     dplyr::summarize(
@@ -370,13 +375,14 @@ results <- lapply(#parallel::mclapply(
                         q975 = quantile(value, prob = 0.975),
                         max = max(value)
                     ) |>
-                    dplyr::ungroup()
+                    dplyr::ungroup() |>
+                    suppressMessages()
 
                 # Bind both data.frames together so that all results are bundled.
                 # Then return this result
                 return(
                     simulated |>
-                        dplyr::full_join(estimated)
+                        dplyr::full_join(true)
                 )
             }
         )
@@ -399,10 +405,10 @@ results <- lapply(#parallel::mclapply(
         )
 
         return(NULL)
-    }#,
-    # mc.cores = ifelse(
-    #     Sys.info()["sysname"] == "Windows",
-    #     1,
-    #     round(parallel::detectCores() / 2) - 1  # Optimized for my own Mac/Linux system
-    # )
+    },
+    mc.cores = ifelse(
+        Sys.info()["sysname"] == "Windows",
+        1,
+        round(parallel::detectCores() / 2) - 1  # Optimized for my own Mac/Linux system
+    )
 )
