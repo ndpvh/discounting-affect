@@ -175,7 +175,7 @@ bimodality <- function(dataset, ...) {
 ################################################################################
 
 # Define the number of datasets to be generated per person per model per dataset
-N <- 10
+N <- 1000
 
 # Define the phenomena, the models, and the datasets of interest
 datasets <- list(
@@ -251,7 +251,10 @@ results <- parallel::mclapply(
             function(j) {
                 # Provide an indication of the dataset, model, and parameter set
                 # we're looking at
-                cat("\r", conditions[i, 1], ", ", conditions[i, 2], ": ", j, "    ", sep = "")
+                cat(
+                    "\r", conditions[i, 1], ", ", conditions[i, 2], ": ", j, "              ", 
+                    sep = ""
+                )
 
                 # Get the participant id
                 id <- parameters$participant_id[j]
@@ -382,7 +385,8 @@ results <- parallel::mclapply(
                 # Then return this result
                 return(
                     simulated |>
-                        dplyr::full_join(true)
+                        dplyr::full_join(true) |>
+                        suppressMessages()
                 )
             }
         )
