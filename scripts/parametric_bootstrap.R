@@ -391,8 +391,14 @@ results <- parallel::mclapply(
             }
         )
 
-        # Bind the results together and save in a csv-file
+        # Bind the results together
         results <- do.call("rbind", results)
+
+        # Add a logical that checks whether the empirical values fall within the 
+        # simulated 95%CI: The main check that we want to perform here.
+        results$covered <- (results$true <= results$q975) & (results$true >= results$q025)
+
+        # Save the results in a .csv file
         write.csv(
             file.path(
                 "scripts",
