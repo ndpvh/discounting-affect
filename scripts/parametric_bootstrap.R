@@ -445,3 +445,104 @@ results <- parallel::mclapply(
 ################################################################################
 # SUMMARY
 ################################################################################
+
+# Define all datasets and models
+datasets <- c(
+    "VANHASBROECK_2021",
+    "VANHASBROECK_2022",
+    "VANHASBROECK_2024_1",
+    "VANHASBROECK_2024_2",
+    "NIEMEIJER_2022"
+)
+models <- c(
+    "exponential",
+    "quasi_hyperbolic",
+    "double_exponential"
+)
+
+# Loop over the models and create a list of data.frame's summarizing how often
+# the model was able to cover the statistics. Furthermore include between-subject 
+# aggregated statistics for the phenomena-of-interest
+result <- lapply(
+    models, 
+    function(x) {
+        # Loop over the datasets
+        result <- lapply(
+            datasets, 
+            function(y) {
+                # Load the results of the parametric bootstrap
+                result <- read.csv(
+                    file.path(
+                        "scripts", 
+                        "results", 
+                        "bootstrap",
+                        paste0(y, "_", x, ".csv")
+                    )
+                )
+
+                # Summarize the data in a meaningful way, extracting the 
+                # coverage percentage and some between-subject aggregated values
+                # for the statistics
+                result <- result |>
+                    dplyr::group_by(phenomenon, variables) |>
+                    dplyr::summarize(
+                        dataset = dataset[1],
+                        true_sd = sd(true, na.rm = TRUE),
+                        true_min = min(true, na.rm = TRUE),
+                        true_q025 = quantile(true, prob = 0.025, na.rm = TRUE),
+                        true_q25 = quantile(true, prob = 0.25, na.rm = TRUE),
+                        true_q50 = quantile(true, prob = 0.50, na.rm = TRUE),
+                        true_q75 = quantile(true, prob = 0.75, na.rm = TRUE),
+                        true_q975 = quantile(true, prob = 0.975, na.rm = TRUE),
+                        true_max = max(true, na.rm = TRUE),
+                        dplyr::across(
+                            mean:covered,
+                            mean,
+                            na.rm = TRUE
+                        )
+                    ) |>
+                    dplyr::ungroup() |>
+                    dplyr::rename(
+                        true_mean = true
+                    ) |>
+                    dplyr::relocate(
+                        true_mean, 
+                        .after = dataset
+                    )
+
+                # Return
+                return(result)
+            }
+        )
+
+        # Bind together, order in a meaningful way and return
+        result <- do.call("rbind", result) |>
+            dplyr::arrange(phenomenon, dataset)
+
+        return(result)
+    }
+) |>
+    `names<-` (models)
+
+# Save these results
+saveRDS(
+    result, 
+    file.path(
+        "scripts",
+        "results",
+        "bootstrap",
+        "bootstrap_summary.Rds"
+    )
+)
+
+# Examining the coverage itself in a bit more detail across datasets
+coverage <- lapply(
+    result,
+    function(x) x |>
+        dplyr::group_by(phenomenon) |>
+        dplyr::summarize(
+            mean = mean(covered),
+            min = min(covered),
+            max = max(covered)
+        )
+)
