@@ -354,11 +354,12 @@ results <- parallel::mclapply(
                             names(phenomena), 
                             function(x) {
                                 # Compute the values of the statistics that serve to 
-                                # quanify our phenomena of interest
+                                # quantify our phenomena of interest
                                 statistic <- phenomena[[x]](
                                     simdata, 
                                     model = model
-                                )
+                                ) |>
+                                    suppressWarnings()
 
                                 # Save in a data.frame. When there are multiple values 
                                 # for the phenomena, we adjust the data.frame to take 
@@ -383,15 +384,15 @@ results <- parallel::mclapply(
                 simulated <- do.call("rbind", simulated) |>
                     dplyr::group_by(dataset, model, phenomenon, variables) |>
                     dplyr::summarize(
-                        mean = mean(value),
-                        sd = sd(value),
-                        min = min(value),
-                        q025 = quantile(value, prob = 0.025),
-                        q25 = quantile(value, prob = 0.25),
-                        q50 = quantile(value, prob = 0.50),
-                        q75 = quantile(value, prob = 0.75),
-                        q975 = quantile(value, prob = 0.975),
-                        max = max(value)
+                        mean = mean(value, na.rm = TRUE),
+                        sd = sd(value, na.rm = TRUE),
+                        min = min(value, na.rm = TRUE),
+                        q025 = quantile(value, prob = 0.025, na.rm = TRUE),
+                        q25 = quantile(value, prob = 0.25, na.rm = TRUE),
+                        q50 = quantile(value, prob = 0.50, na.rm = TRUE),
+                        q75 = quantile(value, prob = 0.75, na.rm = TRUE),
+                        q975 = quantile(value, prob = 0.975, na.rm = TRUE),
+                        max = max(value, na.rm = TRUE)
                     ) |>
                     dplyr::ungroup() |>
                     suppressMessages()
@@ -438,3 +439,9 @@ results <- parallel::mclapply(
         round(parallel::detectCores() / 2) - 1  # Optimized for my own Mac/Linux system
     )
 )
+
+
+
+################################################################################
+# SUMMARY
+################################################################################
