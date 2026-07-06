@@ -204,7 +204,7 @@ compute_forgetting_steps_double_exponential <- function(df, threshold = FORGET_T
 
 data <- load_estimation_data(ESTIMATE_DIR, MODEL_TYPES)
 
-df_exp <- data[["VANHASBROECK_2022"]][["exponential"]]
+df_exp <- data[["VANHASBROECK_2021"]][["exponential"]]
 results_exp <- compute_forgetting_steps_exponential(df_exp)
 
 n_forget_cols_exp <- grep("^n_forget_", names(results_exp), value = TRUE)
