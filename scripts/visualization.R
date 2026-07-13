@@ -559,3 +559,305 @@ cat("  Saved:", out_path, "\n")
 
 cat("\nAll figures saved inside:", figure_dir, "\n")
 print(figure_subdirs)
+
+
+#################################################################################
+# BASE VISUALIZATION EXAMPLES OF EACH MODEL
+################################################################################
+
+
+library(ggplot2)
+
+# Create folder
+dir.create("figures", showWarnings = FALSE)
+
+# Lag values: j = how many time steps in the past
+lags <- 0:20
+
+# Common theme for all plots
+theme_discount <- theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    panel.grid.minor = element_blank()
+  )
+
+# Common axis scales
+x_scale <- scale_x_continuous(
+  breaks = seq(0, 20, 2),
+  limits = c(0, 20)
+)
+
+y_scale <- scale_y_continuous(
+  limits = c(0, 1),
+  breaks = seq(0, 1, 0.25)
+)
+
+# Common save settings
+plot_width <- 7
+plot_height <- 5
+
+
+# ============================================================
+# 1. Exponential model
+# Model definition:
+# y_t = alpha + sum_{j=0}^t Gamma^j B x_{t-j} + epsilon_t
+#
+# Scalar visualisation:
+# w_j = gamma^j
+# ============================================================
+
+gamma_values <- c(0.30, 0.60, 0.90)
+
+df_exp <- do.call(
+  rbind,
+  lapply(gamma_values, function(gamma) {
+    data.frame(
+      lag = lags,
+      weight = gamma^lags,
+      curve = paste0("gamma = ", gamma)
+    )
+  })
+)
+
+p_exp <- ggplot(df_exp, aes(x = lag, y = weight, colour = curve)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 1.8) +
+  x_scale +
+  y_scale +
+  labs(
+    title = "Exponential discounting model",
+    subtitle = expression(w[j] == gamma^j),
+    x = "Lag j: time steps in the past",
+    y = "Discount weight applied to past outcome",
+    colour = expression(gamma)
+  ) +
+  scale_colour_discrete(
+    labels = c(
+      expression(gamma == 0.30),
+      expression(gamma == 0.60),
+      expression(gamma == 0.90)
+    )
+  ) +
+  theme_discount
+
+p_exp
+
+ggsave(
+  filename = "figures/exponential_discounting.pdf",
+  plot = p_exp,
+  width = plot_width,
+  height = plot_height
+)
+
+
+# ============================================================
+# 2. Quasi-hyperbolic model
+# Model definition:
+# y_t = alpha + sum_{j=0}^t N^j K^i(j) B x_{t-j} + epsilon_t
+#
+# where i(j) = 0 if j = 0, and i(j) = 1 otherwise.
+#
+# Scalar visualisation:
+# w_j = nu^j * kappa^I(j > 0)
+#
+# This means:
+# w_0 = 1
+# w_j = kappa * nu^j, for j > 0
+# ============================================================
+
+nu_fixed <- 0.80
+kappa_values <- c(0.25, 0.60, 0.90)
+
+df_qh <- do.call(
+  rbind,
+  lapply(kappa_values, function(kappa) {
+    data.frame(
+      lag = lags,
+      weight = ifelse(lags == 0, 1, kappa * nu_fixed^lags),
+      curve = paste0("K = ", kappa)
+    )
+  })
+)
+
+p_qh <- ggplot(df_qh, aes(x = lag, y = weight, colour = curve)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 1.8) +
+  x_scale +
+  y_scale +
+  labs(
+    title = "Quasi-hyperbolic discounting model",
+    subtitle = expression(w[j] == nu^j * kappa^I(j > 0)),
+    x = "Lag j: time steps in the past",
+    y = "Discount weight applied to past outcome",
+    colour = expression(kappa)
+  ) +
+  scale_colour_discrete(
+    labels = c(
+      expression(kappa == 0.25),
+      expression(kappa == 0.60),
+      expression(kappa == 0.90)
+    )
+  ) +
+  theme_discount
+
+p_qh
+
+ggsave(
+  filename = "figures/quasi_hyperbolic_discounting.pdf",
+  plot = p_qh,
+  width = plot_width,
+  height = plot_height
+)
+
+
+# ============================================================
+# 3. Double-exponential model
+# Model definition:
+# y_t = alpha + sum_{j=0}^t [omega Gamma^j + (1 - omega) N^j] B x_{t-j}
+#       + epsilon_t
+#
+# Scalar visualisation:
+# w_j = omega * gamma^j + (1 - omega) * nu^j
+#
+# In models.R, omega is constrained to [0, 0.5].
+# Here, gamma is set to a faster decay process and nu to a slower one.
+# ============================================================
+
+gamma_fixed <- 0.30
+nu_fixed_de <- 0.85
+omega_values <- c(0.10, 0.30, 0.50)
+
+df_de <- do.call(
+  rbind,
+  lapply(omega_values, function(omega) {
+    data.frame(
+      lag = lags,
+      weight = omega * gamma_fixed^lags + (1 - omega) * nu_fixed_de^lags,
+      curve = paste0("omega = ", omega)
+    )
+  })
+)
+
+p_de <- ggplot(df_de, aes(x = lag, y = weight, colour = curve)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 1.8) +
+  x_scale +
+  y_scale +
+  labs(
+    title = "Double-exponential discounting model",
+    subtitle = expression(w[j] == omega * gamma^j + (1 - omega) * nu^j),
+    x = "Lag j: time steps in the past",
+    y = "Discount weight applied to past outcome",
+    colour = expression(omega)
+  ) +
+  scale_colour_discrete(
+    labels = c(
+      expression(omega == 0.10),
+      expression(omega == 0.30),
+      expression(omega == 0.50)
+    )
+  ) +
+  theme_discount
+
+p_de
+
+ggsave(
+  filename = "figures/double_exponential_discounting.pdf",
+  plot = p_de,
+  width = plot_width,
+  height = plot_height
+)
+
+
+#################################################################################
+# VISUALIZATION EXAMPLES OF CHANGE IN N
+################################################################################
+
+# ============================================================
+# 1. Quasi-hyperbolic model: varying N (nu)
+#
+# Here, kappa is fixed and nu varies
+# ============================================================
+
+kappa_fixed <- 0.60
+nu_values <- c(0.30, 0.60, 0.90)
+
+df_qh_n <- do.call(
+  rbind,
+  lapply(nu_values, function(nu) {
+    data.frame(
+      lag = lags,
+      weight = ifelse(lags == 0, 1, kappa_fixed * nu^lags),
+      curve = paste0("N = ", nu)
+    )
+  })
+)
+
+p_qh_n <- ggplot(df_qh_n, aes(x = lag, y = weight, colour = curve)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 1.8) +
+  x_scale +
+  y_scale +
+  labs(
+    title = "Quasi-hyperbolic discounting model",
+    subtitle = expression(w[j] == nu^j * kappa^I(j > 0)),
+    x = "Lag j: time steps in the past",
+    y = "Discount weight applied to past outcome",
+    colour = "N Value"
+  ) +
+  theme_discount
+
+p_qh_n
+
+ggsave(
+  filename = "figures/quasi_hyperbolic_varying_N.pdf",
+  plot = p_qh_n,
+  width = plot_width,
+  height = plot_height
+)
+
+
+# ============================================================
+# 2. Double-exponential model: varying N (nu)
+# Here, gamma and omega are fixed and nu varies
+# ============================================================
+
+gamma_fixed <- 0.30
+omega_fixed <- 0.30
+nu_values_de <- c(0.40, 0.65, 0.90)
+
+df_de_n <- do.call(
+  rbind,
+  lapply(nu_values_de, function(nu) {
+    data.frame(
+      lag = lags,
+      weight = omega_fixed * gamma_fixed^lags + (1 - omega_fixed) * nu^lags,
+      curve = paste0("N = ", nu)
+    )
+  })
+)
+
+p_de_n <- ggplot(df_de_n, aes(x = lag, y = weight, colour = curve)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 1.8) +
+  x_scale +
+  y_scale +
+  labs(
+    title = "Double-exponential discounting model",
+    subtitle = expression(w[j] == omega * gamma^j + (1 - omega) * nu^j),
+    x = "Lag j: time steps in the past",
+    y = "Discount weight applied to past outcome",
+    colour = "N value"
+  ) +
+  theme_discount
+
+p_de_n
+
+ggsave(
+  filename = "figures/double_exponential_varying_N.pdf",
+  plot = p_de_n,
+  width = plot_width,
+  height = plot_height
+)
