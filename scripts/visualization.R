@@ -35,7 +35,7 @@ library(dplyr)
 # Create the output folders for figures if they do not already exist.
 # The main folder contains four subfolders, one for each plot group.
 # I found this better for organizing the output than dumping everything into one folder.
-figure_dir <- file.path("scripts", "figures", "visualization")
+figure_dir <- file.path("scripts", "results", "figures", "visualization")
 
 figure_subdirs <- list(
   parameters  = file.path(figure_dir, "01_parameter_histograms"),
@@ -568,8 +568,15 @@ print(figure_subdirs)
 
 library(ggplot2)
 
-# Create folder
-dir.create("figures", showWarnings = FALSE)
+# Make subdirectory for these figures if it doesn't exist under scripts/results/figures/base_model_figures
+base_fig_dir <- file.path("scripts", "results", "figures", "base_model_figures")
+if (!dir.exists(base_fig_dir)) {
+  dir.create(base_fig_dir, recursive = TRUE)
+  cat("Created directory:", base_fig_dir, "\n")
+} else {
+  cat("Directory already exists:", base_fig_dir, "\n")
+}
+
 
 # Lag values: j = how many time steps in the past
 lags <- 0:20
@@ -597,6 +604,8 @@ y_scale <- scale_y_continuous(
 # Common save settings
 plot_width <- 7
 plot_height <- 5
+
+
 
 
 # ============================================================
@@ -645,7 +654,7 @@ p_exp <- ggplot(df_exp, aes(x = lag, y = weight, colour = curve)) +
 p_exp
 
 ggsave(
-  filename = "figures/exponential_discounting.pdf",
+  filename = file.path(base_fig_dir, "exponential_discounting.pdf"),
   plot = p_exp,
   width = plot_width,
   height = plot_height
@@ -705,7 +714,7 @@ p_qh <- ggplot(df_qh, aes(x = lag, y = weight, colour = curve)) +
 p_qh
 
 ggsave(
-  filename = "figures/quasi_hyperbolic_discounting.pdf",
+  filename = file.path(base_fig_dir, "quasi_hyperbolic_discounting.pdf"),
   plot = p_qh,
   width = plot_width,
   height = plot_height
@@ -764,7 +773,7 @@ p_de <- ggplot(df_de, aes(x = lag, y = weight, colour = curve)) +
 p_de
 
 ggsave(
-  filename = "figures/double_exponential_discounting.pdf",
+  filename = file.path(base_fig_dir, "double_exponential_discounting.pdf"),
   plot = p_de,
   width = plot_width,
   height = plot_height
@@ -812,7 +821,7 @@ p_qh_n <- ggplot(df_qh_n, aes(x = lag, y = weight, colour = curve)) +
 p_qh_n
 
 ggsave(
-  filename = "figures/quasi_hyperbolic_varying_N.pdf",
+  filename = file.path(base_fig_dir, "quasi_hyperbolic_varying_N.pdf"),
   plot = p_qh_n,
   width = plot_width,
   height = plot_height
@@ -856,7 +865,7 @@ p_de_n <- ggplot(df_de_n, aes(x = lag, y = weight, colour = curve)) +
 p_de_n
 
 ggsave(
-  filename = "figures/double_exponential_varying_N.pdf",
+  filename = file.path(base_fig_dir, "double_exponential_varying_N.pdf"),
   plot = p_de_n,
   width = plot_width,
   height = plot_height

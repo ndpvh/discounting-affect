@@ -364,7 +364,7 @@ get_parameter_label <- function(dimension_code, n_dimensions) {
 #' and save a boxplot (valid participants only) for one dataset/model_type.
 plot_forgetting_steps <- function(dataset_name, model_type,
                                   results_dir = "scripts/results/forgetting_steps",
-                                  figures_dir = "scripts/results/figures") {
+                                  figures_dir = "scripts/results/figures/forgetting_steps") {
   
   # ---- load ----
   file_path <- file.path(results_dir, paste0(dataset_name, "_", model_type, "_forgetting_steps.csv"))
