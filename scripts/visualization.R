@@ -870,3 +870,221 @@ ggsave(
   width = plot_width,
   height = plot_height
 )
+
+
+##################################################################################
+# PARAMETRIC BOOTSTRAP HEATMAPS
+##################################################################################
+
+# Paths ------------------------------------------------------------------------
+
+bootstrap_file <- file.path(
+  "scripts",
+  "results",
+  "bootstrap",
+  "bootstrap_summary.Rds"
+)
+
+output_dir <- file.path(
+  "scripts",
+  "results",
+  "figures",
+  "bootstrap_analysis"
+)
+
+if (!file.exists(bootstrap_file)) {
+  stop(
+    "Bootstrap summary not found at: ",
+    bootstrap_file,
+    "\nRun parametric_bootstrap.R before creating this figure."
+  )
+}
+
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+
+# Prepare data -----------------------------------------------------------------
+
+# bootstrap_summary.Rds is a named list containing one data frame per model.
+bootstrap_results <- readRDS(bootstrap_file) |>
+  dplyr::bind_rows(.id = "model")
+
+# Average coverage across the outcome/predictor variables belonging to each
+# phenomenon. Coverage is expressed as a proportion between 0 and 1.
+bootstrap_plot_data <- bootstrap_results |>
+  dplyr::group_by(dataset, model, phenomenon) |>
+  dplyr::summarise(
+    coverage = mean(covered, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  dplyr::filter(is.finite(coverage))
+
+phenomenon_order <- c(
+  "autocorrelation_1",
+  "autocorrelation_2",
+  "autocorrelation_3",
+  "residual_autocorrelation_1",
+  "residual_autocorrelation_2",
+  "residual_autocorrelation_3",
+  "outcome_correlation_1",
+  "outcome_correlation_2",
+  "outcome_correlation_3",
+  "outcome_correlation_4",
+  "outcome_correlation_5",
+  "moment_1",
+  "moment_2",
+  "moment_3",
+  "moment_4",
+  "bimodality_coefficient"
+)
+
+phenomenon_labels <- c(
+  "Affect autocorrelation: lag 1",
+  "Affect autocorrelation: lag 2",
+  "Affect autocorrelation: lag 3",
+  "Residual autocorrelation: lag 1",
+  "Residual autocorrelation: lag 2",
+  "Residual autocorrelation: lag 3",
+  "Predictor–affect correlation: lag 1",
+  "Predictor–affect correlation: lag 2",
+  "Predictor–affect correlation: lag 3",
+  "Predictor–affect correlation: lag 4",
+  "Predictor–affect correlation: lag 5",
+  "Mean",
+  "Variance",
+  "Third central moment",
+  "Fourth central moment",
+  "Bimodality coefficient"
+)
+
+bootstrap_plot_data <- bootstrap_plot_data |>
+  dplyr::mutate(
+    dataset = factor(
+      dataset,
+      levels = c(
+        "VANHASBROECK_2021",
+        "VANHASBROECK_2022",
+        "VANHASBROECK_2024_1",
+        "VANHASBROECK_2024_2",
+        "NIEMEIJER_2022"
+      ),
+      labels = c(
+        "Vanhasbroeck et al. (2021)",
+        "Vanhasbroeck et al. (2022)",
+        "Vanhasbroeck et al. (2024): valence",
+        "Vanhasbroeck et al. (2024): positive/negative affect",
+        "Niemeijer et al. (2022)"
+      )
+    ),
+    model = factor(
+      model,
+      levels = c(
+        "exponential",
+        "quasi_hyperbolic",
+        "double_exponential"
+      ),
+      labels = c(
+        "Exponential",
+        "Quasi-\nhyperbolic",
+        "Double-\nexponential"
+      )
+    ),
+    phenomenon = factor(
+      phenomenon,
+      levels = rev(phenomenon_order),
+      labels = rev(phenomenon_labels)
+    ),
+    coverage_label = sprintf("%.0f", 100 * coverage)
+  )
+
+
+# Plot -------------------------------------------------------------------------
+
+bootstrap_coverage_plot <- ggplot(
+  bootstrap_plot_data,
+  aes(
+    x = model,
+    y = phenomenon,
+    fill = coverage
+  )
+) +
+  geom_tile(
+    colour = "white",
+    linewidth = 0.5
+  ) +
+  geom_text(
+    aes(
+      label = coverage_label,
+      colour = coverage >= 0.55
+    ),
+    size = 2.8
+  ) +
+  facet_wrap(
+    ~ dataset,
+    ncol = 3
+  ) +
+  scale_fill_gradient(
+    low = "#f7fbff",
+    high = "#08306b",
+    limits = c(0, 1),
+    breaks = seq(0, 1, by = 0.25),
+    labels = scales::label_percent(accuracy = 1),
+    oob = scales::squish
+  ) +
+  scale_colour_manual(
+    values = c(
+      "FALSE" = "black",
+      "TRUE" = "white"
+    ),
+    guide = "none"
+  ) +
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "Coverage"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    panel.grid = element_blank(),
+    axis.text.x = element_text(
+      angle = 0,
+      hjust = 0.5,
+      size = 9
+    ),
+    axis.text.y = element_text(size = 9),
+    strip.text = element_text(
+      face = "bold",
+      size = 10
+    ),
+    legend.position = "bottom",
+    legend.key.width = grid::unit(2.5, "cm"),
+    plot.margin = margin(10, 10, 10, 10)
+  )
+
+
+# Save figure ------------------------------------------------------------------
+
+ggsave(
+  filename = file.path(
+    output_dir,
+    "bootstrap_coverage_heatmap.pdf"
+  ),
+  plot = bootstrap_coverage_plot,
+  width = 13,
+  height = 10,
+  units = "in",
+  bg = "white"
+)
+
+ggsave(
+  filename = file.path(
+    output_dir,
+    "bootstrap_coverage_heatmap.png"
+  ),
+  plot = bootstrap_coverage_plot,
+  width = 13,
+  height = 10,
+  units = "in",
+  dpi = 300,
+  bg = "white"
+)
