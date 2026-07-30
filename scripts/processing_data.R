@@ -33,11 +33,22 @@ output_dir  <- file.path("scripts/data", "VANHASBROECK_2021_per_participant")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 y_cols           <- "happiness"
-x_cols           <- c("cr", "ev", "rpe")
+x_cols           <- c("cr", "ev", "rpe", "total")
 sorting_variable <- "trial"
 
-# Load data
-raw <- read.csv(input_file)
+# Load data and create a "total" variable, indicating the total people saw on 
+# each trial
+raw <- read.csv(input_file) |>
+  dplyr::group_by(id) |>
+  tidyr::nest() |>
+  dplyr::rowwise() |>
+  dplyr::mutate(
+    data = data |>
+      dplyr::arrange(trial) |>
+      dplyr::mutate(total = 500 + cumsum(outcome)) |>
+      list()
+  ) |>
+  tidyr::unnest(data)
 
 # Loop over participants and create dataset objects
 participant_ids <- sort(unique(raw$id))
@@ -50,7 +61,7 @@ for (pid in participant_ids) {
   ds <- dataset(
     data             = participant_data,
     y_cols           = y_cols,
-    x_cols           = x_cols,
+    x_cols           = x_cols / 100,        # Rescale to the euro-level
     sorting_variable = sorting_variable
   )
   
@@ -80,7 +91,7 @@ output_dir  <- file.path("scripts/data", "VANHASBROECK_2022_per_participant")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 y_cols           <- c("positive_affect","negative_affect")
-x_cols           <- c("outcome")
+x_cols           <- c("outcome", "total")
 sorting_variable <- "trial"
 
 # Load data
