@@ -207,6 +207,10 @@ plot_colours <- setNames(
   unname(model_labels[names(model_colours)])
 )
 
+# Point shapes provide a second visual cue for the line graphs, so the curves
+# can be distinguished without relying only on colour.
+curve_shapes <- c(16, 17, 15)  # circle, triangle, square
+
 
 ################################################################################
 # PARAMETER HISTOGRAMS
@@ -498,8 +502,8 @@ p_density <- ggplot(df_sse,
   facet_wrap(~ dataset_label, scales = "free", nrow = 2) +
 
   
-  scale_colour_manual(values = plot_colours)
-  scale_fill_manual(values = plot_colours)
+  scale_colour_manual(values = plot_colours) +
+  scale_fill_manual(values = plot_colours) +
 
   labs(
     title    = "SSE distribution by model and dataset",
@@ -630,9 +634,12 @@ df_exp <- do.call(
   })
 )
 
-p_exp <- ggplot(df_exp, aes(x = lag, y = weight, colour = curve)) +
+p_exp <- ggplot(
+  df_exp,
+  aes(x = lag, y = weight, colour = curve, shape = curve)
+) +
   geom_line(linewidth = 1.2) +
-  geom_point(size = 1.8) +
+  geom_point(size = 2.8) +
   x_scale +
   y_scale +
   labs(
@@ -640,9 +647,18 @@ p_exp <- ggplot(df_exp, aes(x = lag, y = weight, colour = curve)) +
     subtitle = expression(w[j] == gamma^j),
     x = "Lag j: time steps in the past",
     y = "Discount weight applied to past outcome",
-    colour = expression(gamma)
+    colour = expression(gamma),
+    shape = expression(gamma)
   ) +
   scale_colour_discrete(
+    labels = c(
+      expression(gamma == 0.30),
+      expression(gamma == 0.60),
+      expression(gamma == 0.90)
+    )
+  ) +
+  scale_shape_manual(
+    values = curve_shapes,
     labels = c(
       expression(gamma == 0.30),
       expression(gamma == 0.60),
@@ -685,14 +701,17 @@ df_qh <- do.call(
     data.frame(
       lag = lags,
       weight = ifelse(lags == 0, 1, kappa * nu_fixed^lags),
-      curve = paste0("K = ", kappa)
+      curve = paste0("kappa = ", kappa)
     )
   })
 )
 
-p_qh <- ggplot(df_qh, aes(x = lag, y = weight, colour = curve)) +
+p_qh <- ggplot(
+  df_qh,
+  aes(x = lag, y = weight, colour = curve, shape = curve)
+) +
   geom_line(linewidth = 1.2) +
-  geom_point(size = 1.8) +
+  geom_point(size = 2.8) +
   x_scale +
   y_scale +
   labs(
@@ -700,9 +719,18 @@ p_qh <- ggplot(df_qh, aes(x = lag, y = weight, colour = curve)) +
     subtitle = expression(w[j] == nu^j * kappa^I(j > 0)),
     x = "Lag j: time steps in the past",
     y = "Discount weight applied to past outcome",
-    colour = expression(kappa)
+    colour = expression(kappa),
+    shape = expression(kappa)
   ) +
   scale_colour_discrete(
+    labels = c(
+      expression(kappa == 0.25),
+      expression(kappa == 0.60),
+      expression(kappa == 0.90)
+    )
+  ) +
+  scale_shape_manual(
+    values = curve_shapes,
     labels = c(
       expression(kappa == 0.25),
       expression(kappa == 0.60),
@@ -749,9 +777,12 @@ df_de <- do.call(
   })
 )
 
-p_de <- ggplot(df_de, aes(x = lag, y = weight, colour = curve)) +
+p_de <- ggplot(
+  df_de,
+  aes(x = lag, y = weight, colour = curve, shape = curve)
+) +
   geom_line(linewidth = 1.2) +
-  geom_point(size = 1.8) +
+  geom_point(size = 2.8) +
   x_scale +
   y_scale +
   labs(
@@ -759,9 +790,18 @@ p_de <- ggplot(df_de, aes(x = lag, y = weight, colour = curve)) +
     subtitle = expression(w[j] == omega * gamma^j + (1 - omega) * nu^j),
     x = "Lag j: time steps in the past",
     y = "Discount weight applied to past outcome",
-    colour = expression(omega)
+    colour = expression(omega),
+    shape = expression(omega)
   ) +
   scale_colour_discrete(
+    labels = c(
+      expression(omega == 0.10),
+      expression(omega == 0.30),
+      expression(omega == 0.50)
+    )
+  ) +
+  scale_shape_manual(
+    values = curve_shapes,
     labels = c(
       expression(omega == 0.10),
       expression(omega == 0.30),
@@ -781,11 +821,11 @@ ggsave(
 
 
 #################################################################################
-# VISUALIZATION EXAMPLES OF CHANGE IN N
+# VISUALIZATION EXAMPLES OF CHANGE IN NU
 ################################################################################
 
 # ============================================================
-# 1. Quasi-hyperbolic model: varying N (nu)
+# 1. Quasi-hyperbolic model: varying nu
 #
 # Here, kappa is fixed and nu varies
 # ============================================================
@@ -799,14 +839,17 @@ df_qh_n <- do.call(
     data.frame(
       lag = lags,
       weight = ifelse(lags == 0, 1, kappa_fixed * nu^lags),
-      curve = paste0("N = ", nu)
+      curve = paste0("nu = ", nu)
     )
   })
 )
 
-p_qh_n <- ggplot(df_qh_n, aes(x = lag, y = weight, colour = curve)) +
+p_qh_n <- ggplot(
+  df_qh_n,
+  aes(x = lag, y = weight, colour = curve, shape = curve)
+) +
   geom_line(linewidth = 1.2) +
-  geom_point(size = 1.8) +
+  geom_point(size = 2.8) +
   x_scale +
   y_scale +
   labs(
@@ -814,7 +857,23 @@ p_qh_n <- ggplot(df_qh_n, aes(x = lag, y = weight, colour = curve)) +
     subtitle = expression(w[j] == nu^j * kappa^I(j > 0)),
     x = "Lag j: time steps in the past",
     y = "Discount weight applied to past outcome",
-    colour = "N Value"
+    colour = expression(nu),
+    shape = expression(nu)
+  ) +
+  scale_colour_discrete(
+    labels = c(
+      expression(nu == 0.30),
+      expression(nu == 0.60),
+      expression(nu == 0.90)
+    )
+  ) +
+  scale_shape_manual(
+    values = curve_shapes,
+    labels = c(
+      expression(nu == 0.30),
+      expression(nu == 0.60),
+      expression(nu == 0.90)
+    )
   ) +
   theme_discount
 
@@ -829,7 +888,7 @@ ggsave(
 
 
 # ============================================================
-# 2. Double-exponential model: varying N (nu)
+# 2. Double-exponential model: varying nu
 # Here, gamma and omega are fixed and nu varies
 # ============================================================
 
@@ -843,14 +902,17 @@ df_de_n <- do.call(
     data.frame(
       lag = lags,
       weight = omega_fixed * gamma_fixed^lags + (1 - omega_fixed) * nu^lags,
-      curve = paste0("N = ", nu)
+      curve = paste0("nu = ", nu)
     )
   })
 )
 
-p_de_n <- ggplot(df_de_n, aes(x = lag, y = weight, colour = curve)) +
+p_de_n <- ggplot(
+  df_de_n,
+  aes(x = lag, y = weight, colour = curve, shape = curve)
+) +
   geom_line(linewidth = 1.2) +
-  geom_point(size = 1.8) +
+  geom_point(size = 2.8) +
   x_scale +
   y_scale +
   labs(
@@ -858,7 +920,23 @@ p_de_n <- ggplot(df_de_n, aes(x = lag, y = weight, colour = curve)) +
     subtitle = expression(w[j] == omega * gamma^j + (1 - omega) * nu^j),
     x = "Lag j: time steps in the past",
     y = "Discount weight applied to past outcome",
-    colour = "N value"
+    colour = expression(nu),
+    shape = expression(nu)
+  ) +
+  scale_colour_discrete(
+    labels = c(
+      expression(nu == 0.40),
+      expression(nu == 0.65),
+      expression(nu == 0.90)
+    )
+  ) +
+  scale_shape_manual(
+    values = curve_shapes,
+    labels = c(
+      expression(nu == 0.40),
+      expression(nu == 0.65),
+      expression(nu == 0.90)
+    )
   ) +
   theme_discount
 
