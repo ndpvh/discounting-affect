@@ -103,25 +103,39 @@ fit_participant <- function(data,
                             model,
                             dynamics   = "isotropic",
                             covariance = "symmetric",
+                            filter_missing_residuals = FALSE,
                             ...) {
 
   # Wrapped in a tryCatch so that potential problems are caught and dealt with
   tryCatch(
     {
-      # Use the dataset "data" and an empty model object "model" to peform the 
+      # Use the dataset "data" and an empty model object "model" to perform the
       # estimation, using the optimizer defined above.
       fitobj <- fit(
         model,
         data,
         dynamics   = dynamics,
         covariance = covariance,
-        optimizer = optimizer,
+        optimizer  = optimizer,
         ...
       )
 
-      # Extract the parameters and the statistics computed based on the 
-      # fitobj. 
-      params <- fitobj$parameters  
+      # For datasets such as VANHASBROECK_2021, affect is only measured on a
+      # subset of trials. Remove residuals corresponding to unobserved responses
+      # before calculating AIC, BIC, autocorrelation, and bias.
+      if (filter_missing_residuals) {
+        observed <- complete.cases(data@Y)
+
+        fitobj$residuals <- fitobj$residuals[
+          observed,
+          ,
+          drop = FALSE
+        ]
+      }
+
+      # Extract the parameters and the statistics computed based on the fitobj.
+      params <- fitobj$parameters
+
       stats <- c(
         aic             = aic(fitobj),
         bic             = bic(fitobj),
@@ -129,9 +143,9 @@ fit_participant <- function(data,
         bias            = bias(fitobj),
         objective_sse   = fitobj$objective
       )
-  
+
       return(c(params, stats))
-    }, 
+    },
     error = function(e) {
       message("  Estimation failed: ", conditionMessage(e))
       return(NULL)
@@ -296,7 +310,7 @@ run_estimation <- function(folder,
       } else {
         for(j in unique(cols)) {
           # Bind the data.frame with the same number of columns together
-          idx <- cols == cols[j]
+          idx <- cols == j
           df <- do.call(rbind, df_rows[idx]) |>
             `rownames<-` (NULL)
 
@@ -403,7 +417,8 @@ for(i in seq_along(datasets)) {
             paste0(datasets[i], "_per_participant")
           ),
           base_name = datasets[i], 
-          models = models
+          models = models,
+          filter_missing_residuals = datasets[i] == "VANHASBROECK_2021"
         ),
         optim_settings
       )
