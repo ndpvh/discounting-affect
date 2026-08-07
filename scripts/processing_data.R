@@ -19,9 +19,11 @@ devtools::load_all()
 #
 # Variable roles (based on Rutledge et al., 2014 / Vanhasbroeck et al., 2021):
 #   Y (dependent variable)   : happiness
-#   X (independent variables): cr, ev, rpe
+#   X (independent variables): cr, ev, rpe, total
 #   Ignored                  : trial, id, outcome
 #
+# The total variable represents the cumulative total displayed to participants
+# on each trial.
 # NAs are kept as-is (as requested).
 # Data are saved per participant, sorted by trial number.
 # Output files are named: VANHASBROECK_2021_<id>.rds
@@ -48,7 +50,9 @@ raw <- read.csv(input_file) |>
       dplyr::mutate(total = 500 + cumsum(outcome)) |>
       list()
   ) |>
-  tidyr::unnest(data)
+  tidyr::unnest(data) |>
+  dplyr::ungroup() |>
+  as.data.frame()
 
 # Loop over participants and create dataset objects
 participant_ids <- sort(unique(raw$id))
@@ -56,29 +60,36 @@ participant_ids <- sort(unique(raw$id))
 for (pid in participant_ids) {
   
   participant_data <- raw[raw$id == pid, ]
-  participant_data <- participant_data[order(participant_data[[sorting_variable]]), ]
+  participant_data <- participant_data[
+    order(participant_data[[sorting_variable]]),
+  ]
+  
+  # Rescale monetary predictors to euro-level
+  participant_data[, x_cols] <- participant_data[, x_cols] / 100
   
   ds <- dataset(
     data             = participant_data,
     y_cols           = y_cols,
-    x_cols           = x_cols / 100,        # Rescale to the euro-level
+    x_cols           = x_cols,
     sorting_variable = sorting_variable
   )
   
-  out_file <- file.path(output_dir, paste0("VANHASBROECK_2021_", pid, ".rds"))
-  saveRDS(ds, file = out_file)
+  out_file <- file.path(
+    output_dir,
+    paste0("VANHASBROECK_2021_", pid, ".rds")
+  )
   
+  saveRDS(ds, file = out_file)
 }
-
 
 
 ################################################################################
 # VANHASBROECK_2022
 #
 # Variable roles (based on Vanhasbroeck et al., 2022):
-#   Y (dependent variable)   : possitive_affect, negative_affect
-#   X (independent variables): outcome
-#   Ignored                  : trial, id, total, door_clicked, time
+#   Y (dependent variables)  : positive_affect, negative_affect
+#   X (independent variables): outcome, total
+#   Ignored                  : trial, id, door_clicked, time
 #
 # NAs are kept as-is (as requested).
 # Data are saved per participant, sorted by trial number.
