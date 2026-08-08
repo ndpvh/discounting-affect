@@ -65,3 +65,11 @@ scripts/data/RUTLEDGE*/
 *.zip
 *.pdf
 scripts/data/*participant*/
+
+# Files used for testing during discussion that are no lonmger useful
+scripts/practical_exponential_analysis.R
+scripts/results/practical_exponential/parameter_boundary_rates.csv
+.gitignore
+scripts/results/practical_exponential/practical_exponential_curve_level.csv
+scripts/results/practical_exponential/practical_exponential_participant_level.csv
+scripts/results/practical_exponential/practical_exponential_rates.csv

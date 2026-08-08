@@ -2,10 +2,11 @@
 # PURPOSE:
 #
 # Estimate the three discounting models (exponential, quasi-hyperbolic, and
-# double-exponential) on each participant's data from the three datasets:
-#   - VANHASBROECK_2021  (d = 1, k = 3)
-#   - VANHASBROECK_2022  (d = 3, k = 2)
-#   - VANHASBROECK_2024  (d = 3, k = 1)
+# double-exponential) on each participant's data from the four datasets:
+#   - VANHASBROECK_2021  (d = 1, k = 4: cr, ev, rpe, total)
+#   - VANHASBROECK_2022  (d = 2, k = 2: outcome, total)
+#   - VANHASBROECK_2024  (d = 1 or 2, k = 1: outcome)
+#   - NIEMEIJER_2022     (d = 2, k = 2: context_pos, context_neg)
 #
 # For each dataset, three data.frames are produced (one per model) where every
 # row is a participant and every column is an estimated parameter (plus AIC,
@@ -84,9 +85,9 @@ optimizer <- function(obj,
 #
 # estimate_participant() wraps a single call to fit() and assembles the results
 # into a named numeric vector that can later become one row of a data.frame.
-# The optimizer the optimizer argument passed to fit() wraps
-# na_aware_objective_function() instead of letting fit() use its internal
-# objective_function() to deal with the 2021 dataset.
+# Missing-value handling follows the objective function used internally by
+# fit(). This is particularly relevant for VANHASBROECK_2021, where affect
+# ratings are not observed on every trial.
 #
 # Arguments:
 #   ds          – a dataset object (loaded from an RDS file)
@@ -329,7 +330,7 @@ run_estimation <- function(folder,
 # PLEASE REMEMBER TO RUN THE "processing_data.R" script
 # BEFORE THE FOLLOWING ESTIMATION!
 # 
-# Here we call run_estimation() three times, once per dataset.
+# Here we call run_estimation() once for each of the four datasets.
 # The DEoptim / nloptr settings are passed as ... arguments and mirror
 # exactly those used in recovery.R.
 #

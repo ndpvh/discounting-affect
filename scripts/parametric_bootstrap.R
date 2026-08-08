@@ -199,6 +199,7 @@ phenomena <- list(
     "residual_autocorrelation_2" = function(...) residual_autocorrelation(..., lag = 2),
     "residual_autocorrelation_3" = function(...) residual_autocorrelation(..., lag = 3),
 
+    "outcome_correlation_0" = function(...) outcome_correlation(..., lag = 0),
     "outcome_correlation_1" = function(...) outcome_correlation(..., lag = 1),
     "outcome_correlation_2" = function(...) outcome_correlation(..., lag = 2),
     "outcome_correlation_3" = function(...) outcome_correlation(..., lag = 3),
