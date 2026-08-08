@@ -87,9 +87,40 @@ get_raw_dataset_name <- function(dataset_name) {
   dataset_name
 }
 
+#' Niemeijer-specific trial counts: a missed reporting time drops both
+#' positive_affect and negative_affect together, so checking one column is
+#' enough to identify a missing trial. Rows with a missing valence are
+#' excluded before counting, since estimation is based only on rows that
+#' survive NA removal. Returns the same shape as load_trial_counts():
+#' participant_id, n_trials.
+load_trial_counts_niemeijer <- function(raw_dir,
+                                        id_col = "participant",
+                                        valence_col = "positive_affect") {
+  files <- list.files(raw_dir, pattern = "\\.csv$", full.names = TRUE)
+  matching_file <- files[grepl("NIEMEIJER", basename(files))]
+  if (length(matching_file) != 1) {
+    stop("Expected exactly one Niemeijer raw data file, found: ", length(matching_file))
+  }
+  
+  df <- read.csv(matching_file, stringsAsFactors = FALSE)
+  df_clean <- df[!is.na(df[[valence_col]]), ]
+  
+  n_trials <- as.data.frame(table(df_clean[[id_col]]))
+  names(n_trials) <- c("participant_id", "n_trials")
+  n_trials$n_trials <- as.numeric(n_trials$n_trials)
+  n_trials
+}
+
 #' Load number of trials per participant from the raw data file matching
 #' `dataset_name`. Returns a data frame with columns: participant_id, n_trials.
 load_trial_counts <- function(dataset_name, raw_dir) {
+  # Niemeijer has a different raw structure (no reliable trial index column,
+  # and rows with missing valence must be dropped before counting), so it's
+  # routed to its own loader. VANHASBROECK datasets are unaffected below.
+  if (grepl("NIEMEIJER", dataset_name)) {
+    return(load_trial_counts_niemeijer(raw_dir))
+  }
+  
   raw_dataset_name <- get_raw_dataset_name(dataset_name)
   
   files <- list.files(raw_dir, pattern = "\\.csv$", full.names = TRUE)
@@ -294,13 +325,21 @@ validity_summary <- do.call(rbind, lapply(files, function(f) {
 print(validity_summary)
 
 # ==============================================================================
-# Run: VANHASBROECK datasets only, all model types
+# Run: All datasets, all model types
 # ==============================================================================
 
 #' Run the full forgetting-steps pipeline for one dataset/model_type:
 #' compute forgetting steps, flag validity, print summaries (all participants
 #' and valid-only), and save the results as a CSV.
 #' Returns the results data frame (with validity columns) invisibly.
+#' 
+
+COMPUTE_FUNCTIONS <- list(
+  exponential         = compute_forgetting_steps_exponential,
+  quasi_hyperbolic    = compute_forgetting_steps_quasi_hyperbolic,
+  double_exponential  = compute_forgetting_steps_double_exponential
+)
+
 run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_dir,
                                  output_dir = "scripts/results/forgetting_steps") {
   
