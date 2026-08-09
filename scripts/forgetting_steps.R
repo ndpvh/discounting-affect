@@ -184,7 +184,7 @@ n_forgetting_steps_exponential <- function(gamma, threshold = FORGET_THRESHOLD) 
   if (abs(gamma) >= 1) {
     return(Inf)
   }
-  ceiling(log(threshold) / log(abs(gamma)))
+  log(threshold) / log(abs(gamma))
 }
 
 #' Compute forgetting steps for every decay-parameter column in an exponential
@@ -213,7 +213,7 @@ n_forgetting_steps_quasi_hyperbolic <- function(nu, kappa, threshold = FORGET_TH
   if (abs(nu) >= 1) {
     return(Inf)
   }
-  max(ceiling(log(threshold / kappa) / log(abs(nu))), 1)
+  max(log(threshold / kappa) / log(abs(nu)), 1)
 }
 
 #' Compute forgetting steps for the quasi-hyperbolic model. nu and kappa are
