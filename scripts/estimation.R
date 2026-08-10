@@ -234,10 +234,10 @@ run_estimation <- function(folder,
             # Estimation failed – build an all-NA row so the data.frame stays
             # rectangular. We don't know column names yet, so we signal with NULL
             # and handle it after the loop.
-            return(list(id = participant_id, values = NULL))
+            return(list(id = participant_id, d = d,  values = NULL))
           }
 
-          return(list(id = participant_id, values = row_values))
+          return(list(id = participant_id, d = d , values = row_values))
         },
         mc.cores = ifelse(
           Sys.info()["sysname"] == "Windows",
@@ -289,39 +289,49 @@ run_estimation <- function(folder,
       # multiple data.frames, each with a different name. This is a fix imposed
       # for the VANHASBROECK_2024 dataset, which contains both 2D and 1D 
       # estimates.
-      cols <- sapply(df_rows, ncol)
-      if(length(unique(cols)) == 1) {
-        # Bind the data.frame together
-        df <- do.call(rbind, df_rows) |>
-          `rownames<-` (NULL)
+      dims <- sapply(rows, function(r) r$d)
 
-        # Save the results
+      if (length(unique(dims)) == 1) {
+
+        # All participants have the same dimensionality
+        df <- do.call(rbind, df_rows) |>
+          `rownames<-`(NULL)
+
         write.csv(
-          df, 
+          df,
           file.path(
-            "scripts", 
+            "scripts",
             "results",
-            "estimation", 
+            "estimation",
             paste0(base_name, "_", model_name, ".csv")
           ),
           row.names = FALSE
         )
 
       } else {
-        for(j in unique(cols)) {
-          # Bind the data.frame with the same number of columns together
-          idx <- cols == j
-          df <- do.call(rbind, df_rows[idx]) |>
-            `rownames<-` (NULL)
 
-          # Save the results
+        # Save separate files for each response dimensionality
+        for (d_value in sort(unique(dims))) {
+
+          idx <- dims == d_value
+
+          df <- do.call(rbind, df_rows[idx]) |>
+            `rownames<-`(NULL)
+
           write.csv(
-            df, 
+            df,
             file.path(
-              "scripts", 
+              "scripts",
               "results",
-              "estimation", 
-              paste0(base_name, "_", j, "_", model_name, ".csv")
+              "estimation",
+              paste0(
+                base_name,
+                "_",
+                d_value,
+                "_",
+                model_name,
+                ".csv"
+              )
             ),
             row.names = FALSE
           )
