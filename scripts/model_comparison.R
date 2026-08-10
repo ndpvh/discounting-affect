@@ -50,10 +50,25 @@ for (dataset_name in dataset_names) {
   write.csv(comparison,
             file.path("scripts/results", paste0(dataset_name, "_model_comparison.csv")),
             row.names = FALSE)
+  
+  aic_counts <- table(comparison$best_aic_model)
+  bic_counts <- table(comparison$best_bic_model)
+  
+  aic_pct <- round(100 * prop.table(aic_counts), 0)
+  bic_pct <- round(100 * prop.table(bic_counts), 0)
 
   cat("\n===", dataset_name, "===\n")
-  cat("Best model by AIC:\n")
-  print(table(comparison$best_aic_model))
-  cat("Best model by BIC:\n")
-  print(table(comparison$best_bic_model))
+  #cat("Best model by AIC:\n")
+  #print(table(comparison$best_aic_model))
+  #cat("Best model by BIC:\n")
+  #print(table(comparison$best_bic_model))
+  #cat("\n")
+  
+  cat("Best model by AIC (%):\n")
+  print(aic_pct)
+  cat("\n")
+  cat("Best model by BIC (%):\n")
+  print(bic_pct)
 }
+
+
