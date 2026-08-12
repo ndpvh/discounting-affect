@@ -612,6 +612,69 @@ plot_height <- 5
 
 
 
+
+# ============================================================
+# Rutledge et al. (2014) base discounting model
+#
+# In the original computational model of momentary happiness,
+# past certain rewards (CR), expected values (EV), and reward
+# prediction errors (RPE) were exponentially discounted:
+#
+#   w_j = gamma^j
+#
+# Rutledge et al. (2014) reported a mean forgetting factor
+# of gamma = 0.61.
+#
+# Therefore:
+#   lag 0 -> 1
+#   lag 1 -> 0.61
+#   lag 2 -> 0.61^2
+#   ...
+# ============================================================
+
+gamma_rutledge <- 0.61
+
+df_rutledge <- data.frame(
+  lag = lags,
+  weight = gamma_rutledge^lags
+)
+
+p_rutledge <- ggplot(
+  df_rutledge,
+  aes(x = lag, y = weight)
+) +
+  geom_line(
+    linewidth = 1.2,
+    colour = model_colours[["exponential"]]
+  ) +
+  geom_point(
+    size = 2.8,
+    shape = 16,
+    colour = model_colours[["exponential"]]
+  ) +
+  x_scale +
+  y_scale +
+  labs(
+    title = "Rutledge et al. (2014) discounting curve",
+    subtitle = expression(w[j] == 0.61^j),
+    x = "Lag j: time steps in the past",
+    y = "Discount weight applied to past outcome"
+  ) +
+  theme_discount
+
+p_rutledge
+
+ggsave(
+  filename = file.path(
+    base_fig_dir,
+    "rutledge_2014_discounting.pdf"
+  ),
+  plot = p_rutledge,
+  width = plot_width,
+  height = plot_height
+)
+
+
 # ============================================================
 # 1. Exponential model
 # Model definition:
