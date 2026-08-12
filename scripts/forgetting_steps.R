@@ -87,9 +87,37 @@ get_raw_dataset_name <- function(dataset_name) {
   dataset_name
 }
 
+#' Niemeijer-specific trial counts: a missed reporting time drops both
+#' positive_affect and negative_affect together, so checking one column is
+#' enough to identify a missing trial. Rows with a missing valence are
+#' excluded before counting, since estimation is based only on rows that
+#' survive NA removal. Returns the same shape as load_trial_counts():
+#' participant_id, n_trials.
+load_trial_counts_niemeijer <- function(raw_dir,
+                                        id_col = "participant",
+                                        valence_col = "positive_affect") {
+  files <- list.files(raw_dir, pattern = "\\.csv$", full.names = TRUE)
+  matching_file <- files[grepl("NIEMEIJER", basename(files))]
+  if (length(matching_file) != 1) {
+    stop("Expected exactly one Niemeijer raw data file, found: ", length(matching_file))
+  }
+  
+  df <- read.csv(matching_file, stringsAsFactors = FALSE)
+  df_clean <- df[!is.na(df[[valence_col]]), ]
+  
+  n_trials <- as.data.frame(table(df_clean[[id_col]]))
+  names(n_trials) <- c("participant_id", "n_trials")
+  n_trials$n_trials <- as.numeric(n_trials$n_trials)
+  n_trials
+}
+
 #' Load number of trials per participant from the raw data file matching
 #' `dataset_name`. Returns a data frame with columns: participant_id, n_trials.
 load_trial_counts <- function(dataset_name, raw_dir) {
+  if (grepl("NIEMEIJER", dataset_name)) {
+    return(load_trial_counts_niemeijer(raw_dir))
+  }
+  
   raw_dataset_name <- get_raw_dataset_name(dataset_name)
   
   files <- list.files(raw_dir, pattern = "\\.csv$", full.names = TRUE)
@@ -338,6 +366,90 @@ run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_
   invisible(results)
 }
 
+
+COMPUTE_FUNCTIONS <- list(
+  exponential         = compute_forgetting_steps_exponential,
+  quasi_hyperbolic    = compute_forgetting_steps_quasi_hyperbolic,
+  double_exponential  = compute_forgetting_steps_double_exponential
+)
+
+run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_dir,
+                                 output_dir = "scripts/results/forgetting_steps") {
+  
+  df <- estimation_data[[dataset_name]][[model_type]]
+  if (is.null(df)) {
+    stop("No estimation data found for ", dataset_name, " / ", model_type)
+  }
+  
+  compute_fn <- COMPUTE_FUNCTIONS[[model_type]]
+  results <- compute_fn(df)
+  
+  trial_counts <- load_trial_counts(dataset_name, raw_dir)
+  results <- flag_invalid_forgetting_steps(results, trial_counts)
+  
+  n_forget_cols <- grep("^n_forget_", names(results), value = TRUE)
+  valid_cols <- grep("^is_valid_", names(results), value = TRUE)
+  
+  # keep only rows valid across every decay parameter (all is_valid_* columns TRUE)
+  is_fully_valid <- Reduce(`&`, results[valid_cols])
+  only_valid_ppt <- results[is_fully_valid, ]
+  
+  cat("=== ", dataset_name, " / ", model_type, " (valid participants only) ===\n", sep = "")
+  
+  stats_table <- do.call(rbind, lapply(n_forget_cols, function(col) {
+    values <- only_valid_ppt[[col]]
+    
+    # match this n_forget_* column to its corresponding is_valid_* column
+    # (via the shared suffix) to get valid/invalid counts for that parameter
+    suffix <- sub("^n_forget_", "", col)
+    valid_col <- paste0("is_valid_", suffix)
+    is_valid <- results[[valid_col]]
+    n_valid_ppt   <- sum(is_valid, na.rm = TRUE)
+    n_invalid_ppt <- sum(!is_valid, na.rm = TRUE)
+    
+    data.frame(
+      parameter = col,
+      mean      = mean(values, na.rm = TRUE),
+      sd        = sd(values, na.rm = TRUE),
+      min       = min(values, na.rm = TRUE),
+      q2.5      = quantile(values, 0.025, na.rm = TRUE),
+      q97.5     = quantile(values, 0.975, na.rm = TRUE),
+      max       = max(values, na.rm = TRUE),
+      percentage_valid = round((n_valid_ppt / (n_valid_ppt + n_invalid_ppt)) * 100, digits = 0)
+    )
+  }))
+  rownames(stats_table) <- NULL
+  
+  print(stats_table)
+  
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  out_path <- file.path(output_dir, paste0(dataset_name, "_", model_type, "_forgetting_steps.csv"))
+  write.csv(results, out_path, row.names = FALSE)
+  cat("Saved to:", out_path, "\n")
+  
+  invisible(stats_table)
+}
+
+# ========================================================================== #
+data <- load_estimation_data(ESTIMATE_DIR, MODEL_TYPES)
+
+# ---- run forgetting-steps summary stats per dataset, per model type ----
+dataset_names <- names(data)
+forgetting_stats_by_dataset <- list()
+for (dataset_name in dataset_names) {
+  forgetting_stats_by_dataset[[dataset_name]] <- list()
+  
+  for (model_type in MODEL_TYPES) {
+    df <- data[[dataset_name]][[model_type]]
+    if (is.null(df)) next
+    
+    stats_table <- run_forgetting_steps(dataset_name, model_type, data, RAW_DATA_DIR)
+    forgetting_stats_by_dataset[[dataset_name]][[model_type]] <- stats_table
+  }
+}
+
 # ==============================================================================
 # PLOTTING
 # ==============================================================================
@@ -426,3 +538,4 @@ plot_forgetting_steps <- function(dataset_name, model_type,
   
   invisible(p)
 }
+
