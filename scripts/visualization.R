@@ -445,6 +445,8 @@ for (metric in metrics) {
         y        = "Number of participants"
       ) +
 
+      coord_cartesian(xlim = c(-20, 20)) +
+
       theme_bw() +
       theme(
         plot.title  = element_text(face = "bold"),
