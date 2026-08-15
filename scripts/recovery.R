@@ -9,6 +9,8 @@
 ################################################################################
 # PRELIMINARIES
 
+devtools::load_all()
+
 # Define the number of recoveries `iterations` and the number of datapoints `N`
 iterations <- 1000
 N <- 140
