@@ -108,6 +108,53 @@ counts <- lapply(
 ) 
 counts <- do.call(rbind, counts)
 
+# ── SUMMARY TABLE FUNCTION ──────────────────────────────────────────────────
+#' Given `long` (participant_id, model, aic, bic per dataset), find the best
+#' model per participant for each metric, then summarize the percentage of
+#' participants each model won, per dataset and metric.
+#' Returns a single data frame: metric, dataset, model, n_best, percentage_best.
+make_summary_table <- function(long, metrics = c("aic", "bic")) {
+  
+  best <- lapply(
+    metrics,
+    function(x) lapply(
+      names(long),
+      function(y) do.call(
+        rbind,
+        lapply(
+          split(long[[y]], long[[y]]$participant_id),
+          function(df) df[which.min(df[[x]]), ]
+        )
+      )
+    ) |>
+      `names<-` (names(long))
+  ) |>
+    `names<-` (metrics)
+  
+  counts <- lapply(
+    metrics,
+    function(x) do.call(
+      rbind,
+      lapply(
+        names(long),
+        function(y) {
+          count <- table(best[[x]][[y]]$model)
+          
+          data.frame(
+            metric = x,
+            dataset = y,
+            model = names(count),
+            n_best = as.numeric(count),
+            percentage_best = round(100 * as.numeric(count) / sum(count), 1)
+          )
+        }
+      )
+    )
+  )
+  
+  do.call(rbind, counts)
+}
+
 
 
 # ── 4. PAIRWISE COMPARISONS ───────────────────────────────────────────────────
