@@ -25,7 +25,7 @@
 #      lower prediction error.
 #
 #
-# All plots are saved as PNG files to scripts/figures/visualization/.
+# All plots are saved as JPEG files to scripts/results/figures/.
 ################################################################################
 
 library(ggplot2)
@@ -255,8 +255,8 @@ for (m in models) {
 
   # Draw one graph per parameter.
   # This creates files such as:
-  #   parameters_exponential_alpha.png
-  #   parameters_quasi_hyperbolic_beta.png
+  #   parameters_exponential_alpha.jpeg
+  #   parameters_quasi_hyperbolic_beta.jpeg
   for (param in param_cols) {
 
     df_param <- df_model[, c("participant_id", "dataset", "model", param)]
@@ -300,10 +300,10 @@ for (m in models) {
 
     out_path <- file.path(
       figure_subdirs$parameters,
-      paste0("parameters_", safe_filename(m), "_", safe_filename(param), ".png")
+      paste0("parameters_", safe_filename(m), "_", safe_filename(param), ".jpeg")
     )
 
-    ggsave(out_path, p, width = 10, height = 7, dpi = 150)
+    ggsave(out_path, p, width = 10, height = 7, dpi = 300)
     cat("  Saved:", out_path, "\n")
   }
 }
@@ -370,8 +370,8 @@ for (metric in metrics) {
       strip.text      = element_text(size = 9)
     )
 
-  out_path <- file.path(figure_subdirs$best_model, paste0("best_model_", metric, ".png"))
-  ggsave(out_path, p, width = 14, height = 6, dpi = 150)
+  out_path <- file.path(figure_subdirs$best_model, paste0("best_model_", metric, ".jpeg"))
+  ggsave(out_path, p, width = 14, height = 6, dpi = 300)
   cat("  Saved:", out_path, "\n")
 }
 
@@ -456,8 +456,8 @@ for (metric in metrics) {
 
     pair_name <- paste0(model_a, "_vs_", model_b)
     out_path  <- file.path(figure_subdirs$pairwise,
-                           paste0("pairwise_", pair_name, "_", metric, ".png"))
-    ggsave(out_path, p, width = 16, height = 5, dpi = 150)
+                           paste0("pairwise_", pair_name, "_", metric, ".jpeg"))
+    ggsave(out_path, p, width = 16, height = 5, dpi = 300)
     cat("  Saved:", out_path, "\n")
   }
 }
@@ -524,8 +524,8 @@ p_density <- ggplot(df_sse,
     strip.text      = element_text(size = 9)
   )
 
-out_path <- file.path(figure_subdirs$sse, "sse_density.png")
-ggsave(out_path, p_density, width = 14, height = 8, dpi = 150)
+out_path <- file.path(figure_subdirs$sse, "sse_density.jpeg")
+ggsave(out_path, p_density, width = 14, height = 8, dpi = 300)
 cat("  Saved:", out_path, "\n")
 
 # ── 5b: Boxplots ──────────────────────────────────────────────────────────────
@@ -560,8 +560,8 @@ p_box <- ggplot(df_sse,
     strip.text      = element_text(size = 9)
   )
 
-out_path <- file.path(figure_subdirs$sse, "sse_boxplot.png")
-ggsave(out_path, p_box, width = 14, height = 8, dpi = 150)
+out_path <- file.path(figure_subdirs$sse, "sse_boxplot.jpeg")
+ggsave(out_path, p_box, width = 14, height = 8, dpi = 300)
 cat("  Saved:", out_path, "\n")
 
 cat("\nAll figures saved inside:", figure_dir, "\n")
@@ -721,11 +721,12 @@ p_rutledge
 ggsave(
   filename = file.path(
     base_fig_dir,
-    "rutledge_2014_discounting.pdf"
+    "rutledge_2014_discounting.jpeg"
   ),
   plot = p_rutledge,
   width = plot_width,
-  height = plot_height
+  height = plot_height,
+  dpi = 300
 )
 
 
@@ -791,11 +792,12 @@ p_exp
 ggsave(
   filename = file.path(
     base_fig_dir,
-    "exponential_discounting.pdf"
+    "exponential_discounting.jpeg"
   ),
   plot = p_exp,
   width = plot_width,
-  height = plot_height
+  height = plot_height,
+  dpi = 300
 )
 
 
@@ -979,11 +981,12 @@ fig_qh_pair
 ggsave(
   filename = file.path(
     base_fig_dir,
-    "quasi_hyperbolic_paired.pdf"
+    "quasi_hyperbolic_paired.jpeg"
   ),
   plot = fig_qh_pair,
   width = 13,
-  height = 6.5
+  height = 6.5,
+  dpi = 300
 )
 
 
@@ -1167,11 +1170,12 @@ fig_de_pair
 ggsave(
   filename = file.path(
     base_fig_dir,
-    "double_exponential_paired.pdf"
+    "double_exponential_paired.jpeg"
   ),
   plot = fig_de_pair,
   width = 13,
-  height = 6.5
+  height = 6.5,
+  dpi = 300
 )
 
 ##################################################################################
@@ -1366,22 +1370,11 @@ bootstrap_coverage_plot <- ggplot(
 
 # Save figure ------------------------------------------------------------------
 
-ggsave(
-  filename = file.path(
-    output_dir,
-    "bootstrap_coverage_heatmap.pdf"
-  ),
-  plot = bootstrap_coverage_plot,
-  width = 13,
-  height = 10,
-  units = "in",
-  bg = "white"
-)
 
 ggsave(
   filename = file.path(
     output_dir,
-    "bootstrap_coverage_heatmap.png"
+    "bootstrap_coverage_heatmap.jpeg"
   ),
   plot = bootstrap_coverage_plot,
   width = 13,
