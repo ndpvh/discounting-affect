@@ -4,6 +4,56 @@
 
 data <- load_estimation_data(ESTIMATE_DIR, MODEL_TYPES)
 
+# The 2024 estimation is split by response dimensionality:
+#   _1 = d = 1 = valence-only participants
+#   _2 = d = 2 = positive/negative affect participants (no valence)
+#
+# Rename these technical dimensionality labels immediately after loading so
+# all downstream model-comparison output uses meaningful dataset names.
+dataset_name_map <- c(
+  "VANHASBROECK_2024_1" = "VANHASBROECK_2024_valence",
+  "VANHASBROECK_2024_2" = "VANHASBROECK_2024_no_valence"
+)
+
+names(data) <- ifelse(
+  names(data) %in% names(dataset_name_map),
+  unname(dataset_name_map[names(data)]),
+  names(data)
+)
+
+
+# Create a dedicated output directory for model-comparison results.
+comparison_output_dir <- file.path(
+  dirname(ESTIMATE_DIR),
+  "model_comparison"
+)
+
+dir.create(
+  comparison_output_dir,
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+
+if (!dir.exists(comparison_output_dir)) {
+  stop("Could not create model comparison output directory: ",
+       comparison_output_dir)
+}
+
+cat("\nModel-comparison results will be saved to:\n",
+    normalizePath(comparison_output_dir), "\n")
+
+# Remove obsolete comparison outputs that used the technical _1/_2 labels.
+# This only removes old model-comparison CSVs; the estimation CSVs are untouched.
+old_2024_outputs <- file.path(
+  comparison_output_dir,
+  c(
+    "VANHASBROECK_2024_1_model_comparison.csv",
+    "VANHASBROECK_2024_2_model_comparison.csv"
+  )
+)
+
+unlink(old_2024_outputs[file.exists(old_2024_outputs)])
+
 compare_models_for_dataset <- function(dataset_name, data, model_types) {
   model_dfs <- lapply(model_types, function(m) {
     df <- data[[dataset_name]][[m]]
@@ -47,9 +97,14 @@ for (dataset_name in dataset_names) {
 
   comparisons_by_dataset[[dataset_name]] <- comparison
 
-  write.csv(comparison,
-            file.path("scripts/results", paste0(dataset_name, "_model_comparison.csv")),
-            row.names = FALSE)
+  write.csv(
+    comparison,
+    file.path(
+      comparison_output_dir,
+      paste0(dataset_name, "_model_comparison.csv")
+    ),
+    row.names = FALSE
+  )
   
   aic_counts <- table(comparison$best_aic_model)
   bic_counts <- table(comparison$best_bic_model)
