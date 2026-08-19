@@ -255,5 +255,3 @@ for (pid in participant_ids) {
   ) 
   saveRDS(ds, file = out_file)
 }
-
-
