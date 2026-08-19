@@ -35,7 +35,7 @@ output_dir  <- file.path("scripts/data", "VANHASBROECK_2021_per_participant")
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 y_cols           <- "happiness"
-x_cols           <- c("outcome", "total")
+x_cols           <- c("cr", "ev", "rpe", "total")
 sorting_variable <- "trial"
 
 # Load data and create a "total" variable, indicating the total people saw on 
