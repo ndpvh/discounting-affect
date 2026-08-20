@@ -25,7 +25,7 @@
 #      lower prediction error.
 #
 #
-# All plots are saved as PNG files to scripts/figures/visualization/.
+# All plots are saved as jpg files to scripts/figures/visualization/.
 ################################################################################
 
 library(ggplot2)
@@ -721,7 +721,7 @@ p_rutledge
 ggsave(
   filename = file.path(
     base_fig_dir,
-    "rutledge_2014_discounting.pdf"
+    "rutledge_2014_discounting.jpg"
   ),
   plot = p_rutledge,
   width = plot_width,
@@ -791,7 +791,7 @@ p_exp
 ggsave(
   filename = file.path(
     base_fig_dir,
-    "exponential_discounting.pdf"
+    "exponential_discounting.jpg"
   ),
   plot = p_exp,
   width = plot_width,
@@ -979,7 +979,7 @@ fig_qh_pair
 ggsave(
   filename = file.path(
     base_fig_dir,
-    "quasi_hyperbolic_paired.pdf"
+    "quasi_hyperbolic_paired.jpb"
   ),
   plot = fig_qh_pair,
   width = 13,
@@ -1167,7 +1167,7 @@ fig_de_pair
 ggsave(
   filename = file.path(
     base_fig_dir,
-    "double_exponential_paired.pdf"
+    "double_exponential_paired.jpb"
   ),
   plot = fig_de_pair,
   width = 13,
@@ -1369,7 +1369,7 @@ bootstrap_coverage_plot <- ggplot(
 ggsave(
   filename = file.path(
     output_dir,
-    "bootstrap_coverage_heatmap.pdf"
+    "bootstrap_coverage_heatmap.jpb"
   ),
   plot = bootstrap_coverage_plot,
   width = 13,
