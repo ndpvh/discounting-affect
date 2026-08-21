@@ -147,6 +147,44 @@ optimizer <- function(obj,
 # Done once in the parent process rather than inside the parallel worker.
 ensure_dir(PATHS$recovery)
 
+# A full recovery rerun should never mix new and stale model results. Remove the
+# expected result files first; if a worker later fails, the script stops and the
+# missing file makes the incomplete rerun visible.
+expected_recovery_files <- file.path(
+    PATHS$recovery, paste0(names(models), ".Rds")
+)
+unlink(expected_recovery_files[file.exists(expected_recovery_files)])
+
+# Numeric summaries and recovery figures are derived from the raw recovery RDS
+# files. Invalidate those downstream artifacts when a fresh generation starts so
+# an interrupted recovery run cannot leave old summaries/figures looking current.
+recovery_summary_dir <- file.path(PATHS$recovery, "summary")
+if (dir.exists(recovery_summary_dir)) {
+    old_summary_files <- list.files(recovery_summary_dir, full.names = TRUE)
+    if (length(old_summary_files) > 0) unlink(old_summary_files, recursive = TRUE)
+}
+recovery_figure_dir <- file.path(PATHS$figures, "recovery")
+if (dir.exists(recovery_figure_dir)) {
+    old_recovery_figures <- list.files(
+        recovery_figure_dir,
+        pattern = "\\.(jpeg|jpg|png)$",
+        full.names = TRUE,
+        ignore.case = TRUE
+    )
+    if (length(old_recovery_figures) > 0) unlink(old_recovery_figures)
+}
+
+# Use all but one available core on Unix-like systems, but always leave at least
+# one worker available. Windows uses serial execution because mclapply forks are
+# not available there.
+detected_cores <- parallel::detectCores()
+if (is.na(detected_cores)) detected_cores <- 1L
+recovery_cores <- if (Sys.info()["sysname"] == "Windows") {
+    1L
+} else {
+    max(1L, as.integer(detected_cores - 1L))
+}
+
 # Loop over the models
 empty <- parallel::mclapply(
     seq_along(models),
@@ -218,11 +256,18 @@ empty <- parallel::mclapply(
 
         return(NULL)
     },
-    mc.cores = ifelse(
-        Sys.info()["sysname"] == "Windows",
-        1,
-        parallel::detectCores() - 1
-    )
+    mc.cores = recovery_cores
 )
+
+worker_failures <- which(vapply(
+    empty, function(x) inherits(x, "try-error"), logical(1)
+))
+if (length(worker_failures) > 0) {
+    stop(
+        "Recovery worker failure(s) for model index/indices: ",
+        paste(worker_failures, collapse = ", "),
+        ". The recovery result set is incomplete."
+    )
+}
 
 cat("\n")

@@ -106,7 +106,7 @@ optimizer <- function(obj,
 # Arguments:
 #   ds          – a dataset object (loaded from an RDS file)
 #   model_empty – an empty model of the right dimensionality, e.g.
-#                 exponential(d = 1, k = 3)
+#                 exponential(d = 1, k = 4) for VANHASBROECK_2021
 #   dynamics    – structure of the forgetting matrices ("isotropic" here)
 #   covariance  – structure of the residual covariance ("symmetric" here)
 #   ...         – extra arguments forwarded to optimizer() via fit()
@@ -204,6 +204,16 @@ run_estimation <- function(folder,
   # Ensure the estimation results directory exists before anything is written.
   ensure_dir(PATHS$estimation)
 
+  # Choose a safe worker count. Keep the existing half-the-available-cores
+  # strategy on Unix-like systems, but never request fewer than one worker.
+  detected_cores <- parallel::detectCores()
+  if (is.na(detected_cores)) detected_cores <- 1L
+  participant_cores <- if (Sys.info()["sysname"] == "Windows") {
+    1L
+  } else {
+    max(1L, as.integer(round(detected_cores / 2) - 1L))
+  }
+
   # Loop over the different model types and perform the estimation for these.
   # Note that looping across models is done in sequence while the estimation per
   # participant is done in parallel
@@ -211,6 +221,16 @@ run_estimation <- function(folder,
     names(models), 
     function(model_name) {
       message("\n  Fitting model: ", model_name)
+
+      # Remove outputs from an earlier run of this dataset/model before fitting.
+      # This prevents a failed rerun from silently leaving stale results behind.
+      old_pattern <- paste0(
+        "^", base_name, "(_[0-9]+)?_", model_name, "\\.csv$"
+      )
+      old_outputs <- list.files(
+        PATHS$estimation, pattern = old_pattern, full.names = TRUE
+      )
+      if (length(old_outputs) > 0) unlink(old_outputs)
 
       # Loop over participants
       rows <- parallel::mclapply(
@@ -256,12 +276,20 @@ run_estimation <- function(folder,
 
           return(list(id = participant_id, d = d , values = row_values))
         },
-        mc.cores = ifelse(
-          Sys.info()["sysname"] == "Windows",
-          1,
-          round(parallel::detectCores() / 2) - 1  # Optimized for Niels' Mac/Linux system
-        )
+        mc.cores = participant_cores
       )
+
+      worker_failures <- which(vapply(
+        rows, function(x) inherits(x, "try-error"), logical(1)
+      ))
+      if (length(worker_failures) > 0) {
+        stop(
+          "Parallel estimation worker failure(s) for ", base_name, " / ",
+          model_name, " at participant index/indices: ",
+          paste(worker_failures, collapse = ", "),
+          ". No downstream result should be treated as current."
+        )
+      }
 
       # Determine column names from the first successful row (needed to build NA 
       # rows for failed participants)

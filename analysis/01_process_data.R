@@ -54,6 +54,13 @@ output_dir  <- file.path(PATHS$processed_data, "VANHASBROECK_2021")
 
 ensure_dir(output_dir)
 
+# Remove participant files from an earlier processing run so a changed sample
+# cannot leave stale .rds files mixed with the newly processed data.
+old_processed_files <- list.files(
+  output_dir, pattern = "\\.[Rr][Dd][Ss]$", full.names = TRUE
+)
+if (length(old_processed_files) > 0) unlink(old_processed_files)
+
 y_cols           <- "happiness"
 x_cols           <- c("cr", "ev", "rpe", "total")
 sorting_variable <- "trial"
@@ -121,6 +128,13 @@ output_dir  <- file.path(PATHS$processed_data, "VANHASBROECK_2022")
 
 ensure_dir(output_dir)
 
+# Remove participant files from an earlier processing run so a changed sample
+# cannot leave stale .rds files mixed with the newly processed data.
+old_processed_files <- list.files(
+  output_dir, pattern = "\\.[Rr][Dd][Ss]$", full.names = TRUE
+)
+if (length(old_processed_files) > 0) unlink(old_processed_files)
+
 y_cols           <- c("positive_affect","negative_affect")
 x_cols           <- c("outcome", "total")
 sorting_variable <- "trial"
@@ -175,6 +189,13 @@ input_file <- file.path(PATHS$raw_data, "VANHASBROECK_2024.csv")
 output_dir <- file.path(PATHS$processed_data, "VANHASBROECK_2024")
  
 ensure_dir(output_dir)
+
+# Remove participant files from an earlier processing run so a changed sample
+# cannot leave stale .rds files mixed with the newly processed data.
+old_processed_files <- list.files(
+  output_dir, pattern = "\\.[Rr][Dd][Ss]$", full.names = TRUE
+)
+if (length(old_processed_files) > 0) unlink(old_processed_files)
  
 x_cols           <- "outcome"
 sorting_variable <- "trial"
@@ -245,6 +266,13 @@ input_file <- file.path(PATHS$raw_data, "NIEMEIJER_2022.csv")
 output_dir <- file.path(PATHS$processed_data, "NIEMEIJER_2022")
  
 ensure_dir(output_dir)
+
+# Remove participant files from an earlier processing run so a changed sample
+# cannot leave stale .rds files mixed with the newly processed data.
+old_processed_files <- list.files(
+  output_dir, pattern = "\\.[Rr][Dd][Ss]$", full.names = TRUE
+)
+if (length(old_processed_files) > 0) unlink(old_processed_files)
  
 y_cols           <- c("positive_affect", "negative_affect")
 x_cols           <- c("context_pos", "context_neg")

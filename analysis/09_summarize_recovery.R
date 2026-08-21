@@ -130,8 +130,10 @@ safe_max <- function(x) {
 #   - a matrix/data.frame column with that name
 #   - a matrix/data.frame row with that name
 #
-# It skips result$simulate and result$fit so parameter names cannot accidentally
-# be mistaken for fit diagnostics.
+# The current recovery() implementation stores requested diagnostics as columns
+# in result$fit. extract_diagnostic() checks those columns explicitly first; the
+# recursive search below is retained only as a fallback for other object layouts
+# and therefore skips result$simulate/result$fit to avoid duplicate matches.
 find_diagnostic_candidates <- function(x,
                                        target,
                                        current_path = "result",
@@ -209,8 +211,19 @@ find_diagnostic_candidates <- function(x,
 
 
 # Select the most plausible diagnostic vector.
-# Preference is given to a vector with one value per recovery iteration.
+# The current package stores fx diagnostics directly as columns in result$fit,
+# so prefer that known location. The recursive search remains as a compatibility
+# fallback for recovery objects created by a different package version.
 extract_diagnostic <- function(result, target, n_iterations) {
+  if (!is.null(result$fit) &&
+      (is.matrix(result$fit) || is.data.frame(result$fit)) &&
+      target %in% colnames(result$fit)) {
+    return(list(
+      values = suppressWarnings(as.numeric(result$fit[, target])),
+      path = paste0("result$fit[, '", target, "']")
+    ))
+  }
+
   candidates <- find_diagnostic_candidates(result, target)
 
   if (length(candidates) == 0) {
@@ -350,38 +363,96 @@ for (file_index in seq_along(recovery_files)) {
   simulate <- as.data.frame(result$simulate)
   fit <- as.data.frame(result$fit)
 
+  # Match parameter columns before plotting. result$fit can also contain the
+  # requested diagnostics, whereas result$simulate contains parameter values.
+  common_parameters <- intersect(colnames(simulate), colnames(fit))
+
+  if (length(common_parameters) == 0) {
+    warning("No matching parameter columns in ", basename(path))
+    next
+  }
+
+  if (!identical(colnames(simulate), colnames(fit))) {
+    message(
+      "  Fit output contains additional columns (e.g. diagnostics) in ",
+      basename(path), "; parameter summaries/plots use matching columns only."
+    )
+  }
+
   # ---------------------------------------------------------------------------
   # RECOVERY FIGURE
   #
   # This plotting block was previously executed inside 03_run_recovery.R after
   # each recovery run. It is reproduced here from the saved recovery object so
   # the figures can be regenerated without rerunning the expensive recovery.
+  # Non-finite recovery pairs are omitted from each panel so a failed iteration
+  # cannot prevent the numeric summary from being produced.
   # ---------------------------------------------------------------------------
 
   recovery_id <- tools::file_path_sans_ext(basename(path))
 
   plt <- lapply(
-    colnames(result$simulate),
+    common_parameters,
     function(col) {
-      # Create a dataframe of simulated parameter values (x) and estimated
-      # values (y).
-      plot_data <- cbind(
-        result$simulate[, col],
-        result$fit[, col]
-      ) |>
-        as.data.frame() |>
-        `colnames<-`(c("x", "y"))
+      plot_data <- data.frame(
+        x = simulate[[col]],
+        y = fit[[col]]
+      )
+      plot_data <- plot_data[
+        is.finite(plot_data$x) & is.finite(plot_data$y),
+        ,
+        drop = FALSE
+      ]
 
-      # Get the range of values.
-      limits <- range(c(plot_data$x, plot_data$y))
-
-      # Create a plot for the recovery.
-      plt <- ggplot2::ggplot(
-        data = plot_data,
-        ggplot2::aes(
-          x = x,
-          y = y
+      if (nrow(plot_data) == 0) {
+        return(
+          ggplot2::ggplot() +
+            ggplot2::annotate(
+              "text", x = 0, y = 0,
+              label = "No finite recovery pairs",
+              size = 5
+            ) +
+            ggplot2::labs(
+              title = col,
+              x = "Simulated",
+              y = "Estimated"
+            ) +
+            ggplot2::theme(
+              panel.background = ggplot2::element_rect(fill = "white"),
+              panel.border = ggplot2::element_rect(
+                fill = NA, color = "black", linewidth = 1
+              ),
+              axis.title = ggplot2::element_text(size = 15),
+              plot.title = ggplot2::element_text(size = 20)
+            )
         )
+      }
+
+      limits <- range(c(plot_data$x, plot_data$y))
+      if (diff(limits) == 0) {
+        pad <- if (limits[1] == 0) 1 else abs(limits[1]) * 0.05
+        limits <- limits + c(-pad, pad)
+      }
+
+      recovery_r <- if (
+        nrow(plot_data) > 1 &&
+        stats::sd(plot_data$x) > 0 &&
+        stats::sd(plot_data$y) > 0
+      ) {
+        stats::cor(plot_data$x, plot_data$y)
+      } else {
+        NA_real_
+      }
+
+      correlation_label <- if (is.finite(recovery_r)) {
+        format(round(recovery_r, digits = 2), nsmall = 2)
+      } else {
+        "NA"
+      }
+
+      ggplot2::ggplot(
+        data = plot_data,
+        ggplot2::aes(x = x, y = y)
       ) +
         ggplot2::geom_abline(
           intercept = 0,
@@ -400,32 +471,18 @@ for (file_index in seq_along(recovery_files)) {
           "text",
           x = limits[1] + 0.05 * diff(limits),
           y = limits[1] + 0.95 * diff(limits),
-          label = format(
-            round(
-              cor(
-                plot_data$x,
-                plot_data$y
-              ),
-              digits = 2
-            ),
-            nsmall = 2
-          ),
+          label = correlation_label,
           size = 5,
           hjust = 0
         ) +
-        ggplot2::lims(
-          x = limits,
-          y = limits
-        ) +
+        ggplot2::lims(x = limits, y = limits) +
         ggplot2::labs(
           title = col,
           x = "Simulated",
           y = "Estimated"
         ) +
         ggplot2::theme(
-          panel.background = ggplot2::element_rect(
-            fill = "white"
-          ),
+          panel.background = ggplot2::element_rect(fill = "white"),
           panel.border = ggplot2::element_rect(
             fill = NA,
             color = "black",
@@ -434,8 +491,6 @@ for (file_index in seq_along(recovery_files)) {
           axis.title = ggplot2::element_text(size = 15),
           plot.title = ggplot2::element_text(size = 20)
         )
-
-      return(plt)
     }
   )
 
@@ -454,29 +509,15 @@ for (file_index in seq_along(recovery_files)) {
   ggplot2::ggsave(
     file.path(
       figure_dir,
-      paste0(recovery_id, ".png")
+      paste0(recovery_id, ".jpeg")
     ),
     plt,
     width = ceiling(ncol(result$simulate) * 1500 / info$d),
     height = info$d * 1550,
-    unit = "px",
+    units = "px",
+    dpi = 300,
     limitsize = FALSE
   )
-
-  # Match parameters by name.
-  common_parameters <- intersect(colnames(simulate), colnames(fit))
-
-  if (length(common_parameters) == 0) {
-    warning("No matching parameter columns in ", basename(path))
-    next
-  }
-
-  if (!identical(colnames(simulate), colnames(fit))) {
-    warning(
-      "Simulated and estimated parameter columns differ in ", basename(path),
-      ". Only matching columns will be summarized."
-    )
-  }
 
   n_iterations <- nrow(simulate)
 
@@ -510,9 +551,13 @@ for (file_index in seq_along(recovery_files)) {
   parameter_rows[[length(parameter_rows) + 1]] <- this_parameter_rows
 
   # Complete recovery iteration = finite simulated and fitted value for every
-  # parameter in this file.
-  complete_iteration <- complete.cases(simulate[, common_parameters, drop = FALSE]) &
-    complete.cases(fit[, common_parameters, drop = FALSE])
+  # parameter in this file (Inf is treated as an incomplete recovery, not as a
+  # complete observation).
+  simulate_matrix <- as.matrix(simulate[, common_parameters, drop = FALSE])
+  fit_matrix <- as.matrix(fit[, common_parameters, drop = FALSE])
+  complete_iteration <-
+    rowSums(!is.finite(simulate_matrix)) == 0 &
+    rowSums(!is.finite(fit_matrix)) == 0
 
   # ---------------------------------------------------------------------------
   # 2. FIT / RESIDUAL DIAGNOSTICS

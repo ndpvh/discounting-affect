@@ -1,8 +1,10 @@
 ################################################################################
 # PURPOSE:
 # Read the parameter-estimation CSV files (one per dataset x model) and, for
-# each dataset, compute the spread of the forgetting-factor (decay parameter)
-# estimates: mean, SD, min, max, and a 95% quantile interval.
+# each dataset, compute the spread of the temporal-weighting parameters used by
+# the discounting models: mean, SD, min, max, and a 95% quantile interval.
+# This includes decay parameters (gamma/nu) and model-specific weighting/scaling
+# parameters (omega/kappa); the established output filenames are retained.
 #
 # One summary CSV is saved per dataset, and each summary is also printed to
 # the console.
@@ -35,8 +37,9 @@ output_dir <- PATHS$forgetting_factor_spread
 
 ensure_dir(output_dir)
 
-# Which columns count as "forgetting factors" (decay parameters) per model.
-# Matched by column-name prefix.
+# Which temporal-weighting parameters are summarized per model. gamma and nu
+# are decay parameters; omega is a mixture weight and kappa is an immediate
+# quasi-hyperbolic scaling parameter. Matched by column-name prefix.
 DECAY_PARAM_PREFIXES <- list(
   double_exponential  = c("gamma", "nu", "omega"),
   quasi_hyperbolic    = c("nu", "kappa"),

@@ -158,8 +158,16 @@ flag_invalid_forgetting_steps <- function(results, trial_counts) {
 #' the effect never decays (validity is judged later against trial counts,
 #' not capped here).
 n_forgetting_steps_exponential <- function(gamma, threshold = FORGET_THRESHOLD) {
+  if (!is.finite(gamma)) {
+    return(NA_real_)
+  }
   if (abs(gamma) >= 1) {
     return(Inf)
+  }
+  # At gamma = 0 the lag-1 effect is already zero, so the first forgetting
+  # step is 1 rather than the algebraic 0 produced by log(0).
+  if (gamma == 0) {
+    return(1)
   }
   ceiling(log(threshold) / log(abs(gamma)))
 }
@@ -273,77 +281,8 @@ compute_forgetting_steps_double_exponential <- function(df, threshold = FORGET_T
 }
 
 # ==============================================================================
-# Validity summary report: valid/invalid counts per results CSV
+# Run: all estimation datasets, all model types
 # ==============================================================================
-
-results_dir <- PATHS$forgetting_steps
-files <- list.files(results_dir, pattern = "_forgetting_steps\\.csv$", full.names = TRUE)
-
-validity_summary <- do.call(rbind, lapply(files, function(f) {
-  df <- read.csv(f, stringsAsFactors = FALSE)
-  valid_cols <- grep("^is_valid_", names(df), value = TRUE)
-  
-  do.call(rbind, lapply(valid_cols, function(col) {
-    is_valid <- as.logical(df[[col]])
-    v_count   <- sum(is_valid, na.rm = TRUE)
-    inv_count <- sum(!is_valid, na.rm = TRUE)
-    
-    data.frame(
-      file = basename(f),
-      parameter = sub("^is_valid_", "", col),
-      n_valid = v_count,
-      n_invalid = inv_count,
-      # Make sure digits = 0 is safely inside the round function:
-      percentage_valid = round((v_count / (v_count + inv_count)) * 100, digits = 0)
-    )
-  }))
-}))
-
-print(validity_summary)
-
-# ==============================================================================
-# Run: VANHASBROECK datasets only, all model types
-# ==============================================================================
-
-#' Run the full forgetting-steps pipeline for one dataset/model_type:
-#' compute forgetting steps, flag validity, print summaries (all participants
-#' and valid-only), and save the results as a CSV.
-#' Returns the results data frame (with validity columns) invisibly.
-run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_dir,
-                                 output_dir = PATHS$forgetting_steps) {
-  
-  df <- estimation_data[[dataset_name]][[model_type]]
-  if (is.null(df)) {
-    stop("No estimation data found for ", dataset_name, " / ", model_type)
-  }
-  
-  compute_fn <- COMPUTE_FUNCTIONS[[model_type]]
-  results <- compute_fn(df)
-  
-  trial_counts <- load_trial_counts(dataset_name, raw_dir)
-  results <- flag_invalid_forgetting_steps(results, trial_counts)
-  
-  n_forget_cols <- grep("^n_forget_", names(results), value = TRUE)
-  valid_cols <- grep("^is_valid_", names(results), value = TRUE)
-  
-  cat("=== ", dataset_name, " / ", model_type, " (all participants) ===\n", sep = "")
-  print(summary(results[n_forget_cols]))
-  
-  # keep only rows valid across every decay parameter (all is_valid_* columns TRUE)
-  is_fully_valid <- Reduce(`&`, results[valid_cols])
-  only_valid_ppt <- results[is_fully_valid, ]
-  
-  cat("=== ", dataset_name, " / ", model_type, " (valid participants only) ===\n", sep = "")
-  print(summary(only_valid_ppt[n_forget_cols]))
-  
-  ensure_dir(output_dir)
-  out_path <- file.path(output_dir, paste0(dataset_name, "_", model_type, "_forgetting_steps.csv"))
-  write.csv(results, out_path, row.names = FALSE)
-  cat("Saved to:", out_path, "\n")
-  
-  invisible(results)
-}
-
 
 COMPUTE_FUNCTIONS <- list(
   exponential         = compute_forgetting_steps_exponential,
@@ -351,6 +290,8 @@ COMPUTE_FUNCTIONS <- list(
   double_exponential  = compute_forgetting_steps_double_exponential
 )
 
+# Run the full forgetting-steps pipeline for one dataset/model combination,
+# save the participant-level results, and return the valid-participant summary.
 run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_dir,
                                  output_dir = PATHS$forgetting_steps) {
   
@@ -436,6 +377,38 @@ for (dataset_name in dataset_names) {
   }
 }
 
+# Report validity from the files produced by THIS run (rather than reading and
+# reporting stale files before they are overwritten).
+results_dir <- PATHS$forgetting_steps
+files <- list.files(results_dir, pattern = "_forgetting_steps\\.csv$", full.names = TRUE)
+
+validity_summary <- do.call(rbind, lapply(files, function(f) {
+  df <- read.csv(f, stringsAsFactors = FALSE)
+  valid_cols <- grep("^is_valid_", names(df), value = TRUE)
+
+  do.call(rbind, lapply(valid_cols, function(col) {
+    is_valid <- as.logical(df[[col]])
+    v_count   <- sum(is_valid, na.rm = TRUE)
+    inv_count <- sum(!is_valid, na.rm = TRUE)
+    denominator <- v_count + inv_count
+
+    data.frame(
+      file = basename(f),
+      parameter = sub("^is_valid_", "", col),
+      n_valid = v_count,
+      n_invalid = inv_count,
+      percentage_valid = if (denominator == 0) {
+        NA_real_
+      } else {
+        round((v_count / denominator) * 100, digits = 0)
+      }
+    )
+  }))
+}))
+
+cat("\n=== Forgetting-step validity summary (current run) ===\n")
+print(validity_summary)
+
 # ==============================================================================
 # PLOTTING
 # ==============================================================================
@@ -516,10 +489,18 @@ plot_forgetting_steps <- function(dataset_name, model_type,
   
   # ---- save ----
   ensure_dir(figures_dir)
-  out_path <- file.path(figures_dir, paste0(dataset_name, "_", model_type, "_n", n_valid, "_forgetting_steps.png"))
+  out_path <- file.path(figures_dir, paste0(dataset_name, "_", model_type, "_n", n_valid, "_forgetting_steps.jpeg"))
   ggsave(out_path, plot = p, width = 7, height = 5, dpi = 300)
   cat("Saved plot to:", out_path, "\n")
   
   invisible(p)
 }
 
+# Generate a current forgetting-step figure for every dataset/model result that
+# was produced above. Figures are downstream of the freshly written CSVs.
+for (dataset_name in dataset_names) {
+  for (model_type in FORGETTING_MODEL_ORDER) {
+    if (is.null(data[[dataset_name]][[model_type]])) next
+    plot_forgetting_steps(dataset_name, model_type)
+  }
+}

@@ -139,14 +139,32 @@ long <- lapply(datasets, function(ds) {
 # Remove datasets that did not load correctly
 long <- long[!vapply(long, is.null, logical(1))]
 
-# ── Recreate `best` from comparative_analysis.R ───────────────────────────────
-# `best` tells us, per metric and dataset, which model each participant
-# was best described by (lowest AIC or BIC)
+# ── Recreate `best` with explicit exact-tie handling ──────────────────────────
+# `best` tells us, per metric and dataset, which model each participant was best
+# described by (lowest AIC or BIC). If two or more models share the exact same
+# minimum, the participant is labeled "tie" instead of being assigned according
+# to whichever model happened to appear first.
 best <- lapply(metrics, function(x) {
   lapply(names(long), function(y) {
     do.call(rbind, lapply(
       split(long[[y]], long[[y]]$participant_id),
-      function(df) df[which.min(df[[x]]), ]
+      function(df) {
+        valid <- !is.na(df[[x]])
+        out <- df[1, , drop = FALSE]
+
+        if (!any(valid)) {
+          out$model <- NA_character_
+          out[[x]] <- NA_real_
+          return(out)
+        }
+
+        minimum <- min(df[[x]][valid])
+        winners <- df[valid & df[[x]] == minimum, , drop = FALSE]
+        out <- winners[1, , drop = FALSE]
+
+        if (nrow(winners) > 1L) out$model <- "tie"
+        out
+      }
     ))
   }) |> `names<-`(names(long))
 }) |> `names<-`(metrics)
@@ -176,8 +194,15 @@ run_pairwise <- function(long_df, model_a, model_b, metric = "aic") {
                      timevar   = "model",
                      direction = "wide")
   names(wide_df) <- gsub(paste0(metric, "."), "", names(wide_df), fixed = TRUE)
-  wide_df$winner <- ifelse(wide_df[[model_a]] < wide_df[[model_b]],
-                           model_a, model_b)
+  wide_df$winner <- ifelse(
+    wide_df[[model_a]] < wide_df[[model_b]],
+    model_a,
+    ifelse(
+      wide_df[[model_a]] > wide_df[[model_b]],
+      model_b,
+      "tie"
+    )
+  )
   wide_df$difference <- wide_df[[model_a]] - wide_df[[model_b]]
   list(per_person = wide_df,
        summary    = data.frame(
@@ -193,14 +218,15 @@ run_pairwise <- function(long_df, model_a, model_b, metric = "aic") {
 model_labels <- c(
   exponential        = "Exponential",
   quasi_hyperbolic   = "Quasi-Hyperbolic",
-  double_exponential = "Double-Exponential"
+  double_exponential = "Double-Exponential",
+  tie                = "Tie"
 )
 
 dataset_labels <- c(
   VANHASBROECK_2021   = "Vanhasbroeck 2021",
   VANHASBROECK_2022   = "Vanhasbroeck 2022",
-  VANHASBROECK_2024_1 = "Vanhasbroeck 2024 (PA/NA)",
-  VANHASBROECK_2024_2 = "Vanhasbroeck 2024 (Valence)",
+  VANHASBROECK_2024_1 = "Vanhasbroeck 2024 (Valence)",
+  VANHASBROECK_2024_2 = "Vanhasbroeck 2024 (PA/NA)",
   NIEMEIJER_2022      = "Niemeijer 2022"
 )
 
@@ -208,7 +234,8 @@ dataset_labels <- c(
 model_colours <- c(
   exponential        = "#4C72B0",   # blue
   quasi_hyperbolic   = "#DD8452",   # orange
-  double_exponential = "#55A868"    # green
+  double_exponential = "#55A868",   # green
+  tie                = "#7F7F7F"    # grey
 )
 
 plot_colours <- setNames(
@@ -321,7 +348,8 @@ for (m in models) {
 # BEST MODEL BAR PLOTS
 #
 # For each metric (AIC and BIC), one bar plot per dataset showing what
-# percentage of participants were best described by each of the three models.
+# percentage of participants were best described by each model; exact ties are
+# shown explicitly as a separate "Tie" category.
 #
 # Description:
 #   Each bar represents one model. The height is the percentage of participants
@@ -1231,6 +1259,7 @@ phenomenon_order <- c(
   "residual_autocorrelation_1",
   "residual_autocorrelation_2",
   "residual_autocorrelation_3",
+  "outcome_correlation_0",
   "outcome_correlation_1",
   "outcome_correlation_2",
   "outcome_correlation_3",
@@ -1250,6 +1279,7 @@ phenomenon_labels <- c(
   "Residual autocorrelation: lag 1",
   "Residual autocorrelation: lag 2",
   "Residual autocorrelation: lag 3",
+  "Predictor–affect correlation: lag 0",
   "Predictor–affect correlation: lag 1",
   "Predictor–affect correlation: lag 2",
   "Predictor–affect correlation: lag 3",
@@ -1368,18 +1398,6 @@ bootstrap_coverage_plot <- ggplot(
 
 
 # Save figure ------------------------------------------------------------------
-
-ggsave(
-  filename = file.path(
-    output_dir,
-    "bootstrap_coverage_heatmap.jpb"
-  ),
-  plot = bootstrap_coverage_plot,
-  width = 13,
-  height = 10,
-  units = "in",
-  bg = "white"
-)
 
 ggsave(
   filename = file.path(

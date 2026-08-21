@@ -152,5 +152,5 @@ for (name in names(datasets)) {
     p <- base_boxplot(combined_df, name)
   }
   
-  ggsave(paste0(name, ".png"), plot = p, width = 10, height = 6, dpi = 300)
+  ggsave(paste0(name, ".jpeg"), plot = p, width = 10, height = 6, dpi = 300)
 }

@@ -17,9 +17,9 @@ source(file.path(PATHS$analysis, "_helpers.R"))
 rm(config_file)
 
 # The shared MODEL_TYPES set in _config.R is intentionally UNORDERED.
-# This script's comparison logic resolves exact AIC/BIC ties with which.min(),
-# so the model sequence passed to the comparison must preserve the historical
-# processing order (which came from the old forgetting_steps workflow).
+# Keep the historical model order here so the merged output columns remain
+# stable. Exact AIC/BIC ties are reported explicitly as "tie" and therefore no
+# longer depend on model ordering.
 MODEL_COMPARISON_ORDER <- c(
   "double_exponential",
   "quasi_hyperbolic",
@@ -66,6 +66,16 @@ old_2024_outputs <- file.path(
 
 unlink(old_2024_outputs[file.exists(old_2024_outputs)])
 
+best_model_or_tie <- function(values, model_names) {
+  valid <- !is.na(values)
+  if (!any(valid)) return(NA_character_)
+
+  minimum <- min(values[valid])
+  winners <- model_names[valid & values == minimum]
+
+  if (length(winners) == 1L) winners else "tie"
+}
+
 compare_models_for_dataset <- function(dataset_name, data, model_types) {
   model_dfs <- lapply(model_types, function(m) {
     df <- data[[dataset_name]][[m]]
@@ -92,8 +102,15 @@ compare_models_for_dataset <- function(dataset_name, data, model_types) {
   aic_cols <- grep("^aic_", names(merged), value = TRUE)
   bic_cols <- grep("^bic_", names(merged), value = TRUE)
 
-  merged$best_aic_model <- sub("^aic_", "", aic_cols[apply(merged[aic_cols], 1, which.min)])
-  merged$best_bic_model <- sub("^bic_", "", bic_cols[apply(merged[bic_cols], 1, which.min)])
+  aic_models <- sub("^aic_", "", aic_cols)
+  bic_models <- sub("^bic_", "", bic_cols)
+
+  merged$best_aic_model <- apply(
+    merged[aic_cols], 1, best_model_or_tie, model_names = aic_models
+  )
+  merged$best_bic_model <- apply(
+    merged[bic_cols], 1, best_model_or_tie, model_names = bic_models
+  )
 
   merged
 }

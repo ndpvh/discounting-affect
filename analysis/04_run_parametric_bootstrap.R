@@ -206,8 +206,11 @@ ensure_dir(PATHS$parametric_bootstrap)
 
 # Define the phenomena, the models, and the datasets of interest
 datasets <- list(
-    "VANHASBROECK_2021" = c(1, 3),
-    "VANHASBROECK_2022" = c(2, 1),
+    # Keep these dimensions synchronized with 01_process_data.R /
+    # 02_estimate_models.R. The 2021 and 2022 specifications include the
+    # cumulative `total` predictor in the current analysis pipeline.
+    "VANHASBROECK_2021" = c(1, 4),
+    "VANHASBROECK_2022" = c(2, 2),
     "VANHASBROECK_2024_1" = c(1, 1),
     "VANHASBROECK_2024_2" = c(2, 1),
     "NIEMEIJER_2022" = c(2, 2)
@@ -251,6 +254,32 @@ conditions <- cbind(
         round()
 )
 
+# Remove the expected raw bootstrap CSVs from an earlier run before starting.
+# A failed rerun therefore cannot be mistaken for a complete new result set.
+expected_bootstrap_files <- file.path(
+    PATHS$parametric_bootstrap,
+    paste0(conditions[, 1], "_", conditions[, 2], ".csv")
+)
+unlink(expected_bootstrap_files[file.exists(expected_bootstrap_files)])
+
+# The summary RDS is derived from these raw CSVs and becomes stale as soon as a
+# new bootstrap generation starts. Remove it so an interrupted rerun cannot leave
+# an old summary that looks current.
+bootstrap_summary_file <- file.path(
+    PATHS$parametric_bootstrap, "bootstrap_summary.Rds"
+)
+if (file.exists(bootstrap_summary_file)) unlink(bootstrap_summary_file)
+
+# Keep the historical half-the-available-cores strategy while ensuring that
+# low-core systems never receive mc.cores = 0.
+detected_cores <- parallel::detectCores()
+if (is.na(detected_cores)) detected_cores <- 1L
+bootstrap_cores <- if (Sys.info()["sysname"] == "Windows") {
+    1L
+} else {
+    max(1L, as.integer(round(detected_cores / 2) - 1L))
+}
+
 # Loop over datasets and models to perform the analyses
 results <- parallel::mclapply(
     seq_len(nrow(conditions)), 
@@ -285,23 +314,13 @@ results <- parallel::mclapply(
                 # Get the participant id
                 id <- parameters$participant_id[j]
 
-                # Define the model of the participant.
+                # Extract the fitted parameter vector. The model itself is
+                # reconstructed after loading this participant's processed data
+                # so the stored dataset dimensions can be validated first.
                 params <- parameters[j, ] |>
                     dplyr::select(-participant_id, -(aic:objective_sse)) |>
                     unlist() |>
                     as.numeric()
-
-                model <- models[[conditions[i, 2]]](
-                    d = datasets[[conditions[i, 1]]][1], 
-                    k = datasets[[conditions[i, 1]]][2]
-                ) |>
-                    fill(
-                        params, 
-                        dynamics = "isotropic",
-                        covariance = "symmetric",
-                        parameters_only = FALSE,
-                        cholesky = FALSE
-                    )
 
                 # Compute the empirical values of the phenomena of interest. 
                 # For this, we load the dataset and then loop over each function
@@ -326,7 +345,34 @@ results <- parallel::mclapply(
                         )
                     )
                 }
-                
+
+                expected_dimensions <- datasets[[conditions[i, 1]]]
+                observed_dimensions <- c(ncol(data@Y), ncol(data@X))
+                if (!identical(
+                    as.integer(observed_dimensions),
+                    as.integer(expected_dimensions)
+                )) {
+                    stop(
+                        "Processed-data dimensions do not match the parametric-bootstrap ",
+                        "configuration for ", conditions[i, 1], " / participant ", id,
+                        ". Expected d=", expected_dimensions[1],
+                        ", k=", expected_dimensions[2],
+                        "; observed d=", observed_dimensions[1],
+                        ", k=", observed_dimensions[2], "."
+                    )
+                }
+
+                model <- models[[conditions[i, 2]]](
+                    d = observed_dimensions[1],
+                    k = observed_dimensions[2]
+                ) |>
+                    fill(
+                        params,
+                        dynamics = "isotropic",
+                        covariance = "symmetric",
+                        parameters_only = FALSE,
+                        cholesky = FALSE
+                    )
 
                 true <- lapply(
                     names(phenomena), 
@@ -455,9 +501,22 @@ results <- parallel::mclapply(
 
         return(NULL)
     },
-    mc.cores = ifelse(
-        Sys.info()["sysname"] == "Windows",
-        1,
-        round(parallel::detectCores() / 2) - 1  # Optimized for my own Mac/Linux system
-    )
+    mc.cores = bootstrap_cores
 )
+
+worker_failures <- which(vapply(
+    results, function(x) inherits(x, "try-error"), logical(1)
+))
+if (length(worker_failures) > 0) {
+    failed_conditions <- apply(
+        conditions[worker_failures, 1:2, drop = FALSE],
+        1,
+        paste,
+        collapse = " / "
+    )
+    stop(
+        "Parametric-bootstrap worker failure(s): ",
+        paste(failed_conditions, collapse = "; "),
+        ". The bootstrap result set is incomplete."
+    )
+}

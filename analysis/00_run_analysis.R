@@ -27,6 +27,12 @@
 #     Selecting this mode is itself the explicit intent to run the expensive
 #     stages; there is no interactive confirmation prompt.
 #
+#     REPRODUCIBILITY NOTE: estimation (02) and recovery generation (03) use
+#     stochastic optimization/simulation without a fixed global seed. Repeated
+#     full-reproduction runs can therefore differ numerically. This behavior is
+#     retained for now and should be discussed by the research group before any
+#     seed policy is changed.
+#
 # =============================================================================
 
 
@@ -85,7 +91,42 @@ if (!file.exists(rscript_bin)) {
 }
 
 
-## --- 6. Small helpers -------------------------------------------------------
+## --- 6. Check analysis package dependencies ---------------------------------
+# These packages are used directly by the active analysis scripts in addition
+# to base/recommended R packages. The runner checks them up front so a reviewer
+# gets one clear dependency message instead of failing partway through the
+# workflow. Package installation remains the user's responsibility.
+ANALYSIS_PACKAGES <- c(
+  "MASS",
+  "DEoptim",
+  "nloptr",
+  "devtools",
+  "dplyr",
+  "tidyr",
+  "ggplot2",
+  "ggpubr",
+  "cowplot",
+  "scales"
+)
+
+missing_packages <- ANALYSIS_PACKAGES[!vapply(
+  ANALYSIS_PACKAGES,
+  requireNamespace,
+  FUN.VALUE = logical(1),
+  quietly = TRUE
+)]
+
+if (length(missing_packages) > 0) {
+  stop(
+    "Missing R package(s) required by the analysis workflow: ",
+    paste(missing_packages, collapse = ", "),
+    "\nInstall the missing package(s) before running the analysis. ",
+    "The runner does not install packages automatically."
+  )
+}
+
+
+## --- 7. Small helpers -------------------------------------------------------
 
 # run_analysis_step(script, description)
 #   Spawns a FRESH Rscript subprocess to execute `script`. The script path is
@@ -132,7 +173,7 @@ file_count <- function(dir, pattern) {
 }
 
 
-## --- 7. Stage definitions ---------------------------------------------------
+## --- 8. Stage definitions ---------------------------------------------------
 # The numerical script filenames are the authoritative ordering. Each stage
 # records: the script filename and a short human-readable description.
 
@@ -165,7 +206,7 @@ stages_downstream <- list(
 )
 
 
-## --- 8. Startup banner ------------------------------------------------------
+## --- 9. Startup banner ------------------------------------------------------
 cat("\n")
 cat("Discounting Affect — Analysis Workflow\n")
 cat("Mode: ", MODE, "\n\n", sep = "")
@@ -179,18 +220,20 @@ if (MODE == "existing_results") {
   cat(strrep("-", 79), "\n")
   cat("This workflow will rerun model estimation, recovery, and the parametric\n")
   cat("bootstrap. These stages are computationally intensive.\n")
+  cat("Note: estimation and recovery are stochastic and are not globally seeded;\n")
+  cat("repeated full runs may differ numerically.\n")
   cat(strrep("-", 79), "\n\n")
 }
 
 
-## --- 9. Initialize standard generated-output directories -------------------
+## --- 10. Initialize standard generated-output directories -------------------
 # Creates empty output directories (results/*, figures/*, data/processed) so
 # that later scripts do not need to individually ensure them. This does NOT
 # create or overwrite any data or result files.
 init_output_dirs()
 
 
-## --- 10. Workflow execution -------------------------------------------------
+## --- 11. Workflow execution -------------------------------------------------
 
 completed <- character(0)
 skipped   <- character(0)
@@ -238,7 +281,7 @@ skip_stage <- function(stage, reason) {
 }
 
 
-# --- 10a. Expensive stages (full_reproduction only) -------------------------
+# --- 11a. Expensive stages (full_reproduction only) -------------------------
 if (MODE == "full_reproduction") {
   for (st in stages_expensive) {
     run_stage(st, required = TRUE)
@@ -246,7 +289,7 @@ if (MODE == "full_reproduction") {
 }
 
 
-# --- 10b. Downstream stages (both modes) ------------------------------------
+# --- 11b. Downstream stages (both modes) ------------------------------------
 for (st in stages_downstream) {
 
   # Per-stage prerequisite gates. A stage that cannot be attempted (because a
@@ -315,7 +358,7 @@ for (st in stages_downstream) {
 }
 
 
-## --- 11. Final workflow summary --------------------------------------------
+## --- 12. Final workflow summary --------------------------------------------
 cat("\n")
 cat(strrep("=", 79), "\n")
 cat("Workflow complete\n")
