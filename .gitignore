@@ -53,14 +53,14 @@ rsconnect/
 .DS_Store
 
 # Add results and figures to the .gitignore
-analysis/results/niels
-analysis/figures
+scripts/results/niels
+scripts/figures
 inst/doc
 *depr*
 
 # Some other stuff that is not useful to have on the github
-analysis/data/*.R 
-analysis/data/RUTLEDGE*/
+scripts/data/*.R 
+scripts/data/RUTLEDGE*/
 *.zip
 *.pdf
 scripts/data/*participant*/
