@@ -12,13 +12,27 @@
 # row is a participant and every column is an estimated parameter (plus AIC,
 # BIC, autocorrelation, bias, and the raw SSE objective value).
 #
-# The optimisation strategy mirrors the one used in scripts/recovery.R:
+# The optimisation strategy mirrors the one used in analysis/03_run_recovery.R:
 #   Step 1 – DEoptim  (global search, finds a good region)
 #   Step 2 – nloptr / BOBYQA  (local refinement from DEoptim's best solution)
 #
 ################################################################################
 
-devtools::load_all()
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
+
+devtools::load_all(PROJECT_ROOT)
 
 # ── packages needed beyond the discounting package ───────────────────────────
 library(DEoptim)
@@ -187,6 +201,9 @@ run_estimation <- function(folder,
   }
   message("Found ", length(rds_files), " participants in ", basename(folder))
 
+  # Ensure the estimation results directory exists before anything is written.
+  ensure_dir(PATHS$estimation)
+
   # Loop over the different model types and perform the estimation for these.
   # Note that looping across models is done in sequence while the estimation per
   # participant is done in parallel
@@ -300,9 +317,7 @@ run_estimation <- function(folder,
         write.csv(
           df,
           file.path(
-            "scripts",
-            "results",
-            "estimation",
+            PATHS$estimation,
             paste0(base_name, "_", model_name, ".csv")
           ),
           row.names = FALSE
@@ -321,9 +336,7 @@ run_estimation <- function(folder,
           write.csv(
             df,
             file.path(
-              "scripts",
-              "results",
-              "estimation",
+              PATHS$estimation,
               paste0(
                 base_name,
                 "_",
@@ -394,13 +407,8 @@ optim_settings <- list(
   ftol_abs   = 1e-20
 )
 
-# Define the names of the datasets considered in our analysis. 
-datasets <- c(
-  "VANHASBROECK_2021",
-  "VANHASBROECK_2022",
-  "VANHASBROECK_2024",
-  "NIEMEIJER_2022"
-)
+# Define the names of the datasets considered in our analysis.
+datasets <- RAW_DATASETS
 
 # Define the functions that contain the models of choice. Importantly, we don't
 # provide it with a dimensionality yet: This is automatically done under the 
@@ -422,9 +430,8 @@ for(i in seq_along(datasets)) {
       append(
         list(
           folder = file.path(
-            "scripts", 
-            "data", 
-            paste0(datasets[i], "_per_participant")
+            PATHS$processed_data,
+            datasets[i]
           ),
           base_name = datasets[i], 
           models = models,

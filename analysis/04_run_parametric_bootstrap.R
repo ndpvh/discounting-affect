@@ -5,7 +5,22 @@
 # checking whether the models can capture interesting phenomena in the data.
 ################################################################################
 
-devtools::load_all()
+# Source shared infrastructure
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
+
+devtools::load_all(PROJECT_ROOT)
 
 ################################################################################
 # PHENOMENA OF INTEREST
@@ -177,6 +192,9 @@ bimodality <- function(dataset, ...) {
 # Define the number of datasets to be generated per person per model per dataset
 N <- 10000
 
+# Ensure the output directories exist before anything is written.
+ensure_dir(PATHS$parametric_bootstrap)
+
 # Define the phenomena, the models, and the datasets of interest
 datasets <- list(
     "VANHASBROECK_2021" = c(1, 3),
@@ -233,9 +251,7 @@ results <- parallel::mclapply(
         # Load the parameters for the specified dataset and model
         parameters <- read.csv(
             file.path(
-                "scripts",
-                "results",
-                "estimation",
+                PATHS$estimation,
                 paste(
                     conditions[i, 1],
                     "_",
@@ -286,9 +302,8 @@ results <- parallel::mclapply(
                 if(conditions[i, 1] %in% c("VANHASBROECK_2024_1", "VANHASBROECK_2024_2")) {
                     data <- readRDS(
                         file.path(
-                            "scripts",
-                            "data",
-                            "VANHASBROECK_2024_per_participant",
+                            PATHS$processed_data,
+                            "VANHASBROECK_2024",
                             paste0(id, ".rds")
                         )
                     )
@@ -296,9 +311,8 @@ results <- parallel::mclapply(
                 } else {
                     data <- readRDS(
                         file.path(
-                            "scripts",
-                            "data",
-                            paste0(conditions[i, 1], "_per_participant"),
+                            PATHS$processed_data,
+                            conditions[i, 1],
                             paste0(id, ".rds")
                         )
                     )
@@ -419,9 +433,7 @@ results <- parallel::mclapply(
         write.csv(
             results,
             file.path(
-                "scripts",
-                "results",
-                "bootstrap",
+                PATHS$parametric_bootstrap,
                 paste(
                     conditions[i, 1],
                     "_",
@@ -474,9 +486,7 @@ result <- lapply(
                 # Load the results of the parametric bootstrap
                 result <- read.csv(
                     file.path(
-                        "scripts", 
-                        "results", 
-                        "bootstrap",
+                        PATHS$parametric_bootstrap,
                         paste0(y, "_", x, ".csv")
                     )
                 )
@@ -529,9 +539,7 @@ result <- lapply(
 saveRDS(
     result, 
     file.path(
-        "scripts",
-        "results",
-        "bootstrap",
+        PATHS$parametric_bootstrap,
         "bootstrap_summary.Rds"
     )
 )

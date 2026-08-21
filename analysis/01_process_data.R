@@ -10,7 +10,27 @@
 #
 ################################################################################
 
-devtools::load_all()
+################################################################################
+# SOURCE SHARED INFRASTRUCTURE
+#
+# Works from either the repository root or the analysis/ directory.
+################################################################################
+
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
+
+devtools::load_all(PROJECT_ROOT)
 
 
 
@@ -29,10 +49,10 @@ devtools::load_all()
 # Output files are named: VANHASBROECK_2021_<id>.rds
 
 # Settings
-input_file  <- file.path("scripts/data", "VANHASBROECK_2021.csv")
-output_dir  <- file.path("scripts/data", "VANHASBROECK_2021_per_participant")
+input_file  <- file.path(PATHS$raw_data, "VANHASBROECK_2021.csv")
+output_dir  <- file.path(PATHS$processed_data, "VANHASBROECK_2021")
 
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+ensure_dir(output_dir)
 
 y_cols           <- "happiness"
 x_cols           <- c("cr", "ev", "rpe", "total")
@@ -96,10 +116,10 @@ for (pid in participant_ids) {
 # Output files are named: VANHASBROECK_2022_<id>.rds
 
 # Settings
-input_file  <- file.path("scripts/data", "VANHASBROECK_2022.csv")
-output_dir  <- file.path("scripts/data", "VANHASBROECK_2022_per_participant")
+input_file  <- file.path(PATHS$raw_data, "VANHASBROECK_2022.csv")
+output_dir  <- file.path(PATHS$processed_data, "VANHASBROECK_2022")
 
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+ensure_dir(output_dir)
 
 y_cols           <- c("positive_affect","negative_affect")
 x_cols           <- c("outcome", "total")
@@ -151,10 +171,10 @@ for (pid in participant_ids) {
 # Data are saved per participant, sorted by trial number.
  
 # Settings
-input_file <- file.path("scripts/data", "VANHASBROECK_2024.csv")
-output_dir <- file.path("scripts/data", "VANHASBROECK_2024_per_participant")
+input_file <- file.path(PATHS$raw_data, "VANHASBROECK_2024.csv")
+output_dir <- file.path(PATHS$processed_data, "VANHASBROECK_2024")
  
-dir.create(output_dir,    recursive = TRUE, showWarnings = FALSE)
+ensure_dir(output_dir)
  
 x_cols           <- "outcome"
 sorting_variable <- "trial"
@@ -221,10 +241,10 @@ for (pid in participant_ids) {
 # Data are saved per participant, sorted by study_day and beep_nr.
 
 # Settings
-input_file <- file.path("scripts/data", "NIEMEIJER_2022.csv")
-output_dir <- file.path("scripts/data", "NIEMEIJER_2022_per_participant")
+input_file <- file.path(PATHS$raw_data, "NIEMEIJER_2022.csv")
+output_dir <- file.path(PATHS$processed_data, "NIEMEIJER_2022")
  
-dir.create(output_dir,    recursive = TRUE, showWarnings = FALSE)
+ensure_dir(output_dir)
  
 y_cols           <- c("positive_affect", "negative_affect")
 x_cols           <- c("context_pos", "context_neg")

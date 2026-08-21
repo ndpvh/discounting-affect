@@ -7,9 +7,29 @@
 # ensure everything is going well.
 ################################################################################
 ################################################################################
+# SOURCE SHARED INFRASTRUCTURE
+#
+# Works from either the repository root or the analysis/ directory.
+################################################################################
+
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
+
+################################################################################
 # PRELIMINARIES
 
-devtools::load_all()
+devtools::load_all(PROJECT_ROOT)
 
 # Define the number of recoveries `iterations` and the number of datapoints `N`
 iterations <- 1000
@@ -118,6 +138,11 @@ optimizer <- function(obj,
 ################################################################################
 # PERFORM THE RECOVERY
 
+# Ensure the recovery output directories exist before anything is written.
+# Done once in the parent process rather than inside the parallel worker.
+ensure_dir(PATHS$recovery)
+ensure_dir(file.path(PATHS$figures, "recovery"))
+
 # Loop over the models
 empty <- parallel::mclapply(
     seq_along(models),
@@ -177,9 +202,7 @@ empty <- parallel::mclapply(
         saveRDS(
             result,
             file.path(
-                "scripts", 
-                "results", 
-                "recovery",
+                PATHS$recovery,
                 paste0(
                     names(models)[j], 
                     ".Rds"
@@ -281,8 +304,7 @@ empty <- parallel::mclapply(
 
         ggplot2::ggsave(
             file.path(
-                "scripts",
-                "figures",
+                PATHS$figures,
                 "recovery",
                 paste0(
                     names(models)[j], 
