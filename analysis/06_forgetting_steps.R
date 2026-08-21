@@ -9,11 +9,22 @@
 # than by artificially capping the computed value.
 # ==============================================================================
 
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
+
 # ---- Configuration ----------------------------------------------------------
 
-ESTIMATE_DIR     <- "scripts/results/estimation"
-RAW_DATA_DIR     <- "scripts/data"
-MODEL_TYPES      <- c("double_exponential", "quasi_hyperbolic", "exponential")
 FORGET_THRESHOLD <- 0.05   # effect considered "negligible" below this proportion
 SEARCH_LIMIT     <- 1000   # upper bound for numeric search (double-exponential only)
 
@@ -23,36 +34,7 @@ DECAY_PARAM_PREFIXES <- list(
   quasi_hyperbolic    = c("nu", "kappa")
 )
 
-# ---- Data loading -------------------------------------------------------------
-
-#' Read all parameter estimation CSVs into a nested list: data[[dataset]][[model_type]]
-#'
-#' Assumes filenames follow the pattern "<dataset>_<model_type>.csv", where
-#' model_type is one of MODEL_TYPES.
-load_estimation_data <- function(dir, model_types) {
-  files <- list.files(dir, pattern = "\\.csv$", full.names = TRUE)
-  data <- list()
-  
-  for (f in files) {
-    file_name_no_csv <- sub("\\.csv$", "", basename(f))
-    
-    model_type <- model_types[sapply(model_types, function(m) endsWith(file_name_no_csv, m))][1]
-    if (is.na(model_type)) {
-      warning(paste("Could not identify model type for file:", f))
-      next
-    }
-    dataset <- sub(paste0("_", model_type, "$"), "", file_name_no_csv)
-    
-    df <- read.csv(f, stringsAsFactors = FALSE)
-    
-    if (is.null(data[[dataset]])) {
-      data[[dataset]] <- list()
-    }
-    data[[dataset]][[model_type]] <- df
-  }
-  
-  data
-}
+# load_estimation_data() and MODEL_TYPES come from _config.R / _helpers.R.
 
 # ---- Column identification ---------------------------------------------------
 
@@ -72,17 +54,14 @@ get_decay_columns <- function(df, model_type) {
 
 # ---- Trial counts -------------------------------------------------------------
 
-# Maps split dataset names to the raw data file that actually contains them.
+# Maps split dataset names to the raw dataset that actually contains them.
 # Only datasets that were split during parameter estimation need an entry here;
 # unsplit datasets (e.g. "VANHASBROECK_2021") are looked up by their own name.
-RAW_DATASET_MAP <- list(
-  VANHASBROECK_2024_1 = "VANHASBROECK_2024",
-  VANHASBROECK_2024_2 = "VANHASBROECK_2024"
-)
-
+# (Uses the shared ESTIMATION_TO_RAW_DATASET mapping from _config.R; the local
+# lookup still falls back to the name itself for unsplit datasets.)
 get_raw_dataset_name <- function(dataset_name) {
-  if (dataset_name %in% names(RAW_DATASET_MAP)) {
-    return(RAW_DATASET_MAP[[dataset_name]])
+  if (dataset_name %in% names(ESTIMATION_TO_RAW_DATASET)) {
+    return(ESTIMATION_TO_RAW_DATASET[[dataset_name]])
   }
   dataset_name
 }
@@ -112,7 +91,8 @@ load_trial_counts_niemeijer <- function(raw_dir,
 }
 
 #' Load number of trials per participant from the raw data file matching
-#' `dataset_name`. Returns a data frame with columns: participant_id, n_trials.
+#' `dataset_name` (resolved via ESTIMATION_TO_RAW_DATASET for split datasets).
+#' Returns a data frame with columns: participant_id, n_trials.
 load_trial_counts <- function(dataset_name, raw_dir) {
   if (grepl("NIEMEIJER", dataset_name)) {
     return(load_trial_counts_niemeijer(raw_dir))
@@ -296,7 +276,7 @@ compute_forgetting_steps_double_exponential <- function(df, threshold = FORGET_T
 # Validity summary report: valid/invalid counts per results CSV
 # ==============================================================================
 
-results_dir <- "scripts/results/forgetting_steps"
+results_dir <- PATHS$forgetting_steps
 files <- list.files(results_dir, pattern = "_forgetting_steps\\.csv$", full.names = TRUE)
 
 validity_summary <- do.call(rbind, lapply(files, function(f) {
@@ -330,7 +310,7 @@ print(validity_summary)
 #' and valid-only), and save the results as a CSV.
 #' Returns the results data frame (with validity columns) invisibly.
 run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_dir,
-                                 output_dir = "scripts/results/forgetting_steps") {
+                                 output_dir = PATHS$forgetting_steps) {
   
   df <- estimation_data[[dataset_name]][[model_type]]
   if (is.null(df)) {
@@ -356,9 +336,7 @@ run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_
   cat("=== ", dataset_name, " / ", model_type, " (valid participants only) ===\n", sep = "")
   print(summary(only_valid_ppt[n_forget_cols]))
   
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
+  ensure_dir(output_dir)
   out_path <- file.path(output_dir, paste0(dataset_name, "_", model_type, "_forgetting_steps.csv"))
   write.csv(results, out_path, row.names = FALSE)
   cat("Saved to:", out_path, "\n")
@@ -374,7 +352,7 @@ COMPUTE_FUNCTIONS <- list(
 )
 
 run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_dir,
-                                 output_dir = "scripts/results/forgetting_steps") {
+                                 output_dir = PATHS$forgetting_steps) {
   
   df <- estimation_data[[dataset_name]][[model_type]]
   if (is.null(df)) {
@@ -422,9 +400,7 @@ run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_
   
   print(stats_table)
   
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
+  ensure_dir(output_dir)
   out_path <- file.path(output_dir, paste0(dataset_name, "_", model_type, "_forgetting_steps.csv"))
   write.csv(results, out_path, row.names = FALSE)
   cat("Saved to:", out_path, "\n")
@@ -433,7 +409,17 @@ run_forgetting_steps <- function(dataset_name, model_type, estimation_data, raw_
 }
 
 # ========================================================================== #
-data <- load_estimation_data(ESTIMATE_DIR, MODEL_TYPES)
+# The shared MODEL_TYPES set in _config.R is intentionally UNORDERED.
+# This script's processing/reporting order historically was:
+#   double_exponential, quasi_hyperbolic, exponential
+# Keep that local order for the per-model loop below.
+FORGETTING_MODEL_ORDER <- c(
+  "double_exponential",
+  "quasi_hyperbolic",
+  "exponential"
+)
+
+data <- load_estimation_data(PATHS$estimation, MODEL_TYPES)
 
 # ---- run forgetting-steps summary stats per dataset, per model type ----
 dataset_names <- names(data)
@@ -441,11 +427,11 @@ forgetting_stats_by_dataset <- list()
 for (dataset_name in dataset_names) {
   forgetting_stats_by_dataset[[dataset_name]] <- list()
   
-  for (model_type in MODEL_TYPES) {
+  for (model_type in FORGETTING_MODEL_ORDER) {
     df <- data[[dataset_name]][[model_type]]
     if (is.null(df)) next
     
-    stats_table <- run_forgetting_steps(dataset_name, model_type, data, RAW_DATA_DIR)
+    stats_table <- run_forgetting_steps(dataset_name, model_type, data, PATHS$raw_data)
     forgetting_stats_by_dataset[[dataset_name]][[model_type]] <- stats_table
   }
 }
@@ -475,8 +461,8 @@ get_parameter_label <- function(dimension_code, n_dimensions) {
 #' Load previously computed forgetting-steps results from CSV, then create
 #' and save a boxplot (valid participants only) for one dataset/model_type.
 plot_forgetting_steps <- function(dataset_name, model_type,
-                                  results_dir = "scripts/results/forgetting_steps",
-                                  figures_dir = "scripts/results/figures/forgetting_steps") {
+                                  results_dir = PATHS$forgetting_steps,
+                                  figures_dir = file.path(PATHS$figures, "forgetting_steps")) {
   
   # ---- load ----
   file_path <- file.path(results_dir, paste0(dataset_name, "_", model_type, "_forgetting_steps.csv"))
@@ -529,9 +515,7 @@ plot_forgetting_steps <- function(dataset_name, model_type,
     theme(plot.title = element_text(face = "bold"))
   
   # ---- save ----
-  if (!dir.exists(figures_dir)) {
-    dir.create(figures_dir, recursive = TRUE)
-  }
+  ensure_dir(figures_dir)
   out_path <- file.path(figures_dir, paste0(dataset_name, "_", model_type, "_n", n_valid, "_forgetting_steps.png"))
   ggsave(out_path, plot = p, width = 7, height = 5, dpi = 300)
   cat("Saved plot to:", out_path, "\n")

@@ -2,7 +2,31 @@
 # Model comparison: best model per participant by AIC and BIC, per dataset
 # ==============================================================================
 
-data <- load_estimation_data(ESTIMATE_DIR, MODEL_TYPES)
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
+
+# The shared MODEL_TYPES set in _config.R is intentionally UNORDERED.
+# This script's comparison logic resolves exact AIC/BIC ties with which.min(),
+# so the model sequence passed to the comparison must preserve the historical
+# processing order (which came from the old forgetting_steps workflow).
+MODEL_COMPARISON_ORDER <- c(
+  "double_exponential",
+  "quasi_hyperbolic",
+  "exponential"
+)
+
+data <- load_estimation_data(PATHS$estimation, MODEL_TYPES)
 
 # The 2024 estimation is split by response dimensionality:
 #   _1 = d = 1 = valence-only participants
@@ -23,21 +47,9 @@ names(data) <- ifelse(
 
 
 # Create a dedicated output directory for model-comparison results.
-comparison_output_dir <- file.path(
-  dirname(ESTIMATE_DIR),
-  "model_comparison"
-)
+comparison_output_dir <- PATHS$model_comparison
 
-dir.create(
-  comparison_output_dir,
-  recursive = TRUE,
-  showWarnings = FALSE
-)
-
-if (!dir.exists(comparison_output_dir)) {
-  stop("Could not create model comparison output directory: ",
-       comparison_output_dir)
-}
+ensure_dir(comparison_output_dir)
 
 cat("\nModel-comparison results will be saved to:\n",
     normalizePath(comparison_output_dir), "\n")
@@ -92,7 +104,11 @@ dataset_names <- names(data)
 comparisons_by_dataset <- list()
 
 for (dataset_name in dataset_names) {
-  comparison <- compare_models_for_dataset(dataset_name, data, MODEL_TYPES)
+  comparison <- compare_models_for_dataset(
+    dataset_name,
+    data,
+    MODEL_COMPARISON_ORDER
+  )
   if (is.null(comparison)) next
 
   comparisons_by_dataset[[dataset_name]] <- comparison

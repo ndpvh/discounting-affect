@@ -25,18 +25,32 @@
 #      lower prediction error.
 #
 #
-# All plots are saved as JPEG files to scripts/results/figures/.
+# All plots are saved as JPEG files to analysis/figures/ (PATHS$figures).
 ################################################################################
 
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
+
 library(ggplot2)
-library(tidyr) 
+library(tidyr)
 library(dplyr)
 library(ggpubr)
 
 # Create the output folders for figures if they do not already exist.
 # The main folder contains four subfolders, one for each plot group.
 # I found this better for organizing the output than dumping everything into one folder.
-figure_dir <- file.path("scripts", "results", "figures", "visualization")
+figure_dir <- file.path(PATHS$figures, "visualization")
 
 figure_subdirs <- list(
   parameters  = file.path(figure_dir, "01_parameter_histograms"),
@@ -45,7 +59,7 @@ figure_subdirs <- list(
   sse         = file.path(figure_dir, "04_sse_distributions")
 )
 
-invisible(lapply(figure_subdirs, dir.create, recursive = TRUE, showWarnings = FALSE))
+invisible(lapply(figure_subdirs, ensure_dir))
 
 # Small helper for clean file names
 safe_filename <- function(x) {
@@ -66,18 +80,12 @@ safe_filename <- function(x) {
 # so that we can reuse that logic for the bar plots and pairwise comparisons.
 ################################################################################
 
-input_dir <- file.path("scripts", "results", "estimation")
+input_dir <- PATHS$estimation
 
 # The five datasets and three models — same as comparative_analysis.R
-datasets <- c(
-  "VANHASBROECK_2021",
-  "VANHASBROECK_2022",
-  "VANHASBROECK_2024_1",
-  "VANHASBROECK_2024_2",
-  "NIEMEIJER_2022"
-)
+datasets <- ESTIMATION_DATASETS
 
-models <- c("exponential", "quasi_hyperbolic", "double_exponential")
+models <- MODEL_TYPES
 metrics <- c("aic", "bic")
 
 # Statistics columns that are NOT parameters — we need to separate these
@@ -575,15 +583,10 @@ library(ggplot2)
 library(ggpubr)
 
 # Make subdirectory for these figures if it does not already exist
-base_fig_dir <- file.path(
-  "scripts",
-  "results",
-  "figures",
-  "base_model_figures"
-)
+base_fig_dir <- file.path(PATHS$figures, "base_model_figures")
 
 if (!dir.exists(base_fig_dir)) {
-  dir.create(base_fig_dir, recursive = TRUE)
+  ensure_dir(base_fig_dir)
   cat("Created directory:", base_fig_dir, "\n")
 } else {
   cat("Directory already exists:", base_fig_dir, "\n")
@@ -1185,16 +1188,12 @@ ggsave(
 # Paths ------------------------------------------------------------------------
 
 bootstrap_file <- file.path(
-  "scripts",
-  "results",
-  "bootstrap",
+  PATHS$parametric_bootstrap,
   "bootstrap_summary.Rds"
 )
 
 output_dir <- file.path(
-  "scripts",
-  "results",
-  "figures",
+  PATHS$figures,
   "bootstrap_analysis"
 )
 
@@ -1206,7 +1205,7 @@ if (!file.exists(bootstrap_file)) {
   )
 }
 
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+ensure_dir(output_dir)
 
 
 # Prepare data -----------------------------------------------------------------

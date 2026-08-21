@@ -27,24 +27,34 @@
 # Pull those files or rerun the analysis before this
 ################################################################################
 
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
+
 
 # SETTINGS
 
-# Models included in the comparison
+# Models included in the comparison (same set as MODEL_TYPES in _config.R;
+# kept local here because this script's model order and naming are used in its
+# own output columns).
 models <- c(
   "exponential",
   "quasi_hyperbolic",
   "double_exponential"
 )
 
-# Datasets included in the comparison
-datasets <- c(
-  "VANHASBROECK_2021",
-  "VANHASBROECK_2022",
-  "VANHASBROECK_2024_1",
-  "VANHASBROECK_2024_2",
-  "NIEMEIJER_2022"
-)
+# Datasets included in the comparison (same set as ESTIMATION_DATASETS in _config.R)
+datasets <- ESTIMATION_DATASETS
 
 # Information criteria
 metrics <- c("aic", "bic")
@@ -66,10 +76,10 @@ conf_level <- 0.95
 set.seed(1234)
 
 # Input/output locations
-input_dir <- file.path("scripts", "results", "estimation")
-output_dir <- file.path("scripts", "results", "non_parametric_bootstrap")
+input_dir <- PATHS$estimation
+output_dir <- PATHS$non_parametric_bootstrap
 
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+ensure_dir(output_dir)
 
 
 # LOAD ESTIMATION RESULTS
@@ -615,11 +625,7 @@ cat(
 # are saved; the console report focuses on the directional test.
 # ==============================================================================
 
-FORGETTING_RESULTS_DIR <- file.path(
-  "scripts",
-  "results",
-  "forgetting_steps"
-)
+FORGETTING_RESULTS_DIR <- PATHS$forgetting_steps
 
 # Use longest model names first so that, for example, a double-exponential file
 # is not accidentally identified as an exponential file.

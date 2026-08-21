@@ -16,10 +16,24 @@
 #   - NIEMEIJER_2022:         11 = positive affect, 22 = negative affect
 ################################################################################
 
-input_dir  <- file.path("scripts", "results", "estimation")
-output_dir <- file.path("scripts", "results", "forgetting_factor_spread")
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
 
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+input_dir  <- PATHS$estimation
+output_dir <- PATHS$forgetting_factor_spread
+
+ensure_dir(output_dir)
 
 # Which columns count as "forgetting factors" (decay parameters) per model.
 # Matched by column-name prefix.
@@ -29,27 +43,9 @@ DECAY_PARAM_PREFIXES <- list(
   exponential         = c("gamma")
 )
 
-models <- c("double_exponential", "quasi_hyperbolic", "exponential")
-
-# ---- Identify dataset/model from filename -----------------------------------
-
-# Assumes filenames follow the pattern "<dataset>_<model_type>.csv"
-identify_estimation_file <- function(path, models) {
-
-  file_name_no_csv <- sub("\\.csv$", "", basename(path))
-
-  matched_model <- models[
-    vapply(models, function(m) endsWith(file_name_no_csv, m), logical(1))
-  ][1]
-
-  if (is.na(matched_model)) {
-    return(NULL)
-  }
-
-  dataset_name <- sub(paste0("_", matched_model, "$"), "", file_name_no_csv)
-
-  list(dataset = dataset_name, model = matched_model)
-}
+# The model set is MODEL_TYPES (from _config.R); dataset/model identification
+# is handled by load_estimation_data() in _helpers.R (shared with the other
+# estimation-consuming scripts).
 
 
 # ---- Compute spread statistics for one model's decay-parameter columns ------
@@ -87,29 +83,26 @@ summarize_forgetting_factors <- function(df, model_type, dataset_name) {
 
 # ---- Run: load every estimation file, summarize, save per dataset -----------
 
-files <- list.files(input_dir, pattern = "\\.csv$", full.names = TRUE)
+estimation_data <- load_estimation_data(input_dir, MODEL_TYPES)
 
 all_summaries <- list()
 
-for (f in files) {
+for (dataset_name in names(estimation_data)) {
 
-  file_info <- identify_estimation_file(f, models)
-  if (is.null(file_info)) {
-    warning("Could not identify dataset/model for file: ", f)
-    next
-  }
+  dataset_models <- estimation_data[[dataset_name]]
 
-  df <- read.csv(f, stringsAsFactors = FALSE)
+  for (model_name in names(dataset_models)) {
 
-  summary_df <- summarize_forgetting_factors(df, file_info$model, file_info$dataset)
-  if (is.null(summary_df)) next
+    df <- dataset_models[[model_name]]
 
-  dataset_name <- file_info$dataset
+    summary_df <- summarize_forgetting_factors(df, model_name, dataset_name)
+    if (is.null(summary_df)) next
 
-  if (is.null(all_summaries[[dataset_name]])) {
-    all_summaries[[dataset_name]] <- summary_df
-  } else {
-    all_summaries[[dataset_name]] <- rbind(all_summaries[[dataset_name]], summary_df)
+    if (is.null(all_summaries[[dataset_name]])) {
+      all_summaries[[dataset_name]] <- summary_df
+    } else {
+      all_summaries[[dataset_name]] <- rbind(all_summaries[[dataset_name]], summary_df)
+    }
   }
 }
 

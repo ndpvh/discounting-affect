@@ -1,7 +1,7 @@
 ################################################################################
 # PURPOSE:
 #
-# Summarize the RDS output produced by scripts/recovery.R.
+# Summarize the RDS output produced by the recovery workflow (03_run_recovery.R).
 #
 # The recovery study generates 12 result files:
 #   3 model types x d = 1:2 x k = 1:2
@@ -23,19 +23,34 @@
 #   3. A compact model/dimension-level overview suitable for reporting.
 #
 # Output is written to:
-#   scripts/results/recovery/summary/
+#   analysis/results/recovery/summary/   (PATHS$recovery/summary)
 #
 ################################################################################
+
+
+config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
+  file.path("analysis", "_config.R")
+} else if (file.exists("_config.R")) {
+  "_config.R"
+} else {
+  stop(
+    "Could not find analysis/_config.R. ",
+    "Run this script from the repository root or analysis/ directory."
+  )
+}
+source(config_file)
+source(file.path(PATHS$analysis, "_helpers.R"))
+rm(config_file)
 
 
 ################################################################################
 # SETTINGS
 ################################################################################
 
-input_dir <- file.path("scripts", "results", "recovery")
+input_dir <- PATHS$recovery
 output_dir <- file.path(input_dir, "summary")
 
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+ensure_dir(output_dir)
 
 # Diagnostics requested in recovery.R
 requested_diagnostics <- c("aic", "bic", "autocorrelation", "bias")
