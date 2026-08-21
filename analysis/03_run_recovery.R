@@ -1,10 +1,15 @@
 ################################################################################
-# PURPOSE: 
-# 
-# Perform a recovery study for the different discounting models defined within 
-# this package. The recovery study will also include typical fit statistics 
-# such as AIC and BIC, as well as some checks for the residual structure to 
-# ensure everything is going well.
+# PURPOSE:
+#
+# Run the computationally expensive recovery study for the discounting models
+# defined in this package and save the raw recovery result objects as .Rds files.
+# The recovery study also requests fit statistics such as AIC and BIC, together
+# with checks of the residual structure, so these diagnostics are stored in the
+# saved recovery objects for later analysis.
+#
+# This script performs recovery GENERATION ONLY. The inexpensive downstream
+# recovery summaries and simulated-vs-estimated recovery figures are generated
+# from the saved .Rds files by analysis/09_summarize_recovery.R.
 ################################################################################
 ################################################################################
 # SOURCE SHARED INFRASTRUCTURE
@@ -138,10 +143,9 @@ optimizer <- function(obj,
 ################################################################################
 # PERFORM THE RECOVERY
 
-# Ensure the recovery output directories exist before anything is written.
+# Ensure the recovery-result directory exists before anything is written.
 # Done once in the parent process rather than inside the parallel worker.
 ensure_dir(PATHS$recovery)
-ensure_dir(file.path(PATHS$figures, "recovery"))
 
 # Loop over the models
 empty <- parallel::mclapply(
@@ -208,114 +212,6 @@ empty <- parallel::mclapply(
                     ".Rds"
                 )
             )
-        )
-
-        # Create recovery plots
-        plt <- lapply(
-            colnames(result$simulate),
-            function(col) {
-                # Create a dataframe of simulated parameters values (x) and 
-                # estimated ones (y)
-                plot_data <- cbind(
-                    result$simulate[, col],
-                    result$fit[, col]
-                ) |>
-                    as.data.frame() |>
-                    `colnames<-` (c("x", "y"))
-
-                # Get the range of values
-                limits <- range(c(plot_data$x, plot_data$y))
-
-                # Create a plot for the recovery
-                plt <- ggplot2::ggplot(
-                    data = plot_data, 
-                    ggplot2::aes(
-                        x = x, 
-                        y = y
-                    )
-                ) +
-                    ggplot2::geom_abline(
-                        intercept = 0, 
-                        slope = 1, 
-                        linewidth = 2, 
-                        color = "black"
-                    ) +
-                    ggplot2::geom_point(
-                        shape = 21,
-                        alpha = 0.25, 
-                        color = "black",
-                        fill = "cornflowerblue",
-                        size = 5
-                    ) +
-                    ggplot2::annotate(
-                        "text",
-                        x = limits[1] + 0.05 * diff(limits),
-                        y = limits[1] + 0.95 * diff(limits),
-                        label = format(
-                            round(
-                                cor(
-                                    plot_data$x, 
-                                    plot_data$y
-                                ),
-                                digits = 2
-                            ),
-                            nsmall = 2
-                        ),
-                        size = 5,
-                        hjust = 0
-                    ) +
-                    ggplot2::lims(
-                        x = limits,
-                        y = limits
-                    ) +
-                    ggplot2::labs(
-                        title = col,
-                        x = "Simulated",
-                        y = "Estimated"
-                    ) +
-                    ggplot2::theme(
-                        panel.background = ggplot2::element_rect(
-                            fill = "white"
-                        ),
-                        panel.border = ggplot2::element_rect(
-                            fill = NA, 
-                            color = "black",
-                            linewidth = 1
-                        ),
-                        axis.title = ggplot2::element_text(size = 15),
-                        plot.title = ggplot2::element_text(size = 20)
-                    )
-                
-                return(plt)
-            }
-        )
-
-        if(length(plt) %% 2 == 1) {
-            plt[[length(plt) + 1]] <- ggplot2::ggplot() +
-                ggplot2::theme_void()
-        }
-
-        plt <- cowplot::plot_grid(
-            plotlist = plt,
-            nrow = my_model@d,
-            ncol = round(length(plt) / my_model@d),
-            byrow = FALSE
-        )
-
-        ggplot2::ggsave(
-            file.path(
-                PATHS$figures,
-                "recovery",
-                paste0(
-                    names(models)[j], 
-                    ".png"
-                )
-            ),
-            plt,
-            width = ceiling(ncol(result$simulate) * 1500 / my_model@d), 
-            height = my_model@d * 1550,
-            unit = "px",
-            limitsize = FALSE
         )
 
         cat("\n")

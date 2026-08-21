@@ -1,32 +1,37 @@
 ################################################################################
 # PURPOSE:
 #
-# Summarize the RDS output produced by the recovery workflow (03_run_recovery.R).
+# Analyze the saved .Rds output produced by the recovery-generation workflow
+# (03_run_recovery.R). This script performs inexpensive downstream recovery
+# post-processing only; it does NOT rerun recovery or model fitting.
 #
 # The recovery study generates 12 result files:
 #   3 model types x d = 1:2 x k = 1:2
 #
-# For each file, this script summarizes:
-#   1. Parameter recovery
+# For each file, this script:
+#   1. Summarizes parameter recovery
 #      - Pearson correlation between simulated and estimated values
 #      - parameter-estimation bias (estimated - simulated)
 #      - MAE and RMSE
 #      - regression intercept and slope (estimated ~ simulated)
 #      - number/proportion of non-finite recovery estimates
 #
-#   2. Recovery-level diagnostics saved by recovery.R
+#   2. Summarizes recovery-level diagnostics saved by 03_run_recovery.R
 #      - AIC
 #      - BIC
 #      - residual autocorrelation
 #      - residual bias
 #
-#   3. A compact model/dimension-level overview suitable for reporting.
+#   3. Creates a compact model/dimension-level overview suitable for reporting.
 #
-# Output is written to:
+#   4. Regenerates the simulated-vs-estimated recovery figures from the saved
+#      recovery objects, preserving the figures previously produced by 03.
+#
+# Outputs are written to:
 #   analysis/results/recovery/summary/   (PATHS$recovery/summary)
+#   analysis/figures/recovery/           (PATHS$figures/recovery)
 #
 ################################################################################
-
 
 config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
   file.path("analysis", "_config.R")
@@ -49,10 +54,12 @@ rm(config_file)
 
 input_dir <- PATHS$recovery
 output_dir <- file.path(input_dir, "summary")
+figure_dir <- file.path(PATHS$figures, "recovery")
 
 ensure_dir(output_dir)
+ensure_dir(figure_dir)
 
-# Diagnostics requested in recovery.R
+# Diagnostics requested in 03_run_recovery.R
 requested_diagnostics <- c("aic", "bic", "autocorrelation", "bias")
 
 
@@ -342,6 +349,119 @@ for (file_index in seq_along(recovery_files)) {
 
   simulate <- as.data.frame(result$simulate)
   fit <- as.data.frame(result$fit)
+
+  # ---------------------------------------------------------------------------
+  # RECOVERY FIGURE
+  #
+  # This plotting block was previously executed inside 03_run_recovery.R after
+  # each recovery run. It is reproduced here from the saved recovery object so
+  # the figures can be regenerated without rerunning the expensive recovery.
+  # ---------------------------------------------------------------------------
+
+  recovery_id <- tools::file_path_sans_ext(basename(path))
+
+  plt <- lapply(
+    colnames(result$simulate),
+    function(col) {
+      # Create a dataframe of simulated parameter values (x) and estimated
+      # values (y).
+      plot_data <- cbind(
+        result$simulate[, col],
+        result$fit[, col]
+      ) |>
+        as.data.frame() |>
+        `colnames<-`(c("x", "y"))
+
+      # Get the range of values.
+      limits <- range(c(plot_data$x, plot_data$y))
+
+      # Create a plot for the recovery.
+      plt <- ggplot2::ggplot(
+        data = plot_data,
+        ggplot2::aes(
+          x = x,
+          y = y
+        )
+      ) +
+        ggplot2::geom_abline(
+          intercept = 0,
+          slope = 1,
+          linewidth = 2,
+          color = "black"
+        ) +
+        ggplot2::geom_point(
+          shape = 21,
+          alpha = 0.25,
+          color = "black",
+          fill = "cornflowerblue",
+          size = 5
+        ) +
+        ggplot2::annotate(
+          "text",
+          x = limits[1] + 0.05 * diff(limits),
+          y = limits[1] + 0.95 * diff(limits),
+          label = format(
+            round(
+              cor(
+                plot_data$x,
+                plot_data$y
+              ),
+              digits = 2
+            ),
+            nsmall = 2
+          ),
+          size = 5,
+          hjust = 0
+        ) +
+        ggplot2::lims(
+          x = limits,
+          y = limits
+        ) +
+        ggplot2::labs(
+          title = col,
+          x = "Simulated",
+          y = "Estimated"
+        ) +
+        ggplot2::theme(
+          panel.background = ggplot2::element_rect(
+            fill = "white"
+          ),
+          panel.border = ggplot2::element_rect(
+            fill = NA,
+            color = "black",
+            linewidth = 1
+          ),
+          axis.title = ggplot2::element_text(size = 15),
+          plot.title = ggplot2::element_text(size = 20)
+        )
+
+      return(plt)
+    }
+  )
+
+  if (length(plt) %% 2 == 1) {
+    plt[[length(plt) + 1]] <- ggplot2::ggplot() +
+      ggplot2::theme_void()
+  }
+
+  plt <- cowplot::plot_grid(
+    plotlist = plt,
+    nrow = info$d,
+    ncol = round(length(plt) / info$d),
+    byrow = FALSE
+  )
+
+  ggplot2::ggsave(
+    file.path(
+      figure_dir,
+      paste0(recovery_id, ".png")
+    ),
+    plt,
+    width = ceiling(ncol(result$simulate) * 1500 / info$d),
+    height = info$d * 1550,
+    unit = "px",
+    limitsize = FALSE
+  )
 
   # Match parameters by name.
   common_parameters <- intersect(colnames(simulate), colnames(fit))
