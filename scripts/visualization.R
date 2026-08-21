@@ -1370,6 +1370,17 @@ bootstrap_coverage_plot <- ggplot(
 
 # Save figure ------------------------------------------------------------------
 
+ggsave(
+  filename = file.path(
+    output_dir,
+    "bootstrap_coverage_heatmap.jpb"
+  ),
+  plot = bootstrap_coverage_plot,
+  width = 13,
+  height = 10,
+  units = "in",
+  bg = "white"
+)
 
 ggsave(
   filename = file.path(
