@@ -621,8 +621,10 @@ cat(
 #   1. Conventional paired-samples t-test on the observed forgetting steps.
 #   2. Non-parametric participant bootstrap (10,000 resamples).
 #
-# The directional hypothesis is NA > PA. Both one-sided and two-sided p-values
-# are saved; the console report focuses on the directional test.
+# The substantive prediction is NA > PA. Both one-sided and two-sided p-values
+# are saved for transparency, but the primary inferential reporting uses
+# two-sided tests, with the observed sign of NA - PA used to determine whether a
+# significant difference is in the predicted negativity-bias direction.
 # ==============================================================================
 
 FORGETTING_RESULTS_DIR <- PATHS$forgetting_steps
@@ -955,15 +957,17 @@ negativity_bias_results <- do.call(
 rownames(negativity_bias_results) <- NULL
 
 
-# Multiple-comparison correction 
+# Multiple-comparison correction
 #
-# The same directional negativity-bias hypothesis is tested for each of the
-# three model forms within a dataset. Apply Holm correction across the available
-# model tests within each dataset, separately for the conventional t-test and
-# bootstrap p-values.
+# Three model forms are tested within each dataset. Apply Holm correction across
+# those three model tests within each dataset. Two-sided tests are the primary
+# inferential results used for reporting, while directional tests are retained
+# as supplementary information for transparency.
 
 negativity_bias_results$p_t_directional_holm <- NA_real_
 negativity_bias_results$p_boot_directional_holm <- NA_real_
+negativity_bias_results$p_t_two_sided_holm <- NA_real_
+negativity_bias_results$p_boot_two_sided_holm <- NA_real_
 
 for (dataset_name in unique(negativity_bias_results$dataset)) {
 
@@ -980,6 +984,16 @@ for (dataset_name in unique(negativity_bias_results$dataset)) {
     negativity_bias_results$p_boot_directional[idx],
     method = "holm"
   )
+
+  negativity_bias_results$p_t_two_sided_holm[idx] <- p.adjust(
+    negativity_bias_results$p_t_two_sided[idx],
+    method = "holm"
+  )
+
+  negativity_bias_results$p_boot_two_sided_holm[idx] <- p.adjust(
+    negativity_bias_results$p_boot_two_sided[idx],
+    method = "holm"
+  )
 }
 
 # Direction of the observed effect, for reader-friendly reporting.
@@ -993,14 +1007,20 @@ negativity_bias_results$direction <- ifelse(
   )
 )
 
-# A concise inferential interpretation based on the bootstrap result after Holm
-# correction. This is for console readability only; the numerical results remain
-# the primary output.
+# A concise inferential interpretation based on the two-sided bootstrap result
+# after Holm correction. Statistical significance is determined two-sided; the
+# sign of NA - PA then determines whether the difference is in the predicted
+# negativity-bias direction. This is for console readability only.
 negativity_bias_results$bootstrap_conclusion <- ifelse(
-  negativity_bias_results$mean_difference_na_minus_pa > 0 &
-    negativity_bias_results$p_boot_directional_holm < 0.05,
+  negativity_bias_results$p_boot_two_sided_holm < 0.05 &
+    negativity_bias_results$mean_difference_na_minus_pa > 0,
   "Supports bias",
-  "No clear bias"
+  ifelse(
+    negativity_bias_results$p_boot_two_sided_holm < 0.05 &
+      negativity_bias_results$mean_difference_na_minus_pa < 0,
+    "Opposite direction",
+    "No clear bias"
+  )
 )
 
 
@@ -1064,7 +1084,8 @@ cat("NEGATIVITY BIAS: DO NEGATIVE EFFECTS LINGER LONGER THAN POSITIVE ONES?\n")
 cat("======================================================================\n")
 cat("Outcome: forgetting steps until the modeled effect falls below 5%.\n")
 cat("Prediction: NA > PA. Positive Delta (NA - PA) supports negativity bias.\n")
-cat("p-values below are one-sided (NA > PA) and Holm-adjusted within dataset.\n")
+cat("p-values below are two-sided and Holm-adjusted within dataset.\n")
+cat("A significant positive Delta (NA - PA) is in the predicted negativity-bias direction.\n")
 
 for (dataset_name in unique(negativity_bias_results$dataset)) {
 
@@ -1120,7 +1141,7 @@ for (dataset_name in unique(negativity_bias_results$dataset)) {
     ),
 
     `p t` = vapply(
-      sub_results$p_t_directional_holm,
+      sub_results$p_t_two_sided_holm,
       format_negativity_p,
       character(1)
     ),
@@ -1134,7 +1155,7 @@ for (dataset_name in unique(negativity_bias_results$dataset)) {
     ),
 
     `p boot` = vapply(
-      sub_results$p_boot_directional_holm,
+      sub_results$p_boot_two_sided_holm,
       format_negativity_p,
       character(1)
     ),
@@ -1160,7 +1181,8 @@ for (dataset_name in unique(negativity_bias_results$dataset)) {
 
 cat("\nModel abbreviations: EXP = exponential; QH = quasi-hyperbolic; DE = double-exponential.\n")
 cat("Delta = mean NA forgetting steps - mean PA forgetting steps.\n")
-cat("'Supports bias' = Delta > 0 and Holm-adjusted bootstrap p < .05.\n")
+cat("'Supports bias' = Delta > 0 and two-sided Holm-adjusted bootstrap p < .05.\n")
+cat("'Opposite direction' = Delta < 0 and two-sided Holm-adjusted bootstrap p < .05.\n")
 
 flush.console()
 
