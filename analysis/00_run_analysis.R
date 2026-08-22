@@ -29,9 +29,7 @@
 #
 #     REPRODUCIBILITY NOTE: estimation (02) and recovery generation (03) use
 #     stochastic optimization/simulation without a fixed global seed. Repeated
-#     full-reproduction runs can therefore differ numerically. This behavior is
-#     retained for now and should be discussed by the research group before any
-#     seed policy is changed.
+#     full-reproduction runs can therefore differ numerically.
 #
 # =============================================================================
 
