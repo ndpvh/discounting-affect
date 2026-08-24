@@ -2,30 +2,18 @@
 # PURPOSE:
 #
 # Visualize the results of the discounting model estimation and comparison.
-# This script produces four groups of plots:
+# This script produces the manuscript and diagnostic visualizations used in
+# the project:
 #
 #   1. PARAMETER HISTOGRAMS
-#      Distribution of estimated parameter values per model and dataset.
-#
 #   2. BEST MODEL BAR PLOTS
-#      Percentage of participants best described by each model (based on AIC
-#      and BIC). Uses the same "best model" logic as comparative_analysis.R.
-#
-#   3. PAIRWISE COMPARISON HISTOGRAMS
-#      For each pair of models (exponential vs quasi-hyperbolic, etc.), shows
-#      the distribution of AIC differences across participants. A difference
-#      close to zero means the two models fit equally well; a large positive
-#      difference means model B fits better; large negative means model A fits
-#      better. This is the plot style used in the 2022 paper.
-#
+#   3. PAIRWISE AIC/BIC COMPARISON HISTOGRAMS
 #   4. SSE DISTRIBUTION PLOTS
-#      Distribution of the raw sum of squared errors (SSE) per model and
-#      dataset. Lower SSE = better fit to the data. Comparing these
-#      distributions across models shows which model consistently achieves
-#      lower prediction error.
+#   5. BASE DISCOUNTING-MODEL ILLUSTRATIONS
+#   6. PARAMETRIC-BOOTSTRAP COVERAGE HEATMAP
+#   7. FORGETTING-FACTOR DISTRIBUTIONS
 #
-#
-# All plots are saved as JPEG files to analysis/figures/ (PATHS$figures).
+# All figures are saved as JPEG files under PATHS$figures.
 ################################################################################
 
 config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
@@ -47,16 +35,17 @@ library(tidyr)
 library(dplyr)
 library(ggpubr)
 
-# Create the output folders for figures if they do not already exist.
-# The main folder contains four subfolders, one for each plot group.
-# I found this better for organizing the output than dumping everything into one folder.
+# Create output folders for estimation-based figures if they do not already
+# exist. Keeping these outputs together avoids writing figures into the working
+# directory and makes reruns reproducible.
 figure_dir <- file.path(PATHS$figures, "visualization")
 
 figure_subdirs <- list(
-  parameters  = file.path(figure_dir, "01_parameter_histograms"),
-  best_model  = file.path(figure_dir, "02_best_model_barplots"),
-  pairwise    = file.path(figure_dir, "03_pairwise_comparisons"),
-  sse         = file.path(figure_dir, "04_sse_distributions")
+  parameters        = file.path(figure_dir, "01_parameter_histograms"),
+  best_model        = file.path(figure_dir, "02_best_model_barplots"),
+  pairwise          = file.path(figure_dir, "03_pairwise_comparisons"),
+  sse               = file.path(figure_dir, "04_sse_distributions"),
+  forgetting_factor = file.path(figure_dir, "05_forgetting_factor_distributions")
 )
 
 invisible(lapply(figure_subdirs, ensure_dir))
@@ -606,9 +595,6 @@ print(figure_subdirs)
 #################################################################################
 # BASE VISUALIZATION EXAMPLES OF EACH MODEL
 #################################################################################
-
-library(ggplot2)
-library(ggpubr)
 
 # Make subdirectory for these figures if it does not already exist
 base_fig_dir <- file.path(PATHS$figures, "base_model_figures")
@@ -1229,7 +1215,7 @@ if (!file.exists(bootstrap_file)) {
   stop(
     "Bootstrap summary not found at: ",
     bootstrap_file,
-    "\nRun parametric_bootstrap.R before creating this figure."
+    "\nRun 10_summarize_parametric_bootstrap.R before creating this figure."
   )
 }
 
@@ -1413,153 +1399,212 @@ ggsave(
 )
 
 # =============================================================================
-# FORGETTING FACTOR VISUALIZATION ACROSS DISCOUNTING MODELS
+# FORGETTING-FACTOR DISTRIBUTIONS
 # =============================================================================
+#
 # PURPOSE:
-#   This section visualizes the distribution of forgetting factors estimated
-#   from three computational discounting models — Exponential, Double-Exponential,
-#   and Quasi-Hyperbolic — across multiple datasets (2021, 2022, 2024_1, 2024_2,
-#   and Niemeijer 2022).
+#   Compare the distributions of the decay/forgetting parameters across models
+#   and datasets.
 #
-#   Each model estimates one or more forgetting parameters:
-#     - Exponential:         gamma
-#     - Double-Exponential:  gamma, nu
-#     - Quasi-Hyperbolic:    nu
+# IMPORTANT:
+#   The estimation CSVs were already loaded near the start of this script into
+#   `all_results`. Reusing that object keeps file loading in one place and
+#   ensures that all estimation-based figures use PATHS$estimation consistently.
 #
-#   Datasets with a single affect dimension (2021, 2024_1) produce one subscript
-#   (_11), while datasets with two affect dimensions (2022, 2024_2, Niemeijer 2022)
-#   produce two subscripts (_11 and _22), visualized via faceting.
+# PARAMETERS SHOWN:
+#   Exponential:          gamma
+#   Quasi-hyperbolic:     nu
+#   Double-exponential:   gamma and nu
 #
-# OUTPUT:
-#   One boxplot per dataset, showing the distribution of forgetting factors
-#   grouped by model/parameter combination.
+# For the two-dimensional affect datasets, _11 and _22 are shown in separate
+# positive- and negative-affect facets.
+# =============================================================================
 
+cat("\nDrawing forgetting-factor distributions...\n")
 
-# --- Color palette (consistent across all plots) ---
-# Order matches factor levels: Exponential, Dexp-gamma, Dexp-nu, Qhyp-nu
-MODEL_COLORS <- c(
-  "Exponential"              = "#4C72B0",
-  "Double-Exponential (y)"   = "#DD8452",
-  "Double-Exponential (v)"   = "#DD8452",  # same color to visually group Dexp parameters
-  "Quasi-Hyperbolic (v)"     = "#55A868"
+forgetting_factor_levels <- c(
+  "Exponential \u03b3",
+  "Double-Exponential \u03b3",
+  "Double-Exponential \u03bd",
+  "Quasi-Hyperbolic \u03bd"
 )
 
-# Factor levels and labels shared across all plots
-MODEL_LEVELS <- names(MODEL_COLORS)
-
-
-# =============================================================================
-# DATA LOADING
-# =============================================================================
-
-# Load all CSVs for each dataset into named lists for clean access
-load_dataset <- function(dataset_name) {
-  list(
-    exp  = read.csv(paste0(dataset_name, "_exponential.csv")),
-    dexp = read.csv(paste0(dataset_name, "_double_exponential.csv")),
-    qhyp = read.csv(paste0(dataset_name, "_quasi_hyperbolic.csv"))
-  )
-}
-
-datasets <- list(
-  "VANHASBROECK_2021"   = load_dataset("VANHASBROECK_2021"),
-  "VANHASBROECK_2022"   = load_dataset("VANHASBROECK_2022"),
-  "VANHASBROECK_2024_1" = load_dataset("VANHASBROECK_2024_1"),
-  "VANHASBROECK_2024_2" = load_dataset("VANHASBROECK_2024_2"),
-  "NIEMEIJER_2022"      = load_dataset("NIEMEIJER_2022")
+# Keep model colours consistent with the rest of the visualization script.
+# The two double-exponential parameters deliberately share one colour because
+# they belong to the same model; their x-axis labels distinguish the parameter.
+forgetting_factor_colours <- c(
+  "Exponential \u03b3"        = model_colours[["exponential"]],
+  "Double-Exponential \u03b3" = model_colours[["double_exponential"]],
+  "Double-Exponential \u03bd" = model_colours[["double_exponential"]],
+  "Quasi-Hyperbolic \u03bd"   = model_colours[["quasi_hyperbolic"]]
 )
 
-# Datasets with two affect dimensions (subscripts _11 and _22)
-MULTI_SUBSCRIPT <- c("VANHASBROECK_2022", "VANHASBROECK_2024_2", "NIEMEIJER_2022")
+multi_dimension_datasets <- c(
+  "VANHASBROECK_2022",
+  "VANHASBROECK_2024_2",
+  "NIEMEIJER_2022"
+)
 
+extract_forgetting_parameter <- function(df,
+                                         model_name,
+                                         parameter_name,
+                                         display_label,
+                                         affect_dimension) {
 
-# =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
+  model_df <- df[df$model == model_name, , drop = FALSE]
 
-# Build a long-format data frame for a given dataset and subscript suffix
-# (e.g., subscript = "11" extracts gamma_11, nu_11)
-make_long_df <- function(data, subscript) {
-  exp  <- data$exp
-  dexp <- data$dexp
-  qhyp <- data$qhyp
+  if (!(parameter_name %in% names(model_df))) {
+    return(NULL)
+  }
+
+  values <- model_df[[parameter_name]]
 
   data.frame(
-    gamma = c(
-      exp[[paste0("gamma_", subscript)]],
-      dexp[[paste0("gamma_", subscript)]],
-      dexp[[paste0("nu_",    subscript)]],
-      qhyp[[paste0("nu_",    subscript)]]
-    ),
-    model = factor(
-      rep(MODEL_LEVELS,
-          times = c(nrow(exp), nrow(dexp), nrow(dexp), nrow(qhyp))),
-      levels = MODEL_LEVELS
-    ),
-    subscript = subscript
+    participant_id = model_df$participant_id,
+    forgetting_factor = values,
+    model_parameter = display_label,
+    affect_dimension = affect_dimension,
+    stringsAsFactors = FALSE
   )
 }
 
-# Build the base ggplot boxplot (shared styling across all plots)
-base_boxplot <- function(df, title) {
-  ggplot(df, aes(x = model, y = gamma, fill = model)) +
+make_forgetting_factor_df <- function(dataset_name, subscript) {
+
+  dataset_df <- all_results[
+    all_results$dataset == dataset_name,
+    ,
+    drop = FALSE
+  ]
+
+  parameter_df <- bind_rows(
+    extract_forgetting_parameter(
+      dataset_df,
+      "exponential",
+      paste0("gamma_", subscript),
+      "Exponential \u03b3",
+      subscript
+    ),
+    extract_forgetting_parameter(
+      dataset_df,
+      "double_exponential",
+      paste0("gamma_", subscript),
+      "Double-Exponential \u03b3",
+      subscript
+    ),
+    extract_forgetting_parameter(
+      dataset_df,
+      "double_exponential",
+      paste0("nu_", subscript),
+      "Double-Exponential \u03bd",
+      subscript
+    ),
+    extract_forgetting_parameter(
+      dataset_df,
+      "quasi_hyperbolic",
+      paste0("nu_", subscript),
+      "Quasi-Hyperbolic \u03bd",
+      subscript
+    )
+  )
+
+  parameter_df |>
+    dplyr::filter(is.finite(forgetting_factor)) |>
+    dplyr::mutate(
+      model_parameter = factor(
+        model_parameter,
+        levels = forgetting_factor_levels
+      )
+    )
+}
+
+for (dataset_name in datasets) {
+
+  if (dataset_name %in% multi_dimension_datasets) {
+    plot_df <- bind_rows(
+      make_forgetting_factor_df(dataset_name, "11"),
+      make_forgetting_factor_df(dataset_name, "22")
+    ) |>
+      dplyr::mutate(
+        affect_dimension = factor(
+          affect_dimension,
+          levels = c("11", "22"),
+          labels = c("Positive Affect", "Negative Affect")
+        )
+      )
+  } else {
+    plot_df <- make_forgetting_factor_df(dataset_name, "11")
+  }
+
+  if (nrow(plot_df) == 0L) {
+    warning("No forgetting-factor estimates found for: ", dataset_name)
+    next
+  }
+
+  p_forgetting <- ggplot(
+    plot_df,
+    aes(
+      x = model_parameter,
+      y = forgetting_factor,
+      fill = model_parameter
+    )
+  ) +
     geom_boxplot(
-      width         = 0.5,
-      color         = "black",
+      width = 0.55,
+      colour = "black",
       outlier.shape = 21,
-      outlier.fill  = "white",
-      outlier.size  = 2
+      outlier.fill = "white",
+      outlier.size = 1.8,
+      outlier.alpha = 0.6
     ) +
-    scale_fill_manual(values = MODEL_COLORS) +
+    scale_fill_manual(values = forgetting_factor_colours) +
     labs(
-      title = paste("Forgetting Factors —", title),
-      x     = "Model",
-      y     = "Forgetting Factor"
+      title = paste(
+        "Forgetting-factor distributions \u2014",
+        dataset_labels[[dataset_name]]
+      ),
+      x = NULL,
+      y = "Forgetting factor"
     ) +
     theme_classic(base_size = 14) +
     theme(
       legend.position = "none",
-      axis.text.x     = element_text(angle = 20, hjust = 1)
+      axis.text.x = element_text(
+        angle = 20,
+        hjust = 1
+      ),
+      plot.title = element_text(face = "bold")
     )
-}
 
-# Add facet styling for multi-subscript plots
-# Plain text labels "Subscript 11" and "Subscript 22" are used to avoid
-# rendering issues with Unicode subscript characters across different systems
-add_facets <- function(p) {
-  p + facet_wrap(
-    ~ subscript,
-    labeller = labeller(subscript = c(
-      "11" = "Possitive Affect",
-      "22" = "Negative Affect"
-    ))
-  ) +
-  theme(
-    strip.background = element_rect(fill = "grey90", color = "black"),
-    strip.text       = element_text(face = "bold")
-  )
-}
-
-
-# =============================================================================
-# PLOT GENERATION
-# =============================================================================
-
-# Iterate over all datasets and generate the appropriate plot for each
-for (name in names(datasets)) {
-
-  data <- datasets[[name]]
-
-  if (name %in% MULTI_SUBSCRIPT) {
-    # Two subscripts: combine _11 and _22 into one faceted plot
-    combined_df <- rbind(make_long_df(data, "11"), make_long_df(data, "22"))
-    p <- base_boxplot(combined_df, name)
-    p <- add_facets(p)
-  } else {
-    # Single subscript: straightforward single plot
-    combined_df <- make_long_df(data, "11")
-    p <- base_boxplot(combined_df, name)
+  if (dataset_name %in% multi_dimension_datasets) {
+    p_forgetting <- p_forgetting +
+      facet_wrap(~ affect_dimension, nrow = 1) +
+      theme(
+        strip.background = element_rect(
+          fill = "grey90",
+          colour = "black"
+        ),
+        strip.text = element_text(face = "bold")
+      )
   }
 
-  ggsave(paste0(name, ".jpeg"), plot = p, width = 10, height = 6, dpi = 300)
+  out_path <- file.path(
+    figure_subdirs$forgetting_factor,
+    paste0(
+      "forgetting_factors_",
+      safe_filename(dataset_name),
+      ".jpeg"
+    )
+  )
+
+  ggsave(
+    filename = out_path,
+    plot = p_forgetting,
+    width = 10,
+    height = 6,
+    dpi = 300
+  )
+
+  cat("  Saved:", out_path, "\n")
 }
+
+cat("\nVisualization complete. Figures saved under:", PATHS$figures, "\n")
