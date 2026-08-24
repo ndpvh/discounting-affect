@@ -5,8 +5,7 @@
 # effect decays below a chosen threshold) from parameter estimates of
 # exponential, quasi-hyperbolic, and double-exponential discounting models.
 # Validity of a forgetting-steps estimate is judged post-hoc by comparing it
-# against the number of trials observed for that participant/dataset, rather
-# than by artificially capping the computed value.
+# against the number of trials observed for that participant/dataset.
 # ==============================================================================
 
 config_file <- if (file.exists(file.path("analysis", "_config.R"))) {

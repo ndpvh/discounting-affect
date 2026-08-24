@@ -93,6 +93,88 @@ optimizer <- function(obj,
 }
 
 
+################################################################################
+# RESIDUAL AUTOCORRELATION WITH MISSING VALUES
+#
+# Build lagged residual pairs before deleting missing values. This preserves the
+# original time positions: a missing response breaks a lag-1 pair instead of
+# causing observations on either side of the gap to be treated as consecutive.
+#
+# For NIEMEIJER_2022, `block_size = 11` additionally prevents higher-lag pairs
+# from crossing the structural day boundary (10 scheduled beeps + 1 NA
+# separator). Estimation currently reports lag-1 autocorrelation, but keeping
+# the block argument here makes the definition explicit and reusable.
+################################################################################
+
+lagged_autocorrelation_matrix <- function(values,
+                                          lag = 1L,
+                                          block_size = NULL) {
+
+  if (!is.matrix(values)) {
+    values <- matrix(values, ncol = 1)
+  }
+
+  n <- nrow(values)
+
+  if (n <= lag) {
+    return(setNames(rep(NA_real_, ncol(values)), colnames(values)))
+  }
+
+  now_idx <- (lag + 1L):n
+  lag_idx <- 1L:(n - lag)
+
+  same_block <- rep(TRUE, length(now_idx))
+
+  if (!is.null(block_size)) {
+    block_id <- (seq_len(n) - 1L) %/% block_size
+    same_block <- block_id[now_idx] == block_id[lag_idx]
+  }
+
+  out <- vapply(
+    seq_len(ncol(values)),
+    function(i) {
+      pairs <- data.frame(
+        current = values[now_idx, i],
+        lagged  = values[lag_idx, i]
+      )
+
+      keep <- same_block & complete.cases(pairs)
+      pairs <- pairs[keep, , drop = FALSE]
+
+      if (nrow(pairs) < 2L ||
+          stats::sd(pairs$current) == 0 ||
+          stats::sd(pairs$lagged) == 0) {
+        return(NA_real_)
+      }
+
+      stats::cor(pairs$current, pairs$lagged)
+    },
+    numeric(1)
+  )
+
+  names(out) <- colnames(values)
+  out
+}
+
+
+residual_autocorrelation_listwise <- function(fitobj,
+                                              lag = 1L,
+                                              block_size = NULL) {
+
+  acf <- lagged_autocorrelation_matrix(
+    fitobj$residuals,
+    lag = lag,
+    block_size = block_size
+  )
+
+  if (all(is.na(acf))) {
+    return(NA_real_)
+  }
+
+  mean(acf, na.rm = TRUE)
+}
+
+
 
 ################################################################################
 # ESTIMATE ONE PARTICIPANT
@@ -118,6 +200,7 @@ fit_participant <- function(data,
                             dynamics   = "isotropic",
                             covariance = "symmetric",
                             filter_missing_residuals = FALSE,
+                            residual_block_size = NULL,
                             ...) {
 
   # Wrapped in a tryCatch so that potential problems are caught and dealt with
@@ -134,9 +217,19 @@ fit_participant <- function(data,
         ...
       )
 
+      # Compute residual autocorrelation from the ORIGINAL residual sequence.
+      # Missing values are removed only after lagged pairs have been created.
+      # This avoids concatenating observations across missing responses.
+      residual_ac <- residual_autocorrelation_listwise(
+        fitobj,
+        lag = 1L,
+        block_size = residual_block_size
+      )
+
       # For datasets such as VANHASBROECK_2021, affect is only measured on a
-      # subset of trials. Remove residuals corresponding to unobserved responses
-      # before calculating AIC, BIC, autocorrelation, and bias.
+      # subset of trials. Preserve the existing residual filtering for AIC, BIC,
+      # and bias. Residual autocorrelation is intentionally computed above,
+      # before this filtering, so the original temporal spacing is retained.
       if (filter_missing_residuals) {
         observed <- complete.cases(data@Y)
 
@@ -153,7 +246,7 @@ fit_participant <- function(data,
       stats <- c(
         aic             = aic(fitobj),
         bic             = bic(fitobj),
-        autocorrelation = autocorrelation(fitobj),
+        autocorrelation = residual_ac,
         bias            = bias(fitobj),
         objective_sse   = fitobj$objective
       )
@@ -463,7 +556,11 @@ for(i in seq_along(datasets)) {
           ),
           base_name = datasets[i], 
           models = models,
-          filter_missing_residuals = datasets[i] == "VANHASBROECK_2021"
+          filter_missing_residuals = datasets[i] == "VANHASBROECK_2021",
+          # NIEMEIJER_2022 contains 10 scheduled beeps followed by a structural
+          # NA separator. This block definition prevents lagged residual pairs
+          # from crossing from one day into the next.
+          residual_block_size = if (datasets[i] == "NIEMEIJER_2022") 11L else NULL
         ),
         optim_settings
       )

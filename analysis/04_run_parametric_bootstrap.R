@@ -35,72 +35,121 @@ devtools::load_all(PROJECT_ROOT)
 # PHENOMENA OF INTEREST
 ################################################################################
 
-# Autocorrelation at a particular lag. According to the VARMAX equivalence, the
-# exponential and quasi-hyperbolic should be lag-1 only and not capture any lags
-# after that, while the double-exponential should be able to capture these as 
-# well (no current equivalence to a lag-1 VARMAX has been proven)
+# Shared lagged-correlation helper.
 #
-# Note that this one doesn't work well with the VANHASBROECK_2021 dataset, as 
-# NAs are typically paired with observations. Therefore correlation taken of 
-# observations alone
-autocorrelation <- function(dataset, 
+# Lagged pairs are created BEFORE incomplete pairs are removed. This preserves
+# the scheduled time axis: missing responses break affected pairs instead of
+# making observations on either side of a gap appear consecutive.
+#
+# NIEMEIJER_2022 has 10 scheduled beeps per day followed by a structural NA
+# separator (row 11 of each daily block). For lags > 1, endpoint-wise listwise
+# deletion alone could still pair observations across that separator. The
+# `block_size` check prevents any pair from crossing a daily block boundary.
+lagged_autocorrelation_matrix <- function(values,
+                                          lag = 1L,
+                                          block_size = NULL) {
+
+    if (!is.matrix(values)) {
+        values <- matrix(values, ncol = 1)
+    }
+
+    n <- nrow(values)
+
+    if (n <= lag) {
+        return(setNames(rep(NA_real_, ncol(values)), colnames(values)))
+    }
+
+    now_idx <- (lag + 1L):n
+    lag_idx <- 1L:(n - lag)
+
+    same_block <- rep(TRUE, length(now_idx))
+
+    if (!is.null(block_size)) {
+        block_id <- (seq_len(n) - 1L) %/% block_size
+        same_block <- block_id[now_idx] == block_id[lag_idx]
+    }
+
+    out <- vapply(
+        seq_len(ncol(values)),
+        function(i) {
+            pairs <- data.frame(
+                current = values[now_idx, i],
+                lagged  = values[lag_idx, i]
+            )
+
+            keep <- same_block & complete.cases(pairs)
+            pairs <- pairs[keep, , drop = FALSE]
+
+            if (nrow(pairs) < 2L ||
+                stats::sd(pairs$current) == 0 ||
+                stats::sd(pairs$lagged) == 0) {
+                return(NA_real_)
+            }
+
+            stats::cor(pairs$current, pairs$lagged)
+        },
+        numeric(1)
+    )
+
+    names(out) <- colnames(values)
+    out
+}
+
+
+# Autocorrelation of observed affect at a particular lag.
+autocorrelation <- function(dataset,
                             lag = 1,
+                            dataset_name = NULL,
                             ...) {
-    
-    # Extract the Y-matrix
-    Y <- dataset@Y 
 
-    # Remove NAs
-    Y <- Y[!is.na(Y[, 1]), , drop = FALSE]
+    Y <- dataset@Y
 
-    # Create y and y0 for a particular lag
-    y <- Y[(1 + lag):nrow(Y), , drop = FALSE]
-    y0 <- Y[1:(nrow(Y) - lag), , drop = FALSE]
+    block_size <- if (identical(dataset_name, "NIEMEIJER_2022")) {
+        11L
+    } else {
+        NULL
+    }
 
-    # Compute the autocorrelation for each dimension separately
-    return(
-        cor(y, y0) |>
-            diag() |>
-            `names<-` (colnames(Y))
+    lagged_autocorrelation_matrix(
+        Y,
+        lag = lag,
+        block_size = block_size
     )
 }
 
-# Autocorrelation of the residuals: As an assumption check. Again note that 
-# this doesn't work well with the VANHASBROECK_2021 dataset, as NAs are again 
-# paired with observations. Therefore correlation taken of observations alone.
-residual_autocorrelation <- function(dataset, 
+
+# Autocorrelation of model residuals, used as an assumption check.
+#
+# Missing residuals are handled through lag-first listwise deletion. For
+# NIEMEIJER_2022, daily block boundaries are additionally respected so lag-2
+# and lag-3 pairs cannot cross the structural day separator.
+residual_autocorrelation <- function(dataset,
                                      model = NULL,
                                      lag = 1,
+                                     dataset_name = NULL,
                                      ...) {
 
-    # If the model is NULL, we can't perform the analyses
-    if(is.null(model)) {
+    if (is.null(model)) {
         stop("Model can't be NULL for residual_autocorrelation.")
     }
-    
-    # Extract the Y-matrix
-    Y <- dataset@Y 
 
-    # Given the model, we can predict this matrix's values
+    Y <- dataset@Y
     y <- predict(model, dataset)@Y
-
-    # Subtract them from each other to get the residuals
     residuals <- matrix(Y - y, ncol = ncol(Y))
-    
-    # Remove NAs 
-    residuals <- residuals[!is.na(residuals[, 1]), , drop = FALSE] 
+    colnames(residuals) <- colnames(Y)
 
-    # Lag these residuals according to the specified lag 
-    e <- residuals[(1 + lag):nrow(residuals), , drop = FALSE]
-    e0 <- residuals[1:(nrow(residuals) - lag), , drop = FALSE]
+    block_size <- if (identical(dataset_name, "NIEMEIJER_2022")) {
+        11L
+    } else {
+        NULL
+    }
 
-    # Compute the autocorrelation for each separate dimension
-    return(
-        cor(e, e0) |>
-            diag() |>
-            `names<-` (colnames(Y))
+    lagged_autocorrelation_matrix(
+        residuals,
+        lag = lag,
+        block_size = block_size
     )
-} 
+}
 
 # Correlation between the outcomes and the stimuli at different lags. Allows us
 # to check how well the discounting functions capture these relationships and 
@@ -380,8 +429,9 @@ results <- parallel::mclapply(
                         # Compute the values of the statistics that serve to 
                         # quanify our phenomena of interest
                         statistic <- phenomena[[x]](
-                            data, 
-                            model = model
+                            data,
+                            model = model,
+                            dataset_name = conditions[i, 1]
                         )
 
                         # Save in a data.frame. When there are multiple values 
@@ -426,8 +476,9 @@ results <- parallel::mclapply(
                                 # Compute the values of the statistics that serve to 
                                 # quantify our phenomena of interest
                                 statistic <- phenomena[[x]](
-                                    simdata, 
-                                    model = model
+                                    simdata,
+                                    model = model,
+                                    dataset_name = conditions[i, 1]
                                 ) |>
                                     suppressWarnings()
 
