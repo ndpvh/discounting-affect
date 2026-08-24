@@ -97,6 +97,10 @@ lagged_autocorrelation_matrix <- function(values,
 
 
 # Autocorrelation of observed affect at a particular lag.
+#
+# NIEMEIJER_2022 preserves the scheduled time axis and uses lag-first listwise
+# deletion with daily-block protection. Other datasets retain the historical
+# behavior of correlating the observed rows after missing responses are removed.
 autocorrelation <- function(dataset,
                             lag = 1,
                             dataset_name = NULL,
@@ -104,25 +108,38 @@ autocorrelation <- function(dataset,
 
     Y <- dataset@Y
 
-    block_size <- if (identical(dataset_name, "NIEMEIJER_2022")) {
-        11L
-    } else {
-        NULL
+    if (identical(dataset_name, "NIEMEIJER_2022")) {
+        return(
+            lagged_autocorrelation_matrix(
+                Y,
+                lag = lag,
+                block_size = 11L
+            )
+        )
     }
 
-    lagged_autocorrelation_matrix(
-        Y,
-        lag = lag,
-        block_size = block_size
-    )
+    # Historical behavior for the non-Niemeijer datasets.
+    Y <- Y[!is.na(Y[, 1]), , drop = FALSE]
+
+    if (nrow(Y) <= lag) {
+        return(setNames(rep(NA_real_, ncol(Y)), colnames(Y)))
+    }
+
+    y <- Y[(1 + lag):nrow(Y), , drop = FALSE]
+    y0 <- Y[1:(nrow(Y) - lag), , drop = FALSE]
+
+    cor(y, y0) |>
+        diag() |>
+        `names<-`(colnames(Y))
 }
 
 
 # Autocorrelation of model residuals, used as an assumption check.
 #
-# Missing residuals are handled through lag-first listwise deletion. For
-# NIEMEIJER_2022, daily block boundaries are additionally respected so lag-2
-# and lag-3 pairs cannot cross the structural day separator.
+# NIEMEIJER_2022 uses lag-first listwise deletion so ordinary missed beeps do
+# not collapse the time axis; the 11-row block definition also prevents lag-2
+# and lag-3 pairs from crossing day boundaries. Other datasets retain the
+# historical observed-row behavior.
 residual_autocorrelation <- function(dataset,
                                      model = NULL,
                                      lag = 1,
@@ -138,17 +155,29 @@ residual_autocorrelation <- function(dataset,
     residuals <- matrix(Y - y, ncol = ncol(Y))
     colnames(residuals) <- colnames(Y)
 
-    block_size <- if (identical(dataset_name, "NIEMEIJER_2022")) {
-        11L
-    } else {
-        NULL
+    if (identical(dataset_name, "NIEMEIJER_2022")) {
+        return(
+            lagged_autocorrelation_matrix(
+                residuals,
+                lag = lag,
+                block_size = 11L
+            )
+        )
     }
 
-    lagged_autocorrelation_matrix(
-        residuals,
-        lag = lag,
-        block_size = block_size
-    )
+    # Historical behavior for the non-Niemeijer datasets.
+    residuals <- residuals[!is.na(residuals[, 1]), , drop = FALSE]
+
+    if (nrow(residuals) <= lag) {
+        return(setNames(rep(NA_real_, ncol(residuals)), colnames(Y)))
+    }
+
+    e <- residuals[(1 + lag):nrow(residuals), , drop = FALSE]
+    e0 <- residuals[1:(nrow(residuals) - lag), , drop = FALSE]
+
+    cor(e, e0) |>
+        diag() |>
+        `names<-`(colnames(Y))
 }
 
 # Correlation between the outcomes and the stimuli at different lags. Allows us

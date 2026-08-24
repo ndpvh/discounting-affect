@@ -96,7 +96,7 @@ optimizer <- function(obj,
 ################################################################################
 # RESIDUAL AUTOCORRELATION WITH MISSING VALUES
 #
-# Build lagged residual pairs before deleting missing values. This preserves the
+# Build lagged residual pairs BEFORE deleting missing values. This preserves the
 # original time positions: a missing response breaks a lag-1 pair instead of
 # causing observations on either side of the gap to be treated as consecutive.
 #
@@ -217,19 +217,17 @@ fit_participant <- function(data,
         ...
       )
 
-      # Compute residual autocorrelation from the ORIGINAL residual sequence.
-      # Missing values are removed only after lagged pairs have been created.
-      # This avoids concatenating observations across missing responses.
-      residual_ac <- residual_autocorrelation_listwise(
-        fitobj,
-        lag = 1L,
-        block_size = residual_block_size
-      )
-
-      # For datasets such as VANHASBROECK_2021, affect is only measured on a
-      # subset of trials. Preserve the existing residual filtering for AIC, BIC,
-      # and bias. Residual autocorrelation is intentionally computed above,
-      # before this filtering, so the original temporal spacing is retained.
+      # Missing-response structure differs across datasets.
+      #
+      # VANHASBROECK_2021 deliberately observes affect only on a subset of
+      # trials. Preserve the historical treatment there: first retain only
+      # observed ratings, then calculate autocorrelation across those observed
+      # measurement occasions.
+      #
+      # NIEMEIJER_2022 instead has a scheduled ESM time axis with ordinary
+      # missed beeps and structural day separators. There, preserve the
+      # original positions, create lagged pairs first, and then delete
+      # incomplete pairs (with daily-block protection).
       if (filter_missing_residuals) {
         observed <- complete.cases(data@Y)
 
@@ -238,6 +236,14 @@ fit_participant <- function(data,
           ,
           drop = FALSE
         ]
+
+        residual_ac <- autocorrelation(fitobj)
+      } else {
+        residual_ac <- residual_autocorrelation_listwise(
+          fitobj,
+          lag = 1L,
+          block_size = residual_block_size
+        )
       }
 
       # Extract the parameters and the statistics computed based on the fitobj.
