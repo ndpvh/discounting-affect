@@ -175,16 +175,27 @@ load_estimation_data <- function(dir, model_types) {
   files <- list.files(dir, pattern = "\\.csv$", full.names = TRUE)
   data <- list()
 
+  # Match longer model names first. This is essential because
+  # "double_exponential" also ends with "exponential".
+  model_types_by_specificity <- model_types[
+    order(nchar(model_types), decreasing = TRUE)
+  ]
+
   for (f in files) {
     file_name_no_csv <- sub("\\.csv$", "", basename(f))
 
-    model_type <- model_types[sapply(
-      model_types, function(m) endsWith(file_name_no_csv, m)
-    )][1]
-    if (is.na(model_type)) {
+    matches <- model_types_by_specificity[vapply(
+      model_types_by_specificity,
+      function(m) endsWith(file_name_no_csv, paste0("_", m)),
+      logical(1)
+    )]
+
+    if (length(matches) == 0L) {
       warning(paste("Could not identify model type for file:", f))
       next
     }
+
+    model_type <- matches[[1]]
     dataset <- sub(paste0("_", model_type, "$"), "", file_name_no_csv)
 
     df <- read.csv(f, stringsAsFactors = FALSE)

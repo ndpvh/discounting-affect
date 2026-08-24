@@ -135,6 +135,10 @@ STAT_COLS <- c(
   "objective_sse"
 )
 
+# Parameters to be reported in the new supplementary "other parameters" section.
+# Temporal-weighting parameters are reported separately elsewhere.
+SUPPLEMENT_PARAMETER_FAMILIES <- c("alpha", "beta", "sigma")
+
 
 ################################################################################
 # HELPERS
@@ -261,6 +265,20 @@ summarize_parameter <- function(values,
   prefix <- parameter_prefix(parameter)
   bounds <- PARAMETER_BOUNDS[[prefix]]
 
+  # Off-diagonal sigma terms are residual covariances. Unlike residual
+  # variances, their feasible values are not described by the simple scalar
+  # sigma bounds above, so boundary diagnostics are not computed for them.
+  idx <- parameter_indices(parameter, prefix)
+  is_off_diagonal_sigma <- (
+    prefix == "sigma" &&
+      !is.na(idx[1]) &&
+      !is.na(idx[2]) &&
+      idx[1] != idx[2]
+  )
+  if (is_off_diagonal_sigma) {
+    bounds <- c(NA_real_, NA_real_)
+  }
+
   finite <- is.finite(values)
   x <- values[finite]
 
@@ -292,7 +310,12 @@ summarize_parameter <- function(values,
     ))
   }
 
-  tolerance <- (bounds[2] - bounds[1]) * BOUNDARY_TOLERANCE_PROPORTION
+  has_scalar_bounds <- all(is.finite(bounds))
+  tolerance <- if (has_scalar_bounds) {
+    (bounds[2] - bounds[1]) * BOUNDARY_TOLERANCE_PROPORTION
+  } else {
+    NA_real_
+  }
 
   data.frame(
     dataset = dataset_name,
@@ -315,8 +338,16 @@ summarize_parameter <- function(values,
     max = max(x),
     lower_bound = bounds[1],
     upper_bound = bounds[2],
-    pct_near_lower_bound = 100 * mean(x <= bounds[1] + tolerance),
-    pct_near_upper_bound = 100 * mean(x >= bounds[2] - tolerance),
+    pct_near_lower_bound = if (has_scalar_bounds) {
+      100 * mean(x <= bounds[1] + tolerance)
+    } else {
+      NA_real_
+    },
+    pct_near_upper_bound = if (has_scalar_bounds) {
+      100 * mean(x >= bounds[2] - tolerance)
+    } else {
+      NA_real_
+    },
     stringsAsFactors = FALSE
   )
 }
@@ -439,7 +470,27 @@ for (dataset_name in ESTIMATION_DATASETS) {
 # dataset while preserving each individual alpha/beta/etc. coefficient.
 ################################################################################
 
-supplement_long <- detailed_summary
+# Keep a dedicated detailed file for the non-temporal parameters that belong in
+# this supplementary section.
+other_parameter_summary <- detailed_summary[
+  detailed_summary$parameter_family %in% SUPPLEMENT_PARAMETER_FAMILIES,
+  ,
+  drop = FALSE
+]
+
+other_detailed_path <- file.path(
+  output_dir,
+  "other_parameter_summary_detailed.csv"
+)
+write.csv(other_parameter_summary, other_detailed_path, row.names = FALSE)
+cat(
+  "Saved non-temporal detailed summary to:\n  ",
+  other_detailed_path,
+  "\n\n",
+  sep = ""
+)
+
+supplement_long <- other_parameter_summary
 supplement_long$summary <- mapply(
   format_supplement_cell,
   supplement_long$mean,
@@ -492,7 +543,7 @@ key_df$dataset_order <- NULL
 key_df$parameter_order <- NULL
 rownames(key_df) <- NULL
 
-supplement_path <- file.path(output_dir, "parameter_summary_supplement.csv")
+supplement_path <- file.path(output_dir, "other_parameter_summary_supplement.csv")
 write.csv(key_df, supplement_path, row.names = FALSE, na = "")
 cat("Saved compact supplement-table source to:\n  ", supplement_path, "\n\n", sep = "")
 
@@ -501,14 +552,24 @@ cat("Saved compact supplement-table source to:\n  ", supplement_path, "\n\n", se
 # BOUNDARY DIAGNOSTIC
 ################################################################################
 
-boundary_summary <- detailed_summary[
-  detailed_summary$pct_near_lower_bound >= BOUNDARY_REPORT_THRESHOLD_PCT |
-    detailed_summary$pct_near_upper_bound >= BOUNDARY_REPORT_THRESHOLD_PCT,
+boundary_candidates <- other_parameter_summary[
+  is.finite(other_parameter_summary$lower_bound) &
+    is.finite(other_parameter_summary$upper_bound),
   ,
   drop = FALSE
 ]
 
-boundary_path <- file.path(output_dir, "parameter_summary_boundaries.csv")
+boundary_summary <- boundary_candidates[
+  boundary_candidates$pct_near_lower_bound >= BOUNDARY_REPORT_THRESHOLD_PCT |
+    boundary_candidates$pct_near_upper_bound >= BOUNDARY_REPORT_THRESHOLD_PCT,
+  ,
+  drop = FALSE
+]
+
+boundary_path <- file.path(
+  output_dir,
+  "other_parameter_summary_boundaries.csv"
+)
 write.csv(boundary_summary, boundary_path, row.names = FALSE)
 cat(
   "Saved boundary diagnostic (>=",
@@ -526,6 +587,7 @@ cat(
 
 cat(strrep("=", 79), "\n", sep = "")
 cat("PARAMETER SUMMARY COMPLETE\n")
+cat("Supplement outputs: alpha, beta, sigma only (temporal parameters excluded)\n")
 cat(strrep("=", 79), "\n", sep = "")
 cat("Total parameter summaries: ", nrow(detailed_summary), "\n", sep = "")
 cat("Datasets:                  ", length(unique(detailed_summary$dataset)), "\n", sep = "")

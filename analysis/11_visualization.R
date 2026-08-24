@@ -1558,10 +1558,6 @@ for (dataset_name in datasets) {
     ) +
     scale_fill_manual(values = forgetting_factor_colours) +
     labs(
-      title = paste(
-        "Forgetting-factor distributions \u2014",
-        dataset_labels[[dataset_name]]
-      ),
       x = NULL,
       y = "Forgetting factor"
     ) +
@@ -1571,8 +1567,7 @@ for (dataset_name in datasets) {
       axis.text.x = element_text(
         angle = 20,
         hjust = 1
-      ),
-      plot.title = element_text(face = "bold")
+      )
     )
 
   if (dataset_name %in% multi_dimension_datasets) {
