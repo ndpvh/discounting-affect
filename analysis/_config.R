@@ -11,16 +11,10 @@
 #   3. Shared constants  – dataset and model identifiers used consistently
 #                          across the active analysis scripts.
 #
-# Intended usage (inside each analysis script, before doing any work). Both of
-# the following supported starting points work:
+# Intended usage (inside each analysis script, before doing any work):
 #
-#   From the repository root:
-#     source("analysis/_config.R")
-#     source("analysis/_helpers.R")
-#
-#   From inside the analysis/ directory:
-#     source("_config.R")
-#     source("_helpers.R")
+#   source("analysis/_config.R")          # or source("_config.R") from here
+#   source("analysis/_helpers.R")
 #
 # Sourcing this file is safe to repeat: it has no side effects beyond
 # defining variables in the environment it is sourced into.
@@ -109,7 +103,7 @@ PROJECT_ROOT <- resolve_project_root()
 #   - OUTPUT paths (where analysis writes to):
 #       PATHS$results (root), PATHS$estimation, PATHS$recovery,
 #       PATHS$parametric_bootstrap, PATHS$model_comparison,
-#       PATHS$forgetting_steps, PATHS$forgetting_factor_spread,
+#       PATHS$forgetting_steps, PATHS$parameter_summary,
 #       PATHS$non_parametric_bootstrap
 #   - FIGURES (root of all generated figures):
 #       PATHS$figures
@@ -137,7 +131,7 @@ PATHS <- list(
   parametric_bootstrap   = file.path(PROJECT_ROOT, "analysis", "results", "parametric_bootstrap"),
   model_comparison       = file.path(PROJECT_ROOT, "analysis", "results", "model_comparison"),
   forgetting_steps       = file.path(PROJECT_ROOT, "analysis", "results", "forgetting_steps"),
-  forgetting_factor_spread = file.path(PROJECT_ROOT, "analysis", "results", "forgetting_factor_spread"),
+  parameter_summary       = file.path(PROJECT_ROOT, "analysis", "results", "parameter_summary"),
   non_parametric_bootstrap = file.path(PROJECT_ROOT, "analysis", "results", "non_parametric_bootstrap"),
 
   # Figures

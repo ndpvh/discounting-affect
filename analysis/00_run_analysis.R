@@ -27,10 +27,6 @@
 #     Selecting this mode is itself the explicit intent to run the expensive
 #     stages; there is no interactive confirmation prompt.
 #
-#     REPRODUCIBILITY NOTE: estimation (02) and recovery generation (03) use
-#     stochastic optimization/simulation without a fixed global seed. Repeated
-#     full-reproduction runs can therefore differ numerically.
-#
 # =============================================================================
 
 
@@ -89,67 +85,32 @@ if (!file.exists(rscript_bin)) {
 }
 
 
-## --- 6. Check analysis package dependencies ---------------------------------
-# These packages are used directly by the active analysis scripts in addition
-# to base/recommended R packages. The runner checks them up front so a reviewer
-# gets one clear dependency message instead of failing partway through the
-# workflow. Package installation remains the user's responsibility.
-ANALYSIS_PACKAGES <- c(
-  "MASS",
-  "DEoptim",
-  "nloptr",
-  "devtools",
-  "dplyr",
-  "tidyr",
-  "ggplot2",
-  "ggpubr",
-  "cowplot",
-  "scales"
-)
-
-missing_packages <- ANALYSIS_PACKAGES[!vapply(
-  ANALYSIS_PACKAGES,
-  requireNamespace,
-  FUN.VALUE = logical(1),
-  quietly = TRUE
-)]
-
-if (length(missing_packages) > 0) {
-  stop(
-    "Missing R package(s) required by the analysis workflow: ",
-    paste(missing_packages, collapse = ", "),
-    "\nInstall the missing package(s) before running the analysis. ",
-    "The runner does not install packages automatically."
-  )
-}
-
-
-## --- 7. Small helpers -------------------------------------------------------
+## --- 6. Small helpers -------------------------------------------------------
 
 # run_analysis_step(script, description)
-#   Spawns a FRESH Rscript subprocess to execute `script`. The script path is
-#   normalized and explicitly quoted so repository locations containing spaces
-#   are safe. Waits for the subprocess to finish and stops the workflow if it
-#   exits non-zero.
+#   Spawns a FRESH Rscript subprocess (via system2, so no shell quoting
+#   issues with paths that contain spaces) to execute `script`. Waits for it
+#   to finish and stops the workflow if the subprocess exits non-zero.
 #   A fresh subprocess is required so that no objects or functions created by
 #   one numbered script leak into another (fresh-session independence is a
 #   property we deliberately preserved during the repository refactor).
 run_analysis_step <- function(script, description) {
-  script_path <- normalizePath(
-    file.path(PATHS$analysis, script),
-    mustWork = TRUE
-  )
+  script_path <- file.path(PATHS$analysis, script)
+  if (!file.exists(script_path)) {
+    stop("Required analysis script not found: ", script_path)
+  }
   cat(strrep("=", 79), "\n")
   cat("Running: ", script, "\n", sep = "")
   cat("Purpose: ", description, "\n", sep = "")
   cat(strrep("=", 79), "\n")
 
-  # Explicitly quote the script path so repository locations containing spaces
-  # are passed safely as a single argument to the fresh Rscript subprocess.
+  # system2() quotes each argument per the host shell; passing the Rscript
+  # binary and the script path as separate vector elements keeps repository
+  # locations containing spaces intact without invoking a shell command.
   status <- system2(
-    command = rscript_bin,
-    args = shQuote(script_path),
-    wait = TRUE
+    cmd = rscript_bin,
+    args = script_path,
+    wait  = TRUE
   )
   if (status != 0L) {
     stop(
@@ -171,7 +132,7 @@ file_count <- function(dir, pattern) {
 }
 
 
-## --- 8. Stage definitions ---------------------------------------------------
+## --- 7. Stage definitions ---------------------------------------------------
 # The numerical script filenames are the authoritative ordering. Each stage
 # records: the script filename and a short human-readable description.
 
@@ -193,8 +154,8 @@ stages_downstream <- list(
        desc = "Compute forgetting-step quantities from saved estimation results."),
   list(script = "07_nonparametric_bootstrap_negativity_bias.R",
        desc = "Run the non-parametric bootstrap and negativity-bias analysis."),
-  list(script = "08_forgetting_factor_spread.R",
-       desc = "Summarize the spread of forgetting-factor estimates."),
+  list(script = "08_parameter_summary.R",
+       desc = "Summarize distributions of all estimated model parameters."),
   list(script = "09_summarize_recovery.R",
        desc = "Summarize saved recovery .Rds results into CSV reports."),
   list(script = "10_summarize_parametric_bootstrap.R",
@@ -204,7 +165,7 @@ stages_downstream <- list(
 )
 
 
-## --- 9. Startup banner ------------------------------------------------------
+## --- 8. Startup banner ------------------------------------------------------
 cat("\n")
 cat("Discounting Affect — Analysis Workflow\n")
 cat("Mode: ", MODE, "\n\n", sep = "")
@@ -218,41 +179,21 @@ if (MODE == "existing_results") {
   cat(strrep("-", 79), "\n")
   cat("This workflow will rerun model estimation, recovery, and the parametric\n")
   cat("bootstrap. These stages are computationally intensive.\n")
-  cat("Note: estimation and recovery are stochastic and are not globally seeded;\n")
-  cat("repeated full runs may differ numerically.\n")
   cat(strrep("-", 79), "\n\n")
 }
 
 
-## --- 10. Initialize standard generated-output directories -------------------
+## --- 9. Initialize standard generated-output directories -------------------
 # Creates empty output directories (results/*, figures/*, data/processed) so
 # that later scripts do not need to individually ensure them. This does NOT
 # create or overwrite any data or result files.
 init_output_dirs()
 
 
-## --- 11. Workflow execution -------------------------------------------------
+## --- 10. Workflow execution -------------------------------------------------
 
 completed <- character(0)
 skipped   <- character(0)
-
-# In existing-results mode, saved estimation CSVs are the core prerequisite for
-# the downstream workflow. Without them, the analysis cannot proceed at all.
-# Recovery and parametric-bootstrap result families remain optional because the
-# repository is currently a work in progress.
-if (MODE == "existing_results") {
-  n_estimation_files <- file_count(PATHS$estimation, "\\.csv$")
-
-  if (n_estimation_files == 0L) {
-    stop(
-      "Existing-results analysis cannot proceed because no saved estimation ",
-      ".csv files were found under: ", PATHS$estimation, "\n",
-      "Restore/provide the saved estimation results or set ",
-      "MODE <- \"full_reproduction\" to regenerate them.\n",
-      "The runner will not switch modes automatically."
-    )
-  }
-}
 
 # run_stage(stage, required)
 #   Runs one downstream stage through a fresh Rscript subprocess. When
@@ -279,7 +220,7 @@ skip_stage <- function(stage, reason) {
 }
 
 
-# --- 11a. Expensive stages (full_reproduction only) -------------------------
+# --- 10a. Expensive stages (full_reproduction only) -------------------------
 if (MODE == "full_reproduction") {
   for (st in stages_expensive) {
     run_stage(st, required = TRUE)
@@ -287,7 +228,7 @@ if (MODE == "full_reproduction") {
 }
 
 
-# --- 11b. Downstream stages (both modes) ------------------------------------
+# --- 10b. Downstream stages (both modes) ------------------------------------
 for (st in stages_downstream) {
 
   # Per-stage prerequisite gates. A stage that cannot be attempted (because a
@@ -296,7 +237,30 @@ for (st in stages_downstream) {
   # expected to have produced those files; absence there is a genuine failure
   # (surfaced as a normal subprocess failure, not a silent skip).
 
-  if (st$script == "09_summarize_recovery.R") {
+  if (st$script == "05_model_comparison.R" ||
+      st$script == "06_forgetting_steps.R" ||
+      st$script == "07_nonparametric_bootstrap_negativity_bias.R" ||
+      st$script == "08_parameter_summary.R") {
+
+    # All four of these are estimation-dependent.
+    n_est <- file_count(PATHS$estimation, "\\.csv$")
+    if (n_est == 0L) {
+      if (MODE == "existing_results") {
+        skip_stage(
+          st,
+          "No saved estimation .csv files were found under the estimation-results directory."
+        )
+        next
+      } else {
+        # full_reproduction: 02 should have produced them; treat as failure.
+        stop(
+          "Expected estimation .csv files are missing under ", PATHS$estimation,
+          " but full-reproduction mode should have produced them via 02_estimate_models.R."
+        )
+      }
+    }
+
+  } else if (st$script == "09_summarize_recovery.R") {
 
     n_rec <- file_count(PATHS$recovery, "\\.Rds$")
     if (n_rec == 0L) {
@@ -356,7 +320,7 @@ for (st in stages_downstream) {
 }
 
 
-## --- 12. Final workflow summary --------------------------------------------
+## --- 11. Final workflow summary --------------------------------------------
 cat("\n")
 cat(strrep("=", 79), "\n")
 cat("Workflow complete\n")
