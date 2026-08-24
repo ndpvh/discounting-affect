@@ -731,7 +731,7 @@ p_rutledge <- ggplot(
 ) +
   geom_line(
     linewidth = 1.2,
-    colour = model_colours[["exponential"]]
+    colour = "black"
   ) +
   geom_point(
     size = 2.8,
