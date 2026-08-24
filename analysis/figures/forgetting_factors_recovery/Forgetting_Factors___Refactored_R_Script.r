@@ -29,7 +29,7 @@
 library(ggplot2)
 
 # --- Color palette (consistent across all plots) ---
-# Order matches factor levels: Exponential, Dexp-gamma, Dexp-nu, Qhyp-nu, Qhyp-kappa
+# Order matches factor levels: Exponential, Dexp-gamma, Dexp-nu, Qhyp-nu
 MODEL_COLORS <- c(
   "Exponential"              = "#4C72B0",
   "Double-Exponential (y)"   = "#DD8452",
@@ -154,5 +154,5 @@ for (name in names(datasets)) {
     p <- base_boxplot(combined_df, name)
   }
 
-  ggsave(paste0(name, ".png"), plot = p, width = 10, height = 6, dpi = 300)
+  ggsave(paste0(name, ".jpeg"), plot = p, width = 10, height = 6, dpi = 300)
 }
