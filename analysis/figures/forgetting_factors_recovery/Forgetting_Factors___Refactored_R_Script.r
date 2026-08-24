@@ -11,7 +11,7 @@
 #   Each model estimates one or more forgetting parameters:
 #     - Exponential:         gamma
 #     - Double-Exponential:  gamma, nu
-#     - Quasi-Hyperbolic:    nu, kappa
+#     - Quasi-Hyperbolic:    nu
 #
 #   Datasets with a single affect dimension (2021, 2024_1) produce one subscript
 #   (_11), while datasets with two affect dimensions (2022, 2024_2, Niemeijer 2022)
@@ -34,8 +34,7 @@ MODEL_COLORS <- c(
   "Exponential"              = "#4C72B0",
   "Double-Exponential (y)"   = "#DD8452",
   "Double-Exponential (v)"   = "#DD8452",  # same color to visually group Dexp parameters
-  "Quasi-Hyperbolic (v)"     = "#55A868",
-  "Quasi-Hyperbolic (k)"     = "#C44E52"
+  "Quasi-Hyperbolic (v)"     = "#55A868"
 )
 
 # Factor levels and labels shared across all plots
@@ -72,7 +71,7 @@ MULTI_SUBSCRIPT <- c("VANHASBROECK_2022", "VANHASBROECK_2024_2", "NIEMEIJER_2022
 # =============================================================================
 
 # Build a long-format data frame for a given dataset and subscript suffix
-# (e.g., subscript = "11" extracts gamma_11, nu_11, kappa_11)
+# (e.g., subscript = "11" extracts gamma_11, nu_11)
 make_long_df <- function(data, subscript) {
   exp  <- data$exp
   dexp <- data$dexp
@@ -83,12 +82,11 @@ make_long_df <- function(data, subscript) {
       exp[[paste0("gamma_", subscript)]],
       dexp[[paste0("gamma_", subscript)]],
       dexp[[paste0("nu_",    subscript)]],
-      qhyp[[paste0("nu_",    subscript)]],
-      qhyp[[paste0("kappa_", subscript)]]
+      qhyp[[paste0("nu_",    subscript)]]
     ),
     model = factor(
       rep(MODEL_LEVELS,
-          times = c(nrow(exp), nrow(dexp), nrow(dexp), nrow(qhyp), nrow(qhyp))),
+          times = c(nrow(exp), nrow(dexp), nrow(dexp), nrow(qhyp))),
       levels = MODEL_LEVELS
     ),
     subscript = subscript
