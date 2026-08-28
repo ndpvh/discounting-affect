@@ -81,21 +81,21 @@ data
 #> 
 #> Slot "Y": 100x1matrix
 #>            [,1]
-#> [1,]  4.2225277
-#> [2,]  2.4368320
-#> [3,]  0.4041583
-#> [4,] -0.4269641
-#> [5,] -0.6454699
-#> [6,]  1.9700771
+#> [1,] -0.6385924
+#> [2,]  0.6127149
+#> [3,]  2.0039819
+#> [4,]  0.8967135
+#> [5,]  1.0728121
+#> [6,] -0.2112521
 #> 
 #> Slot "X": 100x1matrix
 #>             [,1]
-#> [1,]  0.80786670
-#> [2,] -0.85736842
-#> [3,]  0.07069873
-#> [4,] -0.83287115
-#> [5,]  0.49305778
-#> [6,] -0.62901857
+#> [1,] -0.06953444
+#> [2,] -0.68335644
+#> [3,]  0.52909041
+#> [4,] -0.97749371
+#> [5,] -0.57327666
+#> [6,] -0.44036007
 ```
 
 To estimate parameters of a model based on observed data, we have to
@@ -123,26 +123,84 @@ result$model
 #> Number of parameters: 5
 #> 
 #> Parameters:
-#>   alpha: |  0.9929598  |
+#>   alpha: |  0.9999998  |
 #> 
-#>   beta: | 0.9340197 |
+#>   beta: | 0.9666337 |
 #> 
-#>   nu: | 0.8361718 |
+#>   nu: | 0.1378622 |
 #> 
-#>   kappa: | 0.4134251 |
+#>   kappa: | 1.00 |
 #> 
 #> 
-#> Covariance: | 0.8733049 |
+#> Covariance: | 0.8497178 |
 ```
 
 ## Analyses
 
-For those who wish to reproduce or otherwise inspect our analyses, they
-can find the analysis scripts in the folder `scripts`. Currently, we
-provide the following analyses:
+The analysis workflow applies the exponential, quasi-hyperbolic, and
+double-exponential discounting models to four affect datasets
+(`VANHASBROECK_2021`, `VANHASBROECK_2022`, `VANHASBROECK_2024`, and
+`NIEMEIJER_2022`). The main aim is to compare how well the alternative
+discounting functions describe affective dynamics, while also examining
+the estimated time course of affect, the recoverability of the model
+parameters, and whether the fitted models reproduce important
+characteristics of the observed data.
 
-- `recovery.R`: Recovery study, providing a sanity check of being able
-  to estimate the models provided by the package.
+All active analysis code is located in `analysis/`. The recommended
+entry point for reviewers is `analysis/00_run_analysis.R`, which runs
+the numbered scripts in their intended order and keeps each step in a
+fresh R session. From the repository root it can be run with
+`Rscript analysis/00_run_analysis.R`. By default, it uses
+`MODE = "existing_results"`: the generation stages (`01`–`04`) are
+skipped and the saved computational results are used to regenerate the
+downstream summaries and figures. Changing this to
+`MODE = "full_reproduction"` reruns the complete workflow, including
+data processing, model estimation, recovery, and the parametric
+bootstrap.
+
+The numbered scripts correspond to the following stages:
+
+- `01_process_data.R`: Converts the raw datasets into the
+  participant-level `dataset` objects used for estimation.
+- `02_estimate_models.R`: Fits all three discounting models separately
+  for each participant and saves parameter estimates and fit statistics,
+  including AIC and BIC.
+- `03_run_recovery.R`: Performs the parameter-recovery study to evaluate
+  whether known simulated parameter values can be recovered by the
+  estimation procedure.
+- `04_run_parametric_bootstrap.R`: Simulates data from the fitted models
+  to test whether they can reproduce relevant empirical characteristics
+  of the datasets.
+- `05_model_comparison.R`: Compares the three models using
+  participant-level AIC and BIC and summarizes how often each model
+  provides the best fit.
+- `06_forgetting_steps.R`: Translates the estimated temporal parameters
+  into forgetting steps, defined as the number of time steps required
+  for an effect to fall below the selected threshold.
+- `07_nonparametric_bootstrap_negativity_bias.R`: Quantifies uncertainty
+  in the model-comparison results and tests whether negative affect is
+  forgotten more slowly than positive affect.
+- `08_parameter_summary.R`: Summarizes the distributions of the
+  estimated model parameters across participants and flags estimates
+  concentrated near their parameter bounds.
+- `09_summarize_recovery.R`: Converts the saved recovery objects into
+  summary statistics and recovery figures without rerunning the recovery
+  study.
+- `10_summarize_parametric_bootstrap.R`: Summarizes the saved parametric
+  bootstrap results, including model coverage of the empirical
+  statistics.
+- `11_visualization.R`: Produces the figures used to present the model,
+  model-comparison, forgetting-step, and bootstrap results.
+
+The shared files `_config.R` and `_helpers.R` define paths,
+dataset/model names, and common helper functions used by the numbered
+scripts; they are not separate analysis stages. Generated numerical
+results are stored under `analysis/results/`, with separate folders for
+estimation, model comparison, forgetting steps, parameter summaries,
+recovery, and bootstrap analyses. Generated figures are stored under
+`analysis/figures/`. The scripts themselves contain more detailed
+comments on dataset-specific preprocessing, model specification, and
+individual outputs.
 
 ## Further Reading
 
