@@ -114,21 +114,21 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Slot "Y": 100x1matrix</span></span>
 <span><span class="co">#&gt;            [,1]</span></span>
-<span><span class="co">#&gt; [1,]  4.2225277</span></span>
-<span><span class="co">#&gt; [2,]  2.4368320</span></span>
-<span><span class="co">#&gt; [3,]  0.4041583</span></span>
-<span><span class="co">#&gt; [4,] -0.4269641</span></span>
-<span><span class="co">#&gt; [5,] -0.6454699</span></span>
-<span><span class="co">#&gt; [6,]  1.9700771</span></span>
+<span><span class="co">#&gt; [1,] -0.6385924</span></span>
+<span><span class="co">#&gt; [2,]  0.6127149</span></span>
+<span><span class="co">#&gt; [3,]  2.0039819</span></span>
+<span><span class="co">#&gt; [4,]  0.8967135</span></span>
+<span><span class="co">#&gt; [5,]  1.0728121</span></span>
+<span><span class="co">#&gt; [6,] -0.2112521</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Slot "X": 100x1matrix</span></span>
 <span><span class="co">#&gt;             [,1]</span></span>
-<span><span class="co">#&gt; [1,]  0.80786670</span></span>
-<span><span class="co">#&gt; [2,] -0.85736842</span></span>
-<span><span class="co">#&gt; [3,]  0.07069873</span></span>
-<span><span class="co">#&gt; [4,] -0.83287115</span></span>
-<span><span class="co">#&gt; [5,]  0.49305778</span></span>
-<span><span class="co">#&gt; [6,] -0.62901857</span></span></code></pre></div>
+<span><span class="co">#&gt; [1,] -0.06953444</span></span>
+<span><span class="co">#&gt; [2,] -0.68335644</span></span>
+<span><span class="co">#&gt; [3,]  0.52909041</span></span>
+<span><span class="co">#&gt; [4,] -0.97749371</span></span>
+<span><span class="co">#&gt; [5,] -0.57327666</span></span>
+<span><span class="co">#&gt; [6,] -0.44036007</span></span></code></pre></div>
 <p>To estimate parameters of a model based on observed data, we have to transform our dataset to an instance of the <a href="https://ndpvh.github.io/discounting-affect/reference/dataset.html" class="external-link"><code>dataset</code></a> class and can then call the function <a href="https://ndpvh.github.io/discounting-affect/reference/fit.html" class="external-link"><code>fit()</code></a> for a particular instance of the models denoted above:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define the model you wish to fit</span></span>
@@ -148,25 +148,48 @@
 <span><span class="co">#&gt; Number of parameters: 5</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Parameters:</span></span>
-<span><span class="co">#&gt;   alpha: |  0.9929598  |</span></span>
+<span><span class="co">#&gt;   alpha: |  0.9999998  |</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   beta: | 0.9340197 |</span></span>
+<span><span class="co">#&gt;   beta: | 0.9666337 |</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   nu: | 0.8361718 |</span></span>
+<span><span class="co">#&gt;   nu: | 0.1378622 |</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   kappa: | 0.4134251 |</span></span>
+<span><span class="co">#&gt;   kappa: | 1.00 |</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Covariance: | 0.8733049 |</span></span></code></pre></div>
+<span><span class="co">#&gt; Covariance: | 0.8497178 |</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="analyses">Analyses<a class="anchor" aria-label="anchor" href="#analyses"></a>
 </h2>
-<p>For those who wish to reproduce or otherwise inspect our analyses, they can find the analysis scripts in the folder <code>scripts</code>. Currently, we provide the following analyses:</p>
+<p>The analysis workflow applies the exponential, quasi-hyperbolic, and double-exponential discounting models to four affect datasets (<code>VANHASBROECK_2021</code>, <code>VANHASBROECK_2022</code>, <code>VANHASBROECK_2024</code>, and <code>NIEMEIJER_2022</code>). The main aim is to compare how well the alternative discounting functions describe affective dynamics, while also examining the estimated time course of affect, the recoverability of the model parameters, and whether the fitted models reproduce important characteristics of the observed data.</p>
+<p>All active analysis code is located in <code>analysis/</code>. The recommended entry point for reviewers is <code>analysis/00_run_analysis.R</code>, which runs the numbered scripts in their intended order and keeps each step in a fresh R session. From the repository root it can be run with <code>Rscript analysis/00_run_analysis.R</code>. By default, it uses <code>MODE = "existing_results"</code>: the generation stages (<code>01</code>–<code>04</code>) are skipped and the saved computational results are used to regenerate the downstream summaries and figures. Changing this to <code>MODE = "full_reproduction"</code> reruns the complete workflow, including data processing, model estimation, recovery, and the parametric bootstrap.</p>
+<p>The numbered scripts correspond to the following stages:</p>
 <ul>
 <li>
-<code>recovery.R</code>: Recovery study, providing a sanity check of being able to estimate the models provided by the package.</li>
+<code>01_process_data.R</code>: Converts the raw datasets into the participant-level <code>dataset</code> objects used for estimation.</li>
+<li>
+<code>02_estimate_models.R</code>: Fits all three discounting models separately for each participant and saves parameter estimates and fit statistics, including AIC and BIC.</li>
+<li>
+<code>03_run_recovery.R</code>: Performs the parameter-recovery study to evaluate whether known simulated parameter values can be recovered by the estimation procedure.</li>
+<li>
+<code>04_run_parametric_bootstrap.R</code>: Simulates data from the fitted models to test whether they can reproduce relevant empirical characteristics of the datasets.</li>
+<li>
+<code>05_model_comparison.R</code>: Compares the three models using participant-level AIC and BIC and summarizes how often each model provides the best fit.</li>
+<li>
+<code>06_forgetting_steps.R</code>: Translates the estimated temporal parameters into forgetting steps, defined as the number of time steps required for an effect to fall below the selected threshold.</li>
+<li>
+<code>07_nonparametric_bootstrap_negativity_bias.R</code>: Quantifies uncertainty in the model-comparison results and tests whether negative affect is forgotten more slowly than positive affect.</li>
+<li>
+<code>08_parameter_summary.R</code>: Summarizes the distributions of the estimated model parameters across participants and flags estimates concentrated near their parameter bounds.</li>
+<li>
+<code>09_summarize_recovery.R</code>: Converts the saved recovery objects into summary statistics and recovery figures without rerunning the recovery study.</li>
+<li>
+<code>10_summarize_parametric_bootstrap.R</code>: Summarizes the saved parametric bootstrap results, including model coverage of the empirical statistics.</li>
+<li>
+<code>11_visualization.R</code>: Produces the figures used to present the model, model-comparison, forgetting-step, and bootstrap results.</li>
 </ul>
+<p>The shared files <code>_config.R</code> and <code>_helpers.R</code> define paths, dataset/model names, and common helper functions used by the numbered scripts; they are not separate analysis stages. Generated numerical results are stored under <code>analysis/results/</code>, with separate folders for estimation, model comparison, forgetting steps, parameter summaries, recovery, and bootstrap analyses. Generated figures are stored under <code>analysis/figures/</code>. The scripts themselves contain more detailed comments on dataset-specific preprocessing, model specification, and individual outputs.</p>
 </div>
 <div class="section level2">
 <h2 id="further-reading">Further Reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
