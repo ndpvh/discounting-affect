@@ -49,10 +49,90 @@
 
 
 
+###########################################
+
+#### test participant:
+df <- read.csv("analysis/test_participant.csv")
+df
 
 
 
+#### step 1: cut the series into blocks (blueprint)
+# returns the trials associated with each fold
+make_folds <- function(n, k){
+  edges <- round(seq(0, n, length.out = k + 1))
+  
+  folds_list <- vector("list", length = k)
+  
+  for(i in 1:k){
+    start_index <- edges[i] + 1
+    end_index <- edges[i + 1]
+    
+    folds_list[[i]] <- start_index:end_index
+  }
+  
+  return(folds_list)
+}
+
+# test function
+n <- nrow(df)
+k <- 5
+
+make_folds(n, k)
 
 
+##########################
+###### EXISTING ESTIMATION STRATEGY  - NEED TO ADD
 
+##### step 3: autocorrelation - to determine block and buffer size
+# check how far back the autocorrelation stretches in participants
+  # helps determine how long time blocks should be
+  # helps determine buffer zone 
+
+
+buffer_size <- 3 ####### need to find a way to determine this or find source that this is a good buffer
+
+run_blocked_cross_validation <- function(affect_series, number_of_folds, buffer_size, estimation_function, predict_function){
+  # 1. generate the folds using make_folds function
+  total_time_points <- length(affect_series)
+  all_folds <- make_folds(n = total_time_points, k = number_of_folds)
+  
+  # create vector to store RMSE score for each fold
+  fold_rmse_vector <- numeric(number_of_folds)
+  
+  # 2. loop through each fold
+  for(fold_idnex in seq_along(all_folds)){
+    test_indeces <- all_folds[[fold_index]]
+    
+    # 3. create a buffer zone around test block to prevent leakage (drop observations immediately before and after test block)
+    min_test_index <- min(test_indeces)
+    max_test_index <- max(test_indeces)
+    
+    buffer_start <- max(1, min_test_index - buffer_size)
+    buffer_end  <- min(total_time_points, max_test_index + buffer_size)
+    buffer_indices <- buffer_start:buffer_end
+    
+    # 4. define the training indices (all points EXCEPT the test block and its buffer)
+    all_indices <- seq_len(total_time_points)
+    training_indices <- setdiff(all_indices, buffer_indices)
+    
+    # extract the actual data subsets
+    training_data <- affect_series[training_indices]
+    test_data <- affect_series[test_indices]
+    
+    # 5. fit model on the trainign data using estimation function
+    estimated_parameters <- estimation_function(training_data)
+    
+    # 6. predict the held-out test block using the fitted parameters
+    predictions <- predict_function(estimated_parameters, test_data)
+    
+    # 7. compute the RMSE on the held-out test block
+    squared_errors <- (test_data - predictions)^2
+    fold_rmse_vector[fold_index] <- sqrt(mean(squared_errors, na.rm = TRUE))
+    
+  }
+  
+  mean_participant_rmse <- mean(fold_Rmse_vector, na.rm = TRUE)
+  return(mean_participant_rmse)
+}
 
