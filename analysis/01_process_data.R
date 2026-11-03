@@ -39,11 +39,9 @@ devtools::load_all(PROJECT_ROOT)
 #
 # Variable roles (based on Rutledge et al., 2014 / Vanhasbroeck et al., 2021):
 #   Y (dependent variable)   : happiness
-#   X (independent variables): cr, ev, rpe, total
+#   X (independent variables): cr, ev, rpe
 #   Ignored                  : trial, id, outcome
 #
-# The total variable represents the cumulative total displayed to participants
-# on each trial.
 # NAs are kept as-is (as requested).
 # Data are saved per participant, sorted by trial number.
 # Output files are named: VANHASBROECK_2021_<id>.rds
@@ -62,50 +60,38 @@ old_processed_files <- list.files(
 if (length(old_processed_files) > 0) unlink(old_processed_files)
 
 y_cols           <- "happiness"
-x_cols           <- c("cr", "ev", "rpe", "total")
+x_cols           <- c("cr", "ev", "rpe")
 sorting_variable <- "trial"
 
-# Load data and create a "total" variable, indicating the total people saw on 
-# each trial
-raw <- read.csv(input_file) |>
-  dplyr::group_by(id) |>
-  tidyr::nest() |>
-  dplyr::rowwise() |>
-  dplyr::mutate(
-    data = data |>
-      dplyr::arrange(trial) |>
-      dplyr::mutate(total = 500 + cumsum(outcome)) |>
-      list()
-  ) |>
-  tidyr::unnest(data) |>
-  dplyr::ungroup() |>
-  as.data.frame()
+
+# Load data
+raw <- read.csv(input_file)
 
 # Loop over participants and create dataset objects
 participant_ids <- sort(unique(raw$id))
 
 for (pid in participant_ids) {
-  
+
   participant_data <- raw[raw$id == pid, ]
   participant_data <- participant_data[
     order(participant_data[[sorting_variable]]),
   ]
-  
+
   # Rescale monetary predictors to euro-level
   participant_data[, x_cols] <- participant_data[, x_cols] / 100
-  
+
   ds <- dataset(
     data             = participant_data,
     y_cols           = y_cols,
     x_cols           = x_cols,
     sorting_variable = sorting_variable
   )
-  
+
   out_file <- file.path(
     output_dir,
     paste0("VANHASBROECK_2021_", pid, ".rds")
   )
-  
+
   saveRDS(ds, file = out_file)
 }
 
@@ -115,8 +101,8 @@ for (pid in participant_ids) {
 #
 # Variable roles (based on Vanhasbroeck et al., 2022):
 #   Y (dependent variables)  : positive_affect, negative_affect
-#   X (independent variables): outcome, total
-#   Ignored                  : trial, id, door_clicked, time
+#   X (independent variables): outcome
+#   Ignored                  : trial, id, door_clicked, time, total
 #
 # NAs are kept as-is (as requested).
 # Data are saved per participant, sorted by trial number.
@@ -135,8 +121,8 @@ old_processed_files <- list.files(
 )
 if (length(old_processed_files) > 0) unlink(old_processed_files)
 
-y_cols           <- c("positive_affect","negative_affect")
-x_cols           <- c("outcome", "total")
+y_cols           <- c("positive_affect", "negative_affect")
+x_cols           <- "outcome"
 sorting_variable <- "trial"
 
 # Load data
@@ -148,14 +134,14 @@ participant_ids <- sort(unique(raw$id))
 for (pid in participant_ids) {
   participant_data <- raw[raw$id == pid, ]
   participant_data <- participant_data[order(participant_data[[sorting_variable]]), ]
-  
+
   ds <- dataset(
     data             = participant_data,
     y_cols           = y_cols,
     x_cols           = x_cols,
     sorting_variable = sorting_variable
   )
-  
+
   out_file <- file.path(output_dir, paste0("VANHASBROECK_2022_", pid, ".rds"))
   saveRDS(ds, file = out_file)
 }
@@ -178,16 +164,16 @@ for (pid in participant_ids) {
 #
 # How we detect the participant type:
 #   We check whether positive_affect has any non-NA values. If yes, then the 2D
-#   variant is used. If all positive_affect values are NA, then the 1D variant 
-#   is used. 
+#   variant is used. If all positive_affect values are NA, then the 1D variant
+#   is used.
 #
 # NAs are kept as-is.
 # Data are saved per participant, sorted by trial number.
- 
+
 # Settings
 input_file <- file.path(PATHS$raw_data, "VANHASBROECK_2024.csv")
 output_dir <- file.path(PATHS$processed_data, "VANHASBROECK_2024")
- 
+
 ensure_dir(output_dir)
 
 # Remove participant files from an earlier processing run so a changed sample
@@ -196,25 +182,25 @@ old_processed_files <- list.files(
   output_dir, pattern = "\\.[Rr][Dd][Ss]$", full.names = TRUE
 )
 if (length(old_processed_files) > 0) unlink(old_processed_files)
- 
+
 x_cols           <- "outcome"
 sorting_variable <- "trial"
- 
+
 # Load data
 raw <- read.csv(input_file)
- 
+
 # Loop over participants, detect type, and save to the correct folder
 participant_ids <- sort(unique(raw$id))
- 
+
 for (pid in participant_ids) {
- 
+
   participant_data <- raw[raw$id == pid, ]
   participant_data <- participant_data[order(participant_data[[sorting_variable]]), ]
- 
+
   # Detect participant type by checking whether positive_affect has any
   # observed (non-NA) values
   is_full <- any(!is.na(participant_data$positive_affect))
- 
+
   if (is_full) {
     # Full participant: save PA + NA only (d=2), drop valence
     ds <- dataset(
@@ -223,7 +209,7 @@ for (pid in participant_ids) {
       x_cols           = x_cols,
       sorting_variable = sorting_variable
     )
- 
+
   } else {
     # Valence-only participant: save valence only (d=1)
     ds <- dataset(
@@ -237,10 +223,10 @@ for (pid in participant_ids) {
   out_file <- file.path(
     output_dir,
     paste0("VANHASBROECK_2024_", pid, ".rds")
-  ) 
+  )
   saveRDS(ds, file = out_file)
 }
- 
+
 
 
 ################################################################################
@@ -264,7 +250,7 @@ for (pid in participant_ids) {
 # Settings
 input_file <- file.path(PATHS$raw_data, "NIEMEIJER_2022.csv")
 output_dir <- file.path(PATHS$processed_data, "NIEMEIJER_2022")
- 
+
 ensure_dir(output_dir)
 
 # Remove participant files from an earlier processing run so a changed sample
@@ -273,22 +259,22 @@ old_processed_files <- list.files(
   output_dir, pattern = "\\.[Rr][Dd][Ss]$", full.names = TRUE
 )
 if (length(old_processed_files) > 0) unlink(old_processed_files)
- 
+
 y_cols           <- c("positive_affect", "negative_affect")
 x_cols           <- c("context_pos", "context_neg")
 sorting_variable <- "sorting_variable"
- 
+
 # Load data
 raw <- read.csv(input_file)
- 
+
 # Loop over participants, detect type, and save to the correct folder
 participant_ids <- sort(unique(raw$participant))
- 
+
 for (pid in participant_ids) {
- 
+
   participant_data <- raw[raw$participant == pid, ]
   participant_data <- participant_data[order(participant_data[[sorting_variable]]), ]
- 
+
   # Full participant: save PA + NA only (d=2), drop valence
   ds <- dataset(
     data             = participant_data,
@@ -300,6 +286,6 @@ for (pid in participant_ids) {
   out_file <- file.path(
     output_dir,
     paste0("NIEMEIJER_2022_", pid, ".rds")
-  ) 
+  )
   saveRDS(ds, file = out_file)
 }
