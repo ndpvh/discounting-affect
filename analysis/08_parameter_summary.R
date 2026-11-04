@@ -78,11 +78,11 @@ ensure_dir(output_dir)
 DATASET_METADATA <- list(
   VANHASBROECK_2021 = list(
     responses  = c("Happiness"),
-    predictors = c("CR", "EV", "RPE", "Total")
+    predictors = c("CR", "EV", "RPE")
   ),
   VANHASBROECK_2022 = list(
     responses  = c("Positive affect", "Negative affect"),
-    predictors = c("Outcome", "Total")
+    predictors = c("Outcome")
   ),
   VANHASBROECK_2024_1 = list(
     responses  = c("Valence"),
@@ -149,7 +149,7 @@ parameter_prefix <- function(parameter) {
 }
 
 # Extract matrix/vector indices from the current parameter naming convention.
-# The current models use d <= 2 and k <= 4, so beta_14, beta_21, etc. are
+# The current models use d <= 2 and k <= 3, so beta_13, beta_21, etc. are
 # unambiguous: first digit = response dimension, second = predictor dimension.
 parameter_indices <- function(parameter, prefix) {
   if (prefix == "omega") {
@@ -466,7 +466,7 @@ for (dataset_name in ESTIMATION_DATASETS) {
 # CREATE COMPACT SUPPLEMENT-TABLE SOURCE
 #
 # Instead of placing model on separate rows, put the three models side by side.
-# This reduces 147 model-specific rows to one row per unique parameter within a
+# This reduces the model-specific rows to one row per unique parameter within a
 # dataset while preserving each individual alpha/beta/etc. coefficient.
 ################################################################################
 
