@@ -283,16 +283,22 @@ N <- 10000
 ensure_dir(PATHS$parametric_bootstrap)
 
 # Define the phenomena, the models, and the datasets of interest
+# Define the phenomena, the models, and the datasets of interest
 datasets <- list(
     # Keep these dimensions synchronized with 01_process_data.R /
-    # 02_estimate_models.R. The 2021 and 2022 specifications include the
-    # cumulative `total` predictor in the current analysis pipeline.
-    "VANHASBROECK_2021" = c(1, 4),
-    "VANHASBROECK_2022" = c(2, 2),
+    # 02_estimate_models.R.
+    "VANHASBROECK_2021" = c(1, 3),
+    "VANHASBROECK_2022" = c(2, 1),
     "VANHASBROECK_2024_1" = c(1, 1),
     "VANHASBROECK_2024_2" = c(2, 1),
     "NIEMEIJER_2022" = c(2, 2)
 )
+
+# Run selected datasets if specified, otherwise use all datasets.
+selected_datasets <- commandArgs(trailingOnly = TRUE)
+if (length(selected_datasets) > 0L) datasets <- datasets[selected_datasets]
+
+
 models <- list(
     "exponential" = exponential,
     "quasi_hyperbolic" = quasi_hyperbolic,

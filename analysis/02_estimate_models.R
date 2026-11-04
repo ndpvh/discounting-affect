@@ -3,8 +3,8 @@
 #
 # Estimate the three discounting models (exponential, quasi-hyperbolic, and
 # double-exponential) on each participant's data from the four datasets:
-#   - VANHASBROECK_2021  (d = 1, k = 4: cr, ev, rpe, total)
-#   - VANHASBROECK_2022  (d = 2, k = 2: outcome, total)
+#   - VANHASBROECK_2021  (d = 1, k = 3: cr, ev, rpe)
+#   - VANHASBROECK_2022  (d = 2, k = 1: outcome)
 #   - VANHASBROECK_2024  (d = 1 or 2, k = 1: outcome)
 #   - NIEMEIJER_2022     (d = 2, k = 2: context_pos, context_neg)
 #
@@ -188,7 +188,7 @@ residual_autocorrelation_listwise <- function(fitobj,
 # Arguments:
 #   ds          – a dataset object (loaded from an RDS file)
 #   model_empty – an empty model of the right dimensionality, e.g.
-#                 exponential(d = 1, k = 4) for VANHASBROECK_2021
+#                 exponential(d = 1, k = 3) for VANHASBROECK_2021
 #   dynamics    – structure of the forgetting matrices ("isotropic" here)
 #   covariance  – structure of the residual covariance ("symmetric" here)
 #   ...         – extra arguments forwarded to optimizer() via fit()
@@ -493,7 +493,7 @@ run_estimation <- function(folder,
 #
 # PLEASE REMEMBER TO RUN THE "processing_data.R" script
 # BEFORE THE FOLLOWING ESTIMATION!
-# 
+#
 # Here we call run_estimation() once for each of the four datasets.
 # The DEoptim / nloptr settings are passed as ... arguments and mirror
 # exactly those used in recovery.R.
@@ -534,8 +534,9 @@ optim_settings <- list(
   ftol_abs   = 1e-20
 )
 
-# Define the names of the datasets considered in our analysis.
-datasets <- RAW_DATASETS
+# Use dataset names supplied through the terminal, or all datasets by default.
+datasets <- commandArgs(trailingOnly = TRUE)
+if (length(datasets) == 0L) datasets <- RAW_DATASETS
 
 # Define the functions that contain the models of choice. Importantly, we don't
 # provide it with a dimensionality yet: This is automatically done under the 
