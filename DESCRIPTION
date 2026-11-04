@@ -29,7 +29,6 @@ Suggests:
 Remotes:
 Config/testthat/edition: 3
 Encoding: UTF-8
-RoxygenNote: 7.3.3
 Collate:
     'discounting-package.R'
     'models.R'
@@ -41,3 +40,4 @@ Collate:
     'recovery.R'
     'statistics.R'
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
