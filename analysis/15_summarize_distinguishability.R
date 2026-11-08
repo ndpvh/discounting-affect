@@ -1,111 +1,115 @@
+
+
 ################################################################################
 # PURPOSE:
 #
-# Summarize the simulations saved by 14_run_distinguishability.R without
-# repeating model estimation. Report how often AIC and BIC identify the
-# generating model, which alternative models are selected, and the differences
-# in information criteria between each candidate and the generating model.
+# Summarize both distinguishability studies without re-estimating any models.
+# For each study, report AIC/BIC model-identification accuracy, selection
+# frequencies, criterion differences, and failures. Also summarize absolute
+# goodness of fit (SSE, RMSE, MAE, residual bias and autocorrelation).
 #
-# Save CSV summaries in analysis/results/distinguishability/summary/ and a
-# model-selection heatmap in analysis/figures/distinguishability/.
-# Pass the argument "pilot" to summarize the separate pilot results.
+# Read raw simulations from the separate a priori and a posteriori directories.
+# Save CSV tables under each study's summary/ directory and a JPEG confusion
+# plot under analysis/figures/distinguishability/<study>/.
+# The "pilot" argument reads only the separate pilot results.
 ################################################################################
 
-# Return the unique best-fitting model, or a tie / missing result.
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# A unique winner is required; missing fits and ties remain explicit.
 select_best_model <- function(values, models) {
-  if (length(values) != 3L || length(models) != 3L ||
-      anyDuplicated(models) ||
-      any(!is.finite(values))) {
+  if (length(values) != 3 || length(models) != 3 ||
+      anyDuplicated(models) || any(!is.finite(values))) {
     return(NA_character_)
   }
 
   selected <- models[values == min(values)]
-  if (length(selected) > 1L) {
-    return("tie")
-  }
-
+  if (length(selected) > 1) return("tie")
   selected
 }
 
 
-# Compare fitted models within each simulation and aggregate the results.
+# Summarize one or both studies using a unique ID for each simulated dataset.
 summarize_distinguishability <- function(fits) {
   required <- c(
-    "iteration", "generating_model", "fitted_model", "d", "k",
-    "aic", "bic", "error"
+    "study", "dataset", "d", "k", "generating_model", "fitted_model",
+    "simulation_id", "aic", "bic", "objective_sse", "rmse", "mae",
+    "bias", "autocorrelation", "error"
   )
   if (!all(required %in% names(fits))) {
     stop("Distinguishability results have missing columns.")
   }
 
+  keys <- c("study", "dataset", "d", "k", "generating_model")
+  simulation_keys <- c(keys, "simulation_id")
+
   winners <- fits |>
-    dplyr::group_by(d, k, generating_model, iteration) |>
-    dplyr::summarise(
+    group_by(study, dataset, d, k, generating_model, simulation_id) |>
+    summarise(
       best_aic = select_best_model(aic, fitted_model),
       best_bic = select_best_model(bic, fitted_model),
       .groups = "drop"
     )
 
   selections <- winners |>
-    tidyr::pivot_longer(
+    pivot_longer(
       cols = c(best_aic, best_bic),
-      names_to = "criterion",
-      values_to = "selected_model"
+      names_to = "criterion", values_to = "selected_model"
     ) |>
-    dplyr::mutate(criterion = sub("^best_", "", criterion))
+    mutate(criterion = sub("^best_", "", criterion))
 
   accuracy <- selections |>
-    dplyr::group_by(d, k, generating_model, criterion) |>
-    dplyr::summarise(
-      n_simulations = dplyr::n(),
+    group_by(study, dataset, d, k, generating_model, criterion) |>
+    summarise(
+      n_simulations = n(),
       n_complete = sum(!is.na(selected_model)),
       n_correct = sum(selected_model == generating_model, na.rm = TRUE),
       n_ties = sum(selected_model == "tie", na.rm = TRUE),
       .groups = "drop"
     ) |>
-    dplyr::mutate(
+    mutate(
       n_incomplete = n_simulations - n_complete,
       accuracy_pct = ifelse(
         n_complete > 0, 100 * n_correct / n_complete, NA_real_
-      )
+      ),
+      accuracy_all_pct = 100 * n_correct / n_simulations
     )
 
   confusion <- selections |>
-    dplyr::filter(!is.na(selected_model)) |>
-    dplyr::count(
-      d, k, generating_model, criterion, selected_model, name = "n"
-    ) |>
-    dplyr::left_join(
+    filter(!is.na(selected_model)) |>
+    count(study, dataset, d, k, generating_model,
+          criterion, selected_model, name = "n") |>
+    left_join(
       accuracy |>
-        dplyr::select(d, k, generating_model, criterion, n_complete),
-      by = c("d", "k", "generating_model", "criterion")
+        transmute(study, dataset, d, k, generating_model,
+                  criterion, n_complete),
+      by = c(keys, "criterion")
     ) |>
-    dplyr::mutate(pct = 100 * n / n_complete)
+    mutate(pct = 100 * n / n_complete)
 
   true_fit <- fits |>
-    dplyr::filter(fitted_model == generating_model) |>
-    dplyr::select(
-      d, k, generating_model, iteration,
+    filter(fitted_model == generating_model) |>
+    transmute(
+      study, dataset, d, k, generating_model, simulation_id,
       true_aic = aic, true_bic = bic
     )
 
   differences <- fits |>
-    dplyr::left_join(
-      true_fit,
-      by = c("d", "k", "generating_model", "iteration")
-    ) |>
-    dplyr::mutate(
+    left_join(true_fit, by = simulation_keys) |>
+    mutate(
       delta_aic = aic - true_aic,
       delta_bic = bic - true_bic
     ) |>
-    tidyr::pivot_longer(
+    pivot_longer(
       cols = c(delta_aic, delta_bic),
-      names_to = "criterion",
-      values_to = "difference"
+      names_to = "criterion", values_to = "difference"
     ) |>
-    dplyr::mutate(criterion = sub("^delta_", "", criterion)) |>
-    dplyr::group_by(d, k, generating_model, fitted_model, criterion) |>
-    dplyr::summarise(
+    mutate(criterion = sub("^delta_", "", criterion)) |>
+    group_by(study, dataset, d, k, generating_model,
+             fitted_model, criterion) |>
+    summarise(
       n_pairs = sum(is.finite(difference)),
       mean_difference = if (n_pairs > 0) {
         mean(difference[is.finite(difference)])
@@ -121,23 +125,48 @@ summarize_distinguishability <- function(fits) {
     )
 
   failures <- fits |>
-    dplyr::group_by(d, k, generating_model, fitted_model) |>
-    dplyr::summarise(
-      n_fits = dplyr::n(),
+    group_by(study, dataset, d, k, generating_model, fitted_model) |>
+    summarise(
+      n_fits = n(),
       n_failed = sum(!is.finite(aic) | !is.finite(bic) | !is.na(error)),
       .groups = "drop"
     )
+
+  # These statistics are absolute fit measures, not model-selection criteria.
+  # NaN from an entirely failed group is reported as NA in the CSV.
+  goodness_of_fit <- fits |>
+    group_by(study, dataset, d, k, generating_model, fitted_model) |>
+    summarise(
+      n_fits = n(),
+      n_valid = sum(is.finite(rmse)),
+      sse_mean = mean(objective_sse, na.rm = TRUE),
+      sse_median = median(objective_sse, na.rm = TRUE),
+      rmse_mean = mean(rmse, na.rm = TRUE),
+      rmse_median = median(rmse, na.rm = TRUE),
+      rmse_sd = sd(rmse, na.rm = TRUE),
+      mae_mean = mean(mae, na.rm = TRUE),
+      mae_median = median(mae, na.rm = TRUE),
+      bias_mean = mean(bias, na.rm = TRUE),
+      abs_bias_mean = mean(abs(bias), na.rm = TRUE),
+      autocorrelation_mean = mean(autocorrelation, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    mutate(across(
+      where(is.numeric), ~ replace(.x, is.nan(.x), NA_real_)
+    ))
 
   list(
     accuracy = accuracy,
     confusion = confusion,
     differences = differences,
-    failures = failures
+    failures = failures,
+    goodness_of_fit = goodness_of_fit
   )
 }
 
 
-run_distinguishability_summary <- function(pilot = FALSE) {
+# Write a summary and confusion plot for each study separately.
+run_distinguishability_summary <- function(pilot = FALSE, study = "both") {
   config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
     file.path("analysis", "_config.R")
   } else if (file.exists("_config.R")) {
@@ -145,97 +174,128 @@ run_distinguishability_summary <- function(pilot = FALSE) {
   } else {
     stop("Could not find analysis/_config.R. Run from the repository root.")
   }
-
   source(config_file, local = TRUE)
   source(file.path(PATHS$analysis, "_helpers.R"), local = TRUE)
 
-  input_dir <- file.path(PATHS$results, "distinguishability")
-  figure_dir <- file.path(PATHS$figures, "distinguishability")
-  if (pilot) {
-    input_dir <- file.path(input_dir, "pilot")
-    figure_dir <- file.path(figure_dir, "pilot")
+  studies <- if (study == "both") {
+    c("apriori", "aposteriori")
+  } else {
+    study
+  }
+  if (!all(studies %in% c("apriori", "aposteriori"))) {
+    stop('Choose "both", "apriori", or "aposteriori".')
   }
 
-  files <- list.files(input_dir, pattern = "\\.Rds$", full.names = TRUE)
-  n_expected <- if (pilot) 3L else 12L
-  if (length(files) != n_expected) {
-    stop("Expected ", n_expected, " simulation files in ", input_dir,
-         ", found ", length(files), ".")
-  }
+  all_summaries <- list()
+  for (name in studies) {
+    input_dir <- file.path(PATHS$results, "distinguishability", name)
+    figure_dir <- file.path(PATHS$figures, "distinguishability", name)
+    if (pilot) {
+      input_dir <- file.path(input_dir, "pilot")
+      figure_dir <- file.path(figure_dir, "pilot")
+    }
 
-  fits <- dplyr::bind_rows(lapply(files, function(path) {
-    readRDS(path)$fits
-  }))
-  summaries <- summarize_distinguishability(fits)
+    files <- sort(list.files(
+      input_dir, pattern = "\\.Rds$", full.names = TRUE
+    ))
+    n_expected <- if (name == "apriori") 12 else 6
+    if (length(files) != n_expected) {
+      stop("Expected ", n_expected, " ", name, " files in ", input_dir,
+           ", found ", length(files), ".")
+    }
 
-  output_dir <- file.path(input_dir, "summary")
-  ensure_dir(output_dir)
-  ensure_dir(figure_dir)
+    results <- lapply(files, readRDS)
+    if (any(!vapply(results, function(x) {
+      identical(x$settings$study, name) &&
+        identical(x$settings$pilot, pilot)
+    }, logical(1)))) {
+      stop("Some result files belong to another study or run mode.")
+    }
+    if (pilot && any(vapply(results, function(x) {
+      nrow(x$fits) != 6
+    }, logical(1)))) {
+      stop("The pilot did not complete two simulations per scenario.")
+    }
 
-  for (name in names(summaries)) {
-    write.csv(
-      summaries[[name]],
-      file.path(output_dir, paste0("distinguishability_", name, ".csv")),
-      row.names = FALSE
-    )
-  }
+    fits <- bind_rows(lapply(results, `[[`, "fits"))
+    summaries <- summarize_distinguishability(fits)
+    all_summaries[[name]] <- summaries
 
-  confusion_plot <- summaries$confusion |>
-    dplyr::mutate(
-      condition = paste0("d = ", d, ", k = ", k),
-      selected_model = factor(
-        selected_model,
-        levels = c(
-          "exponential", "quasi_hyperbolic", "double_exponential", "tie"
-        )
+    if (pilot && any(summaries$failures$n_failed > 0)) {
+      warning("The ", name, " pilot contains failed fits. ",
+              "Inspect the raw results before running the full study.")
+    }
+
+    output_dir <- file.path(input_dir, "summary")
+    ensure_dir(output_dir)
+    ensure_dir(figure_dir)
+
+    for (table_name in names(summaries)) {
+      output_file <- paste0("distinguishability_", table_name, ".csv")
+      write.csv(
+        summaries[[table_name]],
+        file.path(output_dir, output_file),
+        row.names = FALSE
       )
-    ) |>
-    dplyr::group_by(condition, criterion, generating_model) |>
-    tidyr::complete(
-      selected_model,
-      fill = list(n = 0L, pct = 0)
-    ) |>
-    dplyr::ungroup()
+    }
 
-  plot <- ggplot2::ggplot(
-    confusion_plot,
-    ggplot2::aes(x = selected_model, y = generating_model, fill = pct)
-  ) +
-    ggplot2::geom_tile(color = "white") +
-    ggplot2::geom_text(
-      ggplot2::aes(label = paste0(round(pct), "%")),
-      size = 3
-    ) +
-    ggplot2::facet_grid(criterion ~ condition) +
-    ggplot2::scale_fill_gradient(limits = c(0, 100)) +
-    ggplot2::labs(
-      x = "Selected model",
-      y = "Generating model",
-      fill = "Selected (%)"
-    ) +
-    ggplot2::theme_minimal() +
-    ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
-    )
+    confusion_plot <- summaries$confusion |>
+      mutate(
+        condition = paste0("d = ", d, ", k = ", k),
+        selected_model = factor(
+          selected_model,
+          levels = c(
+            "exponential", "quasi_hyperbolic", "double_exponential", "tie"
+          )
+        )
+      ) |>
+      group_by(condition, criterion, generating_model) |>
+      complete(selected_model, fill = list(n = 0, pct = 0)) |>
+      ungroup()
 
-  ggplot2::ggsave(
-    file.path(figure_dir, "distinguishability_confusion.jpeg"),
-    plot,
-    width = 15,
-    height = 7,
-    dpi = 300,
-    bg = "white"
-  )
+    if (nrow(confusion_plot) > 0) {
+      plot <- ggplot(
+        confusion_plot,
+        aes(x = selected_model, y = generating_model, fill = pct)
+      ) +
+        geom_tile(color = "white") +
+        geom_text(
+          aes(label = paste0(round(pct), "%")), size = 3
+        ) +
+        facet_grid(criterion ~ condition) +
+        scale_fill_gradient(limits = c(0, 100)) +
+        labs(
+          x = "Selected model", y = "Generating model",
+          fill = "Selected (%)"
+        ) +
+        theme_minimal() +
+        theme(
+          axis.text.x = element_text(angle = 45, hjust = 1)
+        )
 
-  message("Distinguishability summaries saved in ", output_dir)
-  invisible(summaries)
+      ggsave(
+        file.path(figure_dir, "confusion.jpeg"), plot,
+        width = 15, height = 7, dpi = 300, bg = "white"
+      )
+    }
+
+    message("Saved ", name, " summaries in ", output_dir)
+  }
+
+  invisible(all_summaries)
 }
 
 
-if (sys.nframe() == 0L) {
+if (sys.nframe() == 0) {
   args <- commandArgs(trailingOnly = TRUE)
-  if (length(args) > 1L || (length(args) == 1L && args != "pilot")) {
-    stop('Usage: Rscript analysis/15_summarize_distinguishability.R [pilot]')
+  allowed <- c("pilot", "apriori", "aposteriori")
+  if (length(args) > 2 || any(!args %in% allowed) ||
+      sum(args == "pilot") > 1 ||
+      sum(args %in% c("apriori", "aposteriori")) > 1) {
+    stop("Usage: Rscript analysis/15_summarize_distinguishability.R ",
+         "[pilot] [apriori|aposteriori]")
   }
-  run_distinguishability_summary(pilot = identical(args, "pilot"))
+  study <- intersect(args, c("apriori", "aposteriori"))
+  if (length(study) == 0) study <- "both"
+  run_distinguishability_summary(pilot = "pilot" %in% args, study = study)
 }
