@@ -37,6 +37,7 @@ Collate:
     'predict.R'
     'simulate.R'
     'fit.R'
+    'cross_validate.R'
     'recovery.R'
     'statistics.R'
 VignetteBuilder: knitr
