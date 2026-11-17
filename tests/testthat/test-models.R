@@ -824,12 +824,12 @@ test_that(
             matrix(nrow = 2, ncol = 2)
         expect_error(double_exponential(parameters = params, covariance = diag(2)))
 
-        # Value of omega should lie between 0 and 0.5
+        # Value of omega should lie between 0 and 1
         params <- correct
         params[["omega"]] <- -0.5
         expect_error(double_exponential(parameters = params, covariance = diag(2)))
 
-        params[["omega"]] <- 0.75
+        params[["omega"]] <- 1.2
         expect_error(double_exponential(parameters = params, covariance = diag(2)))
     }
 )
@@ -936,6 +936,26 @@ test_that(
         expect_equal(tst@d, 1)
         expect_equal(tst@k, 1)
         expect_equal(tst@covariance, diag(1))
+
+        # Gamma should be smaller than N
+        Q <- cbind(cos(3 * pi / 4), sin(3 * pi / 4), -sin(pi), cos(pi)) |>
+            matrix(nrow = 2, ncol = 2)
+
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 3),
+            "omega" = 0.25,
+            "gamma" = Q %*% (diag(2) * 0.75) %*% solve(Q),
+            "nu" = Q %*% (diag(2) * 0.5) %*% solve(Q)
+        )
+        expect_warning(double_exponential(parameters = params, covariance = diag(2)))
+
+        tst <- double_exponential(parameters = params, covariance = diag(2)) |>
+            suppressWarnings()
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@parameters[["gamma"]], Q %*% (diag(2) * 0.5) %*% solve(Q))
+        expect_equal(tst@parameters[["nu"]], Q %*% (diag(2) * 0.75) %*% solve(Q))
     }
 )
 

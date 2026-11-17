@@ -454,8 +454,8 @@ test_that(
             parameters = list(
                 "alpha" = 1,
                 "beta" = matrix(2, nrow = 1, ncol = 1),
-                "gamma" = matrix(0.75, nrow = 1, ncol = 1),
-                "nu" = matrix(0.5, nrow = 1, ncol = 1),
+                "gamma" = matrix(0.5, nrow = 1, ncol = 1),
+                "nu" = matrix(0.75, nrow = 1, ncol = 1),
                 "omega" = 0.5
             ),
             covariance = matrix(0, nrow = 1, ncol = 1)
@@ -502,8 +502,8 @@ test_that(
             parameters = list(
                 "alpha" = c(1, - 1),
                 "beta" = matrix(2, nrow = 2, ncol = 1),
-                "gamma" = diag(2) * 0.75,
-                "nu" = diag(2) * 0.5,
+                "gamma" = diag(2) * 0.5,
+                "nu" = diag(2) * 0.75,
                 "omega" = 0.5
             ),
             covariance = matrix(0, nrow = 2, ncol = 2)
@@ -552,8 +552,8 @@ test_that(
             parameters = list(
                 "alpha" = 1,
                 "beta" = B,
-                "gamma" = matrix(0.75, nrow = 1, ncol = 1),
-                "nu" = matrix(0.5, nrow = 1, ncol = 1),
+                "gamma" = matrix(0.5, nrow = 1, ncol = 1),
+                "nu" = matrix(0.75, nrow = 1, ncol = 1),
                 "omega" = 0.5
             ),
             covariance = matrix(0, nrow = 1, ncol = 1)
@@ -608,8 +608,8 @@ test_that(
             parameters = list(
                 "alpha" = c(1, - 1),
                 "beta" = B,
-                "gamma" = diag(2) * 0.75,
-                "nu" = diag(2) * 0.5,
+                "gamma" = diag(2) * 0.5,
+                "nu" = diag(2) * 0.75,
                 "omega" = 0.5
             ),
             covariance = matrix(0, nrow = 2, ncol = 2)

@@ -68,8 +68,8 @@ test_that(
                 "alpha" = c(1, -1),
                 "beta" = matrix(2:1, nrow = 2, ncol = 2, byrow = TRUE),
                 "omega" = 0.25,
-                "gamma" = diag(2) * 0.75,
-                "nu" = diag(2) * 0.5
+                "gamma" = diag(2) * 0.5,
+                "nu" = diag(2) * 0.75
             ),
             covariance = matrix(c(1, 0.25, 0.25, 1), nrow = 2, ncol = 2)
         )        
@@ -83,7 +83,7 @@ test_that(
         tst <- objective_function(
             my_model,
             data,
-            c(1, -1, 2, 2, 1, 1, 0.25, 0.75, 0.75, 0.5, 0.5),
+            c(1, -1, 2, 2, 1, 1, 0.25, 0.5, 0.5, 0.75, 0.75),
             dynamics = "isotropic"
         )
 

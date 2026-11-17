@@ -210,8 +210,8 @@ test_that(
                 parameters = list(
                     "alpha" = 1,
                     "beta" = as.matrix(2),
-                    "gamma" = as.matrix(0.75),
-                    "nu" = as.matrix(0.5),
+                    "gamma" = as.matrix(0.5),
+                    "nu" = as.matrix(0.75),
                     "omega" = 0.25
                 ),
                 covariance = as.matrix(1)
@@ -220,8 +220,8 @@ test_that(
                 parameters = list(
                     "alpha" = 1,
                     "beta" = matrix(1:2, nrow = 1),
-                    "gamma" = as.matrix(0.75),
-                    "nu" = as.matrix(0.5),
+                    "gamma" = as.matrix(0.5),
+                    "nu" = as.matrix(0.75),
                     "omega" = 0.25
                 ),
                 covariance = as.matrix(1)
@@ -318,8 +318,8 @@ test_that(
                 parameters = list(
                     "alpha" = c(1, -1),
                     "beta" = matrix(2, nrow = 2, ncol = 1),
-                    "gamma" = diag(2) * 0.75,
-                    "nu" = diag(2) * 0.5,
+                    "gamma" = diag(2) * 0.5,
+                    "nu" = diag(2) * 0.75,
                     "omega" = 0.25
                 ),
                 covariance = covariance
@@ -328,8 +328,8 @@ test_that(
                 parameters = list(
                     "alpha" = c(1, -1),
                     "beta" = matrix(2:1, nrow = 2, ncol = 2, byrow = TRUE),
-                    "gamma" = diag(2) * 0.75,
-                    "nu" = diag(2) * 0.5,
+                    "gamma" = diag(2) * 0.5,
+                    "nu" = diag(2) * 0.75,
                     "omega" = 0.25
                 ),
                 covariance = covariance
