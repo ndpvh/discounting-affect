@@ -1042,10 +1042,11 @@ setClass(
 #'   \item{The eigenvalues \eqn{\lambda_i} of \eqn{\Gamma} and \eqn{N} should
 #'         all lie between 0 and 1, or \eqn{\lambda_i \in [0, 1)}, a restriction
 #'         that imposes exponential decay rather than sawtooth or more complex
-#'         dynamics}
-#'   \item{The weight \eqn{\omega} should lie between 0 and 0.5, or 
-#'         \eqn{\omega \in [0, 0.5]}, a restriction that is imposed to ensure 
-#'         recoverability of the model}
+#'         dynamics. We furthermore restrict the average eigenvalues 
+#'         \eqn{\lambda_i} of \eqn{\Gamma} < \eqn{N}, ensuring the latter 
+#'         on average represents long-term memory processes.}
+#'   \item{The weight \eqn{\omega} should lie between 0 and 1, or 
+#'         \eqn{\omega \in [0, 1]}}
 #'   \item{The covariance matrix \eqn{\Sigma} should be positive definite, as 
 #'         explained above}
 #' }
@@ -1067,7 +1068,9 @@ setClass(
 #' lower-triangular decomposition matrix instead of an actual covariance matrix.
 #' Defaults to \code{FALSE}.
 #' 
-#' @return Instance of \code{\link[discounting]{double_exponential-class}}
+#' @return Instance of \code{\link[discounting]{double_exponential-class}}. 
+#' Note that if the eigenvalues of \eqn{\Gamma} are larger than those of \eqn{N}, 
+#' the two are switched in order and \eqn{\omega} is adjusted to fit this switch
 #' 
 #' @examples 
 #' double_exponential(
@@ -1077,8 +1080,8 @@ setClass(
 #'     "alpha" = numeric(2),
 #'     "beta" = diag(2) * 2,
 #'     "omega" = 0.25,
-#'     "gamma" = diag(2) * 0.75,
-#'     "nu" = diag(2) * 0.5
+#'     "gamma" = diag(2) * 0.5,
+#'     "nu" = diag(2) * 0.75
 #'   ),
 #'   covariance = diag(2)
 #' )
@@ -1256,19 +1259,34 @@ double_exponential <- function(d = NA,
     }
 
     # Check eigenvalues of \Gamma and N
-    decomposed <- eigen(parameters[["gamma"]])
-    if(any(decomposed$values < 0) | any(decomposed$values >= 1)) {
+    decomposed_1 <- eigen(parameters[["gamma"]])
+    if(any(decomposed_1$values < 0) | any(decomposed_1$values >= 1)) {
         stop("The eigenvalues of \"gamma\" should lie between 0 and 1.")
     }
 
-    decomposed <- eigen(parameters[["nu"]])
-    if(any(decomposed$values < 0) | any(decomposed$values >= 1)) {
+    decomposed_2 <- eigen(parameters[["nu"]])
+    if(any(decomposed_2$values < 0) | any(decomposed_2$values >= 1)) {
         stop("The eigenvalues of \"nu\" should lie between 0 and 1.")
     }
 
     # Check whether \omega falls within bounds
-    if(parameters[["omega"]] < 0 | parameters[["omega"]] > 0.5) {
-        stop("The parameter \"omega\" should lie between 0 and 0.5.")
+    if(parameters[["omega"]] < 0 | parameters[["omega"]] > 1) {
+        stop("The parameter \"omega\" should lie between 0 and 1.")
+    }
+
+    # Check whether the average eigenvalues of \Gamma are smaller than those of 
+    # N. If not, we switch them and adjust \omega accordingly
+    if(mean(decomposed_1$values) > mean(decomposed_2$values)) {
+        warning(
+            "The average eigenvalues of \"gamma\" are larger than those of",
+            "\"nu\".",
+            "Switching the two and adjusting \"omega\" accordingly."
+        )
+
+        gamma <- parameters[["gamma"]]
+        parameters[["gamma"]] <- parameters[["nu"]]
+        parameters[["nu"]] <- gamma
+        parameters[["omega"]] <- 1 - parameters[["omega"]]
     }
 
     # Move the parameters around so that they follow a fixed structure

@@ -540,6 +540,21 @@ setMethod(
         # Add the filled parameters to the model and return
         model@parameters <- params
 
+        # For the double-exponential model, we need to check whether the 
+        # eigenvalues of \Gamma are larger than those of N. If so, we need to 
+        # switch them around and adjust \omega accordingly
+        if(inherits(model, "double_exponential")) {
+            decomposed_1 <- eigen(model@parameters[["gamma"]])
+            decomposed_2 <- eigen(model@parameters[["nu"]])
+
+            if(mean(decomposed_1$values) > mean(decomposed_2$values)) {
+                gamma <- model@parameters[["gamma"]]
+                model@parameters[["gamma"]] <- model@parameters[["nu"]]
+                model@parameters[["nu"]] <- gamma
+                model@parameters[["omega"]] <- 1 - model@parameters[["omega"]]
+            }
+        }
+
         return(model)
     }
 )
@@ -1073,17 +1088,17 @@ setMethod(
         # should use the defaults instead
         if(is.null(lower)) {
             if(parameters_only) {
-                lower <- c(-1, -5, 0, 0, 0)
+                lower <- c(-1, -5, 10^(-3), 0, 0)
             } else {
-                lower <- c(-1, -5, 0, 0, 0, 10^(-5))
+                lower <- c(-1, -5, 10^(-3), 0, 0, 10^(-5))
             }
         }
 
         if(is.null(upper)) {
             if(parameters_only) {
-                upper <- c(1, 5, 0.5, 1, 1)
+                upper <- c(1, 5, 1 - 10^(-3), 1, 1)
             } else {
-                upper <- c(1, 5, 0.5, 1, 1, 1)
+                upper <- c(1, 5, 1 - 10^(-3), 1, 1, 1)
             }
         }
 
