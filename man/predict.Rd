@@ -4,6 +4,7 @@
 \alias{predict,exponential-method}
 \alias{predict,quasi_hyperbolic-method}
 \alias{predict,double_exponential-method}
+\alias{predict,distributed_lag-method}
 \title{Compute the model expectations}
 \usage{
 \S4method{predict}{exponential}(object, data)
@@ -11,6 +12,8 @@
 \S4method{predict}{quasi_hyperbolic}(object, data)
 
 \S4method{predict}{double_exponential}(object, data)
+
+\S4method{predict}{distributed_lag}(object, data)
 }
 \arguments{
 \item{object}{Instance of the \code{\link[discounting]{model-class}}}

@@ -3,6 +3,7 @@
 \name{fit}
 \alias{fit}
 \alias{fit,model,dataset-method}
+\alias{fit,distributed_lag,dataset-method}
 \title{Fit a model to data}
 \usage{
 fit(model, data, ...)
@@ -10,6 +11,20 @@ fit(model, data, ...)
 \S4method{fit}{model,dataset}(
   model,
   data,
+  dynamics = "isotropic",
+  covariance = "symmetric",
+  optimizer = "optim",
+  lower = NULL,
+  upper = NULL,
+  method = "Nelder-Mead",
+  na.rm = TRUE,
+  ...
+)
+
+\S4method{fit}{distributed_lag,dataset}(
+  model,
+  data,
+  deterministic_fit = getOption("discounting.deterministic_fit", FALSE),
   dynamics = "isotropic",
   covariance = "symmetric",
   optimizer = "optim",
@@ -64,6 +79,20 @@ of the other optimization packages can be used.}
 
 \item{na.rm}{Logical denoting whether to remove NAs in the calculation of the 
 sum squared error. Defaults to \code{TRUE}.}
+
+\item{deterministic_fit}{Logical denoting whether to estimate the parameters 
+of the distributed lag model through the analytic least-squares solution 
+(\code{TRUE}) or through the numerical optimization used for the other 
+models (\code{FALSE}). Only used for the 
+\code{\link[discounting]{distributed_lag-class}}. When \code{TRUE}, the 
+arguments \code{dynamics}, \code{optimizer}, \code{lower}, \code{upper}, 
+\code{method}, and \code{...} are ignored, as no numerical optimization 
+(and therefore no bounds) is involved. Defaults to the value of the option
+\code{"discounting.deterministic_fit"}, or \code{FALSE} if this option is not
+set. Setting \code{options(discounting.deterministic_fit = TRUE)} therefore 
+makes all fits of the distributed lag model analytic, including those 
+performed inside of other functions (e.g., \code{\link[discounting]{recovery}}),
+while the other models remain estimated through numerical optimization.}
 }
 \value{
 An named list containing an instance of the 

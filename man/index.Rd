@@ -5,6 +5,7 @@
 \alias{index,exponential-method}
 \alias{index,quasi_hyperbolic-method}
 \alias{index,double_exponential-method}
+\alias{index,distributed_lag-method}
 \title{Index model parameters}
 \usage{
 index(model, ...)
@@ -28,6 +29,15 @@ index(model, ...)
 )
 
 \S4method{index}{double_exponential}(
+  model,
+  dynamics = "isotropic",
+  parameters_only = TRUE,
+  full = TRUE,
+  cholesky = TRUE,
+  ...
+)
+
+\S4method{index}{distributed_lag}(
   model,
   dynamics = "isotropic",
   parameters_only = TRUE,

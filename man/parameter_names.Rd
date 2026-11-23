@@ -5,6 +5,7 @@
 \alias{parameter_names,exponential-method}
 \alias{parameter_names,quasi_hyperbolic-method}
 \alias{parameter_names,double_exponential-method}
+\alias{parameter_names,distributed_lag-method}
 \title{Name the relevant parameters of the model}
 \usage{
 parameter_names(model, ...)
@@ -29,6 +30,8 @@ parameter_names(model, ...)
   covariance = "symmetric",
   parameters_only = TRUE
 )
+
+\S4method{parameter_names}{distributed_lag}(model, covariance = "symmetric", parameters_only = TRUE, ...)
 }
 \arguments{
 \item{model}{Instance of the \code{\link[discounting]{model-class}}.}

@@ -35,7 +35,9 @@ lower-triangular decomposition matrix instead of an actual covariance matrix.
 Defaults to \code{FALSE}.}
 }
 \value{
-Instance of \code{\link[discounting]{double_exponential-class}}
+Instance of \code{\link[discounting]{double_exponential-class}}. 
+Note that if the eigenvalues of \eqn{\Gamma} are larger than those of \eqn{N}, 
+the two are switched in order and \eqn{\omega} is adjusted to fit this switch
 }
 \description{
 Defines an instance of the \code{\link[discounting]{double_exponential-class}}, 
@@ -98,10 +100,11 @@ model:
   \item{The eigenvalues \eqn{\lambda_i} of \eqn{\Gamma} and \eqn{N} should
         all lie between 0 and 1, or \eqn{\lambda_i \in [0, 1)}, a restriction
         that imposes exponential decay rather than sawtooth or more complex
-        dynamics}
-  \item{The weight \eqn{\omega} should lie between 0 and 0.5, or 
-        \eqn{\omega \in [0, 0.5]}, a restriction that is imposed to ensure 
-        recoverability of the model}
+        dynamics. We furthermore restrict the average eigenvalues 
+        \eqn{\lambda_i} of \eqn{\Gamma} < \eqn{N}, ensuring the latter 
+        on average represents long-term memory processes.}
+  \item{The weight \eqn{\omega} should lie between 0 and 1, or 
+        \eqn{\omega \in [0, 1]}}
   \item{The covariance matrix \eqn{\Sigma} should be positive definite, as 
         explained above}
 }
@@ -114,8 +117,8 @@ double_exponential(
     "alpha" = numeric(2),
     "beta" = diag(2) * 2,
     "omega" = 0.25,
-    "gamma" = diag(2) * 0.75,
-    "nu" = diag(2) * 0.5
+    "gamma" = diag(2) * 0.5,
+    "nu" = diag(2) * 0.75
   ),
   covariance = diag(2)
 )

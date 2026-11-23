@@ -5,6 +5,7 @@
 \alias{count_parameters,exponential-method}
 \alias{count_parameters,quasi_hyperbolic-method}
 \alias{count_parameters,double_exponential-method}
+\alias{count_parameters,distributed_lag-method}
 \title{Count number of parameters for a model}
 \usage{
 count_parameters(model, ...)
@@ -29,6 +30,8 @@ count_parameters(model, ...)
   covariance = "symmetric",
   parameters_only = FALSE
 )
+
+\S4method{count_parameters}{distributed_lag}(model, covariance = "symmetric", parameters_only = FALSE, ...)
 }
 \arguments{
 \item{model}{An instance of the \code{\link[discounting]{model-class}}}

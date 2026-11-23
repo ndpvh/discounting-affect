@@ -5,6 +5,7 @@
 \alias{get_bounds,exponential-method}
 \alias{get_bounds,quasi_hyperbolic-method}
 \alias{get_bounds,double_exponential-method}
+\alias{get_bounds,distributed_lag-method}
 \title{Get bounds of the parameters of a model}
 \usage{
 get_bounds(model, ...)
@@ -34,6 +35,15 @@ get_bounds(model, ...)
   parameters_only = TRUE,
   lower = NULL,
   upper = NULL
+)
+
+\S4method{get_bounds}{distributed_lag}(
+  model,
+  covariance = "symmetric",
+  parameters_only = TRUE,
+  lower = NULL,
+  upper = NULL,
+  ...
 )
 }
 \arguments{
