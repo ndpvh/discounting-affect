@@ -302,7 +302,8 @@ if (length(selected_datasets) > 0L) datasets <- datasets[selected_datasets]
 models <- list(
     "exponential" = exponential,
     "quasi_hyperbolic" = quasi_hyperbolic,
-    "double_exponential" = double_exponential
+    "double_exponential" = double_exponential,
+    "distributed_lag" = function(d, k) distributed_lag(d = d, k = k, lag = DISTRIBUTED_LAG_LAG)
 )
 phenomena <- list(
     "autocorrelation_1" = function(...) autocorrelation(..., lag = 1),

@@ -677,7 +677,7 @@ diagnostic_summary <- do.call(rbind, diagnostic_rows)
 file_summary <- do.call(rbind, file_rows)
 
 # Order results consistently
-model_order <- c("exponential", "quasi_hyperbolic", "double_exponential")
+model_order <- c("exponential", "quasi_hyperbolic", "double_exponential", "distributed_lag")
 
 parameter_summary$model <- factor(parameter_summary$model, levels = model_order)
 diagnostic_summary$model <- factor(diagnostic_summary$model, levels = model_order)

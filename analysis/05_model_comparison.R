@@ -23,10 +23,11 @@ rm(config_file)
 MODEL_COMPARISON_ORDER <- c(
   "double_exponential",
   "quasi_hyperbolic",
-  "exponential"
+  "exponential",
+  "distributed_lag"
 )
 
-data <- load_estimation_data(PATHS$estimation, MODEL_TYPES)
+data <- load_estimation_data(PATHS$estimation, COMPARISON_MODEL_TYPES)
 
 # The 2024 estimation is split by response dimensionality:
 #   _1 = d = 1 = valence-only participants

@@ -197,3 +197,16 @@ ESTIMATION_TO_RAW_DATASET <- c(
 # uniform across scripts (see _helpers.R / report) – treat this vector as an
 # unordered SET, not as a canonical ordering.
 MODEL_TYPES <- c("exponential", "quasi_hyperbolic", "double_exponential")
+
+# DISTRIBUTED_LAG_LAG: the number of lags used for the distributed lag model,
+# which serves as a non-discounting benchmark in the estimation, recovery,
+# parametric bootstrap, cross-validation, and distinguishability workflows.
+# Its dimensionality (d, k) is inferred from the data, as for the other models.
+DISTRIBUTED_LAG_LAG <- 10L
+
+# COMPARISON_MODEL_TYPES: MODEL_TYPES plus the distributed lag model. Used by
+# the scripts that compare models generically (model comparison and
+# cross-validation summaries). MODEL_TYPES itself is kept to the discounting
+# models, as several scripts (e.g., forgetting steps, parameter summaries,
+# visualization) are specific to these.
+COMPARISON_MODEL_TYPES <- c(MODEL_TYPES, "distributed_lag")

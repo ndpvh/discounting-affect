@@ -472,8 +472,14 @@ run_distinguishability <- function(pilot = FALSE, study = "both") {
   models <- list(
     exponential = exponential,
     quasi_hyperbolic = quasi_hyperbolic,
-    double_exponential = double_exponential
+    double_exponential = double_exponential,
+    distributed_lag = function(d, k) distributed_lag(d = d, k = k, lag = DISTRIBUTED_LAG_LAG)
   )
+
+  # Estimate the distributed lag model through its analytic least-squares solution
+  # (see `fit`), while the discounting models remain estimated approximately 
+  # through the optimizer defined in this script.
+  options(discounting.deterministic_fit = TRUE)
   settings <- list(
     dynamics = "isotropic", covariance = "symmetric",
     itermax = 1e3, NP = 150, CR = 0.75, strategy = 6,

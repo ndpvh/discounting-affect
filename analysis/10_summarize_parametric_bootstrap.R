@@ -48,7 +48,8 @@ datasets <- c(
 models <- c(
     "exponential",
     "quasi_hyperbolic",
-    "double_exponential"
+    "double_exponential",
+    "distributed_lag"
 )
 
 # Loop over the models and create a list of data.frame's summarizing how often

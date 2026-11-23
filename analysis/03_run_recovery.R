@@ -44,8 +44,14 @@ N <- 140
 fx <- list(
     "exponential" = exponential, 
     "quasi_hyperbolic" = quasi_hyperbolic,
-    "double_exponential" = double_exponential
+    "double_exponential" = double_exponential,
+    "distributed_lag" = function(d, k) distributed_lag(d = d, k = k, lag = DISTRIBUTED_LAG_LAG)
 )
+
+# Estimate the distributed lag model through its analytic least-squares solution
+# (see `fit`), while the discounting models remain estimated approximately 
+# through the optimizer defined in this script.
+options(discounting.deterministic_fit = TRUE)
 dims <- expand.grid(1:2, 1:2)
 
 models <- list()

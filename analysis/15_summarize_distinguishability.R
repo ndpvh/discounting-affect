@@ -18,9 +18,15 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
+# Candidate models fitted in 14_run_distinguishability.R
+candidate_models <- c(
+  "exponential", "quasi_hyperbolic", "double_exponential", "distributed_lag"
+)
+
 # A unique winner is required; missing fits and ties remain explicit.
 select_best_model <- function(values, models) {
-  if (length(values) != 3 || length(models) != 3 ||
+  if (length(values) != length(candidate_models) ||
+      length(models) != length(candidate_models) ||
       anyDuplicated(models) || any(!is.finite(values))) {
     return(NA_character_)
   }
@@ -244,9 +250,7 @@ run_distinguishability_summary <- function(pilot = FALSE, study = "both") {
         condition = paste0("d = ", d, ", k = ", k),
         selected_model = factor(
           selected_model,
-          levels = c(
-            "exponential", "quasi_hyperbolic", "double_exponential", "tie"
-          )
+          levels = c(candidate_models, "tie")
         )
       ) |>
       group_by(condition, criterion, generating_model) |>

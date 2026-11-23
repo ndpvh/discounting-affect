@@ -47,7 +47,7 @@ for (dataset_name in datasets) {
   summaries <- summarize_cv_dataset(
     output_dir = input_dir,
     base_name = dataset_name,
-    model_names = MODEL_TYPES
+    model_names = COMPARISON_MODEL_TYPES
   )
 
   overview <- do.call(rbind, lapply(names(summaries), function(outcome) {
