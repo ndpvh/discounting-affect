@@ -291,6 +291,50 @@ setMethod(
     }
 )
 
+#' @rdname index
+#' @export
+setMethod(
+    "index",
+    "distributed_lag",
+    function(model,
+             dynamics = "isotropic",
+             parameters_only = TRUE,
+             full = TRUE,
+             cholesky = TRUE,
+             ...) {
+
+        # Get the dimensions of the model. Note that the distributed lag model
+        # has no dynamical matrices, so that the argument `dynamics` is ignored
+        d <- model@d
+        k <- model@k
+        lag <- model@lag
+
+        # Extract the parameter list
+        params <- model@parameters
+
+        # Once defined, we can start assigning values to the parameters of the
+        # model. Here, beta contains the slopes for all lags
+        params[["alpha"]][] <- 1:d
+        params[["beta"]][] <- (d + 1):(d + d * k * (lag + 1))
+
+        # If we need to full the covariance as well, then do so
+        if(!parameters_only) {
+            model@covariance[] <- 0
+            model@covariance <- index_covariance(
+                d,
+                max(params[["beta"]]) + 1,
+                cholesky = !full | cholesky,
+                ...
+            )
+        }
+
+        # Assign the parameters to the model and return
+        model@parameters <- params
+
+        return(model)
+    }
+)
+
 #' Index the covariance matrix
 #' 
 #' @param d Integer denoting the dimensionality of the model.
@@ -758,6 +802,36 @@ setMethod(
     }
 )
 
+#' @rdname count_parameters
+#' @export
+setMethod(
+    "count_parameters",
+    "distributed_lag",
+    function(model,
+             covariance = "symmetric",
+             parameters_only = FALSE,
+             ...) {
+
+        # Extract relevant dimensionalities from the model
+        d <- model@d
+        k <- model@k
+        lag <- model@lag
+
+        # Define the number of parameters needed. As the distributed lag model
+        # has no dynamical matrices, the argument `dynamics` is ignored
+        n <- d + d * k * (lag + 1)
+
+        # Check whether the covariances should be counted as well. If not, we
+        # can immediately skip ahead. If so, then we need to account for them
+        # here
+        if(!parameters_only) {
+            n <- n + count_covariance(model@d, covariance = covariance)
+        }
+
+        return(n)
+    }
+)
+
 #' Count the number of parameters in the covariance matrix
 #' 
 #' @param d Integer denoting the dimensionality of the model.
@@ -1171,6 +1245,92 @@ setMethod(
             bounds <- list(
                 "lower" = c(alpha_lb, beta_lb, omega_lb, gamma_lb, nu_lb),
                 "upper" = c(alpha_ub, beta_ub, omega_ub, gamma_ub, nu_ub)
+            )
+        }
+
+        return(bounds)
+    }
+)
+
+#' @rdname get_bounds
+#' @export
+setMethod(
+    "get_bounds",
+    "distributed_lag",
+    function(model,
+             covariance = "symmetric",
+             parameters_only = TRUE,
+             lower = NULL,
+             upper = NULL,
+             ...) {
+
+        # Check whether the bounds are specified by the user, or whether we
+        # should use the defaults instead
+        if(is.null(lower)) {
+            if(parameters_only) {
+                lower <- c(-1, -5)
+            } else {
+                lower <- c(-1, -5, 10^(-5))
+            }
+        }
+
+        if(is.null(upper)) {
+            if(parameters_only) {
+                upper <- c(1, 5)
+            } else {
+                upper <- c(1, 5, 1)
+            }
+        }
+
+        # Check whether enough lower and upper bounds are provided. If too few,
+        # throw an error. If too many, only use the first few. Note that the
+        # correct specification depends on whether the bounds of the covariances
+        # are also needed.
+        if(parameters_only) {
+            bounds <- check_bound_length(2, lower, upper)
+
+        } else {
+            bounds <- check_bound_length(3, lower, upper)
+
+        }
+
+        lower <- bounds[[1]]
+        upper <- bounds[[2]]
+
+        # Extract relevant dimensionalities from the model. Note that the
+        # distributed lag model has no dynamical matrices, so that the argument
+        # `dynamics` is ignored
+        d <- model@d
+        k <- model@k
+        lag <- model@lag
+
+        # Assign the lower and upper bounds to the particular values of the
+        # parameters. Beta contains the slopes for all lags.
+        alpha_lb <- rep(lower[1], each = d)
+        alpha_ub <- rep(upper[1], each = d)
+
+        beta_lb <- rep(lower[2], each = d * k * (lag + 1))
+        beta_ub <- rep(upper[2], each = d * k * (lag + 1))
+
+        # If we need to fill the covariance as well, then do so. Additionally,
+        # create the list that we will return to the user
+        if(!parameters_only) {
+            v <- get_bounds_covariance(
+                d,
+                lower[3],
+                upper[3],
+                covariance = covariance
+            )
+
+            bounds <- list(
+                "lower" = c(alpha_lb, beta_lb, v[[1]]),
+                "upper" = c(alpha_ub, beta_ub, v[[2]])
+            )
+
+        } else {
+            bounds <- list(
+                "lower" = c(alpha_lb, beta_lb),
+                "upper" = c(alpha_ub, beta_ub)
             )
         }
 
@@ -1655,7 +1815,80 @@ setMethod(
 
         }
 
-        return(names)        
+        return(names)
+    }
+)
+
+#' @rdname parameter_names
+#' @export
+setMethod(
+    "parameter_names",
+    "distributed_lag",
+    function(model,
+             covariance = "symmetric",
+             parameters_only = TRUE,
+             ...) {
+
+        # Get the dimensionality of the model. Note that the distributed lag
+        # model has no dynamical matrices, so that the argument `dynamics` is
+        # ignored
+        d <- model@d
+        k <- model@k
+        lag <- model@lag
+
+        # Generate the names for "alpha"
+        alpha <- paste(
+            "alpha_",
+            1:d,
+            sep = ""
+        )
+
+        # Generate the names for "beta". The columns of beta are ordered first
+        # by lag and then by independent variable, so that the name
+        # "beta_ij_l" denotes the slope of independent variable j on dependent
+        # variable i at lag l.
+        n_col <- k * (lag + 1)
+
+        rows <- matrix(1:d, nrow = d, ncol = n_col) |>
+            as.numeric()
+        columns <- matrix(
+            rep(1:k, times = lag + 1),
+            nrow = d,
+            ncol = n_col,
+            byrow = TRUE
+        ) |>
+            as.numeric()
+        lags <- matrix(
+            rep(0:lag, each = k),
+            nrow = d,
+            ncol = n_col,
+            byrow = TRUE
+        ) |>
+            as.numeric()
+
+        beta <- paste(
+            "beta_",
+            rows,
+            columns,
+            "_",
+            lags,
+            sep = ""
+        )
+
+        # Check whether the covariances should be given a name as well.
+        if(parameters_only) {
+            names <- c(alpha, beta)
+
+        } else {
+            names <- c(
+                alpha,
+                beta,
+                parameter_names_covariance(d, covariance = covariance)
+            )
+
+        }
+
+        return(names)
     }
 )
 

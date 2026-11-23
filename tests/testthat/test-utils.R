@@ -1169,6 +1169,312 @@ test_that(
     }
 )
 
+test_that(
+    "Check output for index: Distributed lag, no covariances included",
+    {
+        ########################################################################
+        # Single dimension and single predictor
+        my_model <- distributed_lag(d = 1, k = 1)
+        tst <- index(my_model)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], as.matrix(2))
+        expect_equal(tst@covariance, as.matrix(0))
+
+
+        ########################################################################
+        # Single dimension, single predictor, and two lags
+        my_model <- distributed_lag(d = 1, k = 1, lag = 2)
+        tst <- index(my_model)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], matrix(2:4, nrow = 1))
+        expect_equal(tst@covariance, as.matrix(0))
+
+
+        ########################################################################
+        # Single dimension and two predictors
+        my_model <- distributed_lag(d = 1, k = 2)
+        tst <- index(my_model)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
+        expect_equal(tst@covariance, as.matrix(0))
+
+
+        ########################################################################
+        # Two dimensions and single predictor
+
+        my_model <- distributed_lag(d = 2, k = 1)
+
+        # full = TRUE
+        tst <- index(my_model, full = TRUE)
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
+
+        # full = FALSE
+        tst <- index(my_model, full = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
+
+
+        ########################################################################
+        # Two dimensions, two predictors, and one lag
+
+        my_model <- distributed_lag(d = 2, k = 2, lag = 1)
+
+        # full = TRUE
+        tst <- index(my_model, full = TRUE)
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:10, nrow = 2, ncol = 4))
+        expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
+
+        # full = FALSE
+        tst <- index(my_model, full = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:10, nrow = 2, ncol = 4))
+        expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
+
+        # Dynamics do not influence the result, as there are no dynamical 
+        # matrices in the model
+        expect_equal(
+            index(my_model, dynamics = "anisotropic"),
+            index(my_model)
+        )
+        expect_equal(
+            index(my_model, dynamics = "symmetric"),
+            index(my_model)
+        )
+        
+        ########################################################################
+        # Explicit lags: Single dimension and single predictor
+
+        # lag = 0
+        my_model <- distributed_lag(d = 1, k = 1, lag = 0)
+        tst <- index(my_model)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], as.matrix(2))
+        expect_equal(tst@covariance, as.matrix(0))
+        expect_equal(tst, index(distributed_lag(d = 1, k = 1)))
+
+        # lag = 1
+        my_model <- distributed_lag(d = 1, k = 1, lag = 1)
+        tst <- index(my_model)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
+        expect_equal(tst@covariance, as.matrix(0))
+
+
+        ########################################################################
+        # Explicit lags: Two dimensions and single predictor
+
+        # lag = 0
+        my_model <- distributed_lag(d = 2, k = 1, lag = 0)
+        tst <- index(my_model)
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
+
+        # lag = 1
+        my_model <- distributed_lag(d = 2, k = 1, lag = 1)
+        tst <- index(my_model)
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
+    }
+)
+
+test_that(
+    "Check output for index: Distributed lag, covariances included",
+    {
+        ########################################################################
+        # Single dimension and single predictor
+        my_model <- distributed_lag(d = 1, k = 1)
+        tst <- index(my_model, parameters_only = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], as.matrix(2))
+        expect_equal(tst@covariance, as.matrix(3))
+
+
+        ########################################################################
+        # Single dimension, two predictors, and one lag
+        my_model <- distributed_lag(d = 1, k = 2, lag = 1)
+        tst <- index(my_model, parameters_only = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], matrix(2:5, nrow = 1))
+        expect_equal(tst@covariance, as.matrix(6))
+
+
+        ########################################################################
+        # Two dimensions and single predictor
+
+        my_model <- distributed_lag(d = 2, k = 1)
+
+        # Isotropic covariance, full = TRUE
+        tst <- index(
+            my_model, 
+            full = TRUE, 
+            parameters_only = FALSE,
+            covariance = "isotropic"
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, diag(2) * 5:6)
+
+        # Isotropic covariance, full = FALSE
+        tst <- index(
+            my_model, 
+            full = FALSE, 
+            parameters_only = FALSE,
+            covariance = "isotropic"
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, diag(2) * 5:6)
+
+        # Symmetric covariance, full = TRUE, no Cholesky decomposition
+        tst <- index(
+            my_model, 
+            full = TRUE, 
+            parameters_only = FALSE,
+            covariance = "symmetric",
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, matrix(c(5, 6, 6, 7), nrow = 2, ncol = 2))
+
+        # Symmetric covariance, full = TRUE, Cholesky decomposition
+        tst <- index(
+            my_model, 
+            full = TRUE, 
+            parameters_only = FALSE,
+            covariance = "symmetric",
+            cholesky = TRUE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, matrix(c(5, 6, 0, 7), nrow = 2, ncol = 2))
+
+        # Symmetric covariance, full = FALSE
+        tst <- index(
+            my_model, 
+            full = FALSE, 
+            parameters_only = FALSE,
+            covariance = "symmetric",
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, matrix(c(5, 6, 0, 7), nrow = 2, ncol = 2))
+
+
+        ########################################################################
+        # Two dimensions, two predictors, and one lag
+
+        my_model <- distributed_lag(d = 2, k = 2, lag = 1)
+
+        # Isotropic covariance
+        tst <- index(
+            my_model, 
+            full = TRUE, 
+            parameters_only = FALSE,
+            covariance = "isotropic"
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:10, nrow = 2, ncol = 4))
+        expect_equal(tst@covariance, diag(2) * 11:12)
+
+        # Symmetric covariance
+        tst <- index(
+            my_model, 
+            full = TRUE, 
+            parameters_only = FALSE,
+            covariance = "symmetric",
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:10, nrow = 2, ncol = 4))
+        expect_equal(tst@covariance, matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
+        ########################################################################
+        # Explicit lags: Single dimension and single predictor
+
+        # lag = 0
+        my_model <- distributed_lag(d = 1, k = 1, lag = 0)
+        tst <- index(my_model, parameters_only = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], as.matrix(2))
+        expect_equal(tst@covariance, as.matrix(3))
+
+        # lag = 1
+        my_model <- distributed_lag(d = 1, k = 1, lag = 1)
+        tst <- index(my_model, parameters_only = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 1)
+        expect_equal(tst@parameters[["beta"]], matrix(2:3, nrow = 1))
+        expect_equal(tst@covariance, as.matrix(4))
+
+
+        ########################################################################
+        # Explicit lags: Two dimensions and single predictor
+
+        # lag = 0
+        my_model <- distributed_lag(d = 2, k = 1, lag = 0)
+        tst <- index(
+            my_model, 
+            parameters_only = FALSE,
+            covariance = "isotropic"
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:4, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, diag(2) * 5:6)
+
+        # lag = 1
+        my_model <- distributed_lag(d = 2, k = 1, lag = 1)
+        tst <- index(
+            my_model, 
+            parameters_only = FALSE,
+            covariance = "isotropic"
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 7:8)
+
+        tst <- index(
+            my_model, 
+            parameters_only = FALSE,
+            covariance = "symmetric",
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 1:2)
+        expect_equal(tst@parameters[["beta"]], matrix(3:6, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(7, 8, 8, 9), nrow = 2, ncol = 2))
+    }
+)
+
 
 
 
@@ -1193,6 +1499,16 @@ test_that(
         expect_error(fill(double_exponential(d = 2, k = 2), 1:2, dynamics = "anisotropic"))
         expect_error(fill(double_exponential(d = 2, k = 2), 1:2, dynamics = "symmetric"))
         expect_error(fill(double_exponential(d = 2, k = 2), 1:2, dynamics = "isotropic"))
+
+        # Not enough parameters provided for the distributed lag model
+        expect_error(fill(distributed_lag(d = 2, k = 2), 1:2))
+        expect_error(fill(distributed_lag(d = 2, k = 2, lag = 1), 1:6))
+        expect_error(fill(distributed_lag(d = 2, k = 2, lag = 1), 1:10, parameters_only = FALSE))
+
+        # = with explicit lags
+        expect_error(fill(distributed_lag(d = 2, k = 1, lag = 0), 1:2))
+        expect_error(fill(distributed_lag(d = 2, k = 1, lag = 1), 1:4))
+        expect_error(fill(distributed_lag(d = 2, k = 1, lag = 1), 1:6, parameters_only = FALSE))
     }
 )
 
@@ -1213,6 +1529,15 @@ test_that(
         expect_warning(fill(double_exponential(d = 2, k = 2), 1:20, dynamics = "anisotropic"))
         expect_warning(fill(double_exponential(d = 2, k = 2), 1:20, dynamics = "symmetric"))
         expect_warning(fill(double_exponential(d = 2, k = 2), 1:20, dynamics = "isotropic"))
+
+        # Too many parameters provided for the distributed lag model
+        expect_warning(fill(distributed_lag(d = 2, k = 2), 1:20))
+        expect_warning(fill(distributed_lag(d = 2, k = 2, lag = 1), 1:20))
+
+        # = with explicit lags
+        expect_warning(fill(distributed_lag(d = 2, k = 1, lag = 0), 1:20))
+        expect_warning(fill(distributed_lag(d = 2, k = 1, lag = 1), 1:20))
+        expect_warning(fill(distributed_lag(d = 2, k = 1, lag = 1), 1:20, parameters_only = FALSE))
     }
 )
 
@@ -1924,6 +2249,186 @@ test_that(
         expect_equal(tst@parameters[["gamma"]], matrix(12:15, nrow = 2, ncol = 2))
         expect_equal(tst@parameters[["nu"]], matrix(16:19, nrow = 2, ncol = 2))
         expect_equal(tst@covariance, matrix(c(20, 21, 21, 22), nrow = 2, ncol = 2))
+    }
+)
+
+test_that(
+    "Check output for fill: Distributed lag",
+    {        
+        ########################################################################
+        # Single dimension and single predictor
+
+        my_model <- distributed_lag(d = 1, k = 1)
+        tst <- fill(my_model, 5:7, parameters_only = FALSE, cholesky = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], as.matrix(6))
+        expect_equal(tst@covariance, as.matrix(7))
+
+        # With Cholesky decomposition
+        tst <- fill(my_model, 5:7, parameters_only = FALSE, cholesky = TRUE)
+
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], as.matrix(6))
+        expect_equal(tst@covariance, as.matrix(49))
+
+        # Only the parameters
+        tst <- fill(my_model, 5:6, parameters_only = TRUE)
+
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], as.matrix(6))
+        expect_equal(tst@covariance, as.matrix(0))
+
+
+
+        ########################################################################
+        # Single dimension, single predictor, and two lags
+
+        my_model <- distributed_lag(d = 1, k = 1, lag = 2)
+        tst <- fill(my_model, 5:9, parameters_only = FALSE, cholesky = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], matrix(6:8, nrow = 1))
+        expect_equal(tst@covariance, as.matrix(9))
+
+
+
+        ########################################################################
+        # Two dimensions and single predictor
+
+        my_model <- distributed_lag(d = 2, k = 1)
+
+        # Isotropic
+        tst <- fill(
+            my_model, 
+            5:10, 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, diag(2) * 9:10)
+
+        # Symmetric
+        tst <- fill(
+            my_model, 
+            5:11, 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, matrix(c(9, 10, 10, 11), nrow = 2, ncol = 2))
+
+
+
+        ########################################################################
+        # Two dimensions, two predictors, and one lag
+
+        my_model <- distributed_lag(d = 2, k = 2, lag = 1)
+
+        # Isotropic
+        tst <- fill(
+            my_model, 
+            5:16, 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:14, nrow = 2, ncol = 4))
+        expect_equal(tst@covariance, diag(2) * 15:16)
+
+        # Symmetric
+        tst <- fill(
+            my_model, 
+            5:17, 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:14, nrow = 2, ncol = 4))
+        expect_equal(tst@covariance, matrix(c(15, 16, 16, 17), nrow = 2, ncol = 2))
+
+        # Only the parameters
+        tst <- fill(my_model, 5:14, parameters_only = TRUE)
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:14, nrow = 2, ncol = 4))
+        expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
+
+
+
+        ########################################################################
+        # Explicit lags: Single dimension and single predictor
+
+        # lag = 0
+        my_model <- distributed_lag(d = 1, k = 1, lag = 0)
+        tst <- fill(my_model, 5:7, parameters_only = FALSE, cholesky = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], as.matrix(6))
+        expect_equal(tst@covariance, as.matrix(7))
+
+        # lag = 1
+        my_model <- distributed_lag(d = 1, k = 1, lag = 1)
+        tst <- fill(my_model, 5:8, parameters_only = FALSE, cholesky = FALSE)
+
+        expect_equal(tst@parameters[["alpha"]], 5)
+        expect_equal(tst@parameters[["beta"]], matrix(6:7, nrow = 1))
+        expect_equal(tst@covariance, as.matrix(8))
+
+
+
+        ########################################################################
+        # Explicit lags: Two dimensions and single predictor
+
+        # lag = 0
+        my_model <- distributed_lag(d = 2, k = 1, lag = 0)
+        tst <- fill(
+            my_model, 
+            5:10, 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:8, nrow = 2, ncol = 1))
+        expect_equal(tst@covariance, diag(2) * 9:10)
+
+        # lag = 1
+        my_model <- distributed_lag(d = 2, k = 1, lag = 1)
+        tst <- fill(
+            my_model, 
+            5:12, 
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, diag(2) * 11:12)
+
+        tst <- fill(
+            my_model, 
+            5:13, 
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+
+        expect_equal(tst@parameters[["alpha"]], 5:6)
+        expect_equal(tst@parameters[["beta"]], matrix(7:10, nrow = 2, ncol = 2))
+        expect_equal(tst@covariance, matrix(c(11, 12, 12, 13), nrow = 2, ncol = 2))
     }
 )
 
@@ -2639,6 +3144,181 @@ test_that(
     }
 )
 
+test_that(
+    "Check output of count_parameters: Distributed lag", 
+    {
+        # Univariate, single predictor
+        my_model <- distributed_lag(
+            parameters = list(
+                "alpha" = 0,
+                "beta" = as.matrix(0)
+            ),
+            covariance = as.matrix(0)
+        )
+        expect_equal(
+            count_parameters(my_model, parameters_only = FALSE),
+            3
+        )
+        expect_equal(
+            count_parameters(my_model, parameters_only = TRUE),
+            2
+        )
+
+        # Univariate, two predictors
+        my_model <- distributed_lag(
+            parameters = list(
+                "alpha" = 0,
+                "beta" = matrix(0, nrow = 1, ncol = 2)
+            ),
+            covariance = as.matrix(0)
+        )
+        expect_equal(
+            count_parameters(my_model, parameters_only = FALSE),
+            4
+        )
+        expect_equal(
+            count_parameters(my_model, parameters_only = TRUE),
+            3
+        )
+
+        # Univariate, single predictor, two lags
+        my_model <- distributed_lag(
+            lag = 2,
+            parameters = list(
+                "alpha" = 0,
+                "beta" = matrix(0, nrow = 1, ncol = 3)
+            ),
+            covariance = as.matrix(0)
+        )
+        expect_equal(
+            count_parameters(my_model, parameters_only = FALSE),
+            5
+        )
+        expect_equal(
+            count_parameters(my_model, parameters_only = TRUE),
+            4
+        )
+
+        # Bivariate, single predictor
+        my_model <- distributed_lag(
+            parameters = list(
+                "alpha" = numeric(2),
+                "beta" = matrix(0, nrow = 2, ncol = 1)
+            ),
+            covariance = diag(2)
+        )
+        expect_equal(
+            count_parameters(
+                my_model, 
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            7
+        )
+        expect_equal(
+            count_parameters(
+                my_model, 
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            6
+        )
+        expect_equal(
+            count_parameters(
+                my_model, 
+                parameters_only = TRUE
+            ),
+            4
+        )
+
+        # Bivariate, two predictors, one lag
+        my_model <- distributed_lag(d = 2, k = 2, lag = 1)
+        expect_equal(
+            count_parameters(
+                my_model, 
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            13
+        )
+        expect_equal(
+            count_parameters(
+                my_model, 
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            12
+        )
+        expect_equal(
+            count_parameters(
+                my_model, 
+                parameters_only = TRUE
+            ),
+            10
+        )
+
+        # Trivariate, two predictors, two lags
+        my_model <- distributed_lag(d = 3, k = 2, lag = 2)
+        expect_equal(
+            count_parameters(
+                my_model, 
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            27
+        )
+        expect_equal(
+            count_parameters(
+                my_model, 
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            24
+        )
+        expect_equal(
+            count_parameters(
+                my_model, 
+                parameters_only = TRUE
+            ),
+            21
+        )
+
+        # The number of parameters corresponds to the one in the model when 
+        # the covariance is symmetric
+        expect_equal(
+            count_parameters(my_model, covariance = "symmetric"),
+            my_model@n
+        )
+
+        # Dynamics do not influence the result, as there are no dynamical 
+        # matrices in the model
+        expect_equal(
+            count_parameters(my_model, dynamics = "anisotropic"),
+            count_parameters(my_model)
+        )
+
+        # Explicit lags: Univariate, single predictor
+        my_model <- distributed_lag(d = 1, k = 1, lag = 0)
+        expect_equal(count_parameters(my_model, parameters_only = FALSE), 3)
+        expect_equal(count_parameters(my_model, parameters_only = TRUE), 2)
+
+        my_model <- distributed_lag(d = 1, k = 1, lag = 1)
+        expect_equal(count_parameters(my_model, parameters_only = FALSE), 4)
+        expect_equal(count_parameters(my_model, parameters_only = TRUE), 3)
+
+        # Explicit lags: Bivariate, single predictor
+        my_model <- distributed_lag(d = 2, k = 1, lag = 0)
+        expect_equal(count_parameters(my_model, covariance = "symmetric", parameters_only = FALSE), 7)
+        expect_equal(count_parameters(my_model, covariance = "isotropic", parameters_only = FALSE), 6)
+        expect_equal(count_parameters(my_model, parameters_only = TRUE), 4)
+
+        my_model <- distributed_lag(d = 2, k = 1, lag = 1)
+        expect_equal(count_parameters(my_model, covariance = "symmetric", parameters_only = FALSE), 9)
+        expect_equal(count_parameters(my_model, covariance = "isotropic", parameters_only = FALSE), 8)
+        expect_equal(count_parameters(my_model, parameters_only = TRUE), 6)
+    }
+)
+
 
 
 ################################################################################
@@ -2705,6 +3385,22 @@ test_that(
                 parameters_only = FALSE
             )
         )
+        expect_error(
+            get_bounds(
+                distributed_lag(),
+                lower = 1, 
+                upper = 1,
+                parameters_only = TRUE
+            )
+        )
+        expect_error(
+            get_bounds(
+                distributed_lag(),
+                lower = 1:2, 
+                upper = 1:2,
+                parameters_only = FALSE
+            )
+        )
     }
 )
 
@@ -2757,6 +3453,23 @@ test_that(
         expect_warning(
             get_bounds(
                 double_exponential(),
+                lower = 1:20,
+                upper = 1:20,
+                parameters_only = TRUE
+            )
+        )
+
+        expect_warning(
+            get_bounds(
+                distributed_lag(),
+                lower = 1:20,
+                upper = 1:20,
+                parameters_only = FALSE
+            )
+        )
+        expect_warning(
+            get_bounds(
+                distributed_lag(),
                 lower = 1:20,
                 upper = 1:20,
                 parameters_only = TRUE
@@ -3726,6 +4439,244 @@ test_that(
     }
 )
 
+test_that(
+    "Check the output of get_bounds: Distributed lag",
+    {
+        # One dimension, one predictor
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 1, k = 1),
+                lower = -(1:2),
+                upper = 1:2,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -2),
+                "upper" = c(1, 2)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 1, k = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -2, -3),
+                "upper" = c(1, 2, 3)
+            )
+        )
+
+        # One dimension, two predictors
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 1, k = 2),
+                lower = -(1:2),
+                upper = 1:2,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -2, -2),
+                "upper" = c(1, 2, 2)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 1, k = 2),
+                lower = -(1:3),
+                upper = 1:3,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -2, -2, -3),
+                "upper" = c(1, 2, 2, 3)
+            )
+        )
+
+        # One dimension, one predictor, two lags
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 1, k = 1, lag = 2),
+                lower = -(1:3),
+                upper = 1:3,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -2, -2, -2, -3),
+                "upper" = c(1, 2, 2, 2, 3)
+            )
+        )
+
+        # Two dimensions, one predictor
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 1),
+                lower = -(1:2),
+                upper = 1:2,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2),
+                "upper" = c(1, 1, 2, 2)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3),
+                "upper" = c(1, 1, 2, 2, 3, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -3, -3, -3),
+                "upper" = c(1, 1, 2, 2, 3, 3, 3)
+            )
+        )
+
+        # Two dimensions, two predictors, one lag
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 2, lag = 1),
+                lower = -(1:2),
+                upper = 1:2,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(rep(-1, 2), rep(-2, 8)),
+                "upper" = c(rep(1, 2), rep(2, 8))
+            )
+        )
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 2, lag = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(rep(-1, 2), rep(-2, 8), rep(-3, 3)),
+                "upper" = c(rep(1, 2), rep(2, 8), rep(3, 3))
+            )
+        )
+
+        # Default bounds
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 1),
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -5, -5),
+                "upper" = c(1, 1, 5, 5)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 1),
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -5, -5, 10^(-5), 10^(-5)),
+                "upper" = c(1, 1, 5, 5, 1, 1)
+            )
+        )
+
+        # Number of bounds corresponds to the number of parameters
+        my_model <- distributed_lag(d = 3, k = 2, lag = 2)
+        bounds <- get_bounds(my_model, covariance = "symmetric", parameters_only = FALSE)
+        expect_equal(
+            length(bounds[["lower"]]),
+            count_parameters(my_model, covariance = "symmetric", parameters_only = FALSE)
+        )
+        expect_equal(
+            length(bounds[["upper"]]),
+            count_parameters(my_model, covariance = "symmetric", parameters_only = FALSE)
+        )
+
+        # Explicit lags: One dimension, one predictor
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 1, k = 1, lag = 0),
+                lower = -(1:3),
+                upper = 1:3,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -2, -3),
+                "upper" = c(1, 2, 3)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 1, k = 1, lag = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -2, -2, -3),
+                "upper" = c(1, 2, 2, 3)
+            )
+        )
+
+        # Explicit lags: Two dimensions, one predictor
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 1, lag = 0),
+                lower = -(1:2),
+                upper = 1:2,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2),
+                "upper" = c(1, 1, 2, 2)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 1, lag = 1),
+                lower = -(1:2),
+                upper = 1:2,
+                parameters_only = TRUE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2),
+                "upper" = c(1, 1, 2, 2, 2, 2)
+            )
+        )
+        expect_equal(
+            get_bounds(
+                distributed_lag(d = 2, k = 1, lag = 1),
+                lower = -(1:3),
+                upper = 1:3,
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            list(
+                "lower" = c(-1, -1, -2, -2, -2, -2, -3, -3, -3),
+                "upper" = c(1, 1, 2, 2, 2, 2, 3, 3, 3)
+            )
+        )
+    }
+)
+
 
 
 
@@ -4459,6 +5410,168 @@ test_that(
     }
 )
 
+test_that(
+    "Check output of parameter_names: Distributed lag model",
+    {
+        # One dimension, one predictor
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 1, k = 1),
+                parameters_only = TRUE
+            ),
+            c("alpha_1", "beta_11_0")
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 1, k = 1),
+                parameters_only = FALSE
+            ),
+            c("alpha_1", "beta_11_0", "sigma_11")
+        )
+
+        # One dimension, two predictors
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 1, k = 2),
+                parameters_only = TRUE
+            ),
+            c("alpha_1", "beta_11_0", "beta_12_0")
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 1, k = 2),
+                parameters_only = FALSE
+            ),
+            c("alpha_1", "beta_11_0", "beta_12_0", "sigma_11")
+        )
+
+        # One dimension, one predictor, two lags
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 1, k = 1, lag = 2),
+                parameters_only = TRUE
+            ),
+            c("alpha_1", "beta_11_0", "beta_11_1", "beta_11_2")
+        )
+
+        # Two dimensions, one predictor
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 2, k = 1),
+                parameters_only = TRUE
+            ),
+            c("alpha_1", "alpha_2", "beta_11_0", "beta_21_0")
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 2, k = 1),
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c("alpha_1", "alpha_2", "beta_11_0", "beta_21_0", "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 2, k = 1),
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(
+                "alpha_1", "alpha_2", "beta_11_0", "beta_21_0", 
+                "sigma_11", "sigma_21", "sigma_22"
+            )
+        )
+
+        # Two dimensions, two predictors, one lag
+        ref <- c(
+            "alpha_1", "alpha_2", 
+            "beta_11_0", "beta_21_0", "beta_12_0", "beta_22_0",
+            "beta_11_1", "beta_21_1", "beta_12_1", "beta_22_1"
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 2, k = 2, lag = 1),
+                parameters_only = TRUE
+            ),
+            ref
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 2, k = 2, lag = 1),
+                covariance = "isotropic",
+                parameters_only = FALSE
+            ),
+            c(ref, "sigma_11", "sigma_22")
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 2, k = 2, lag = 1),
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(ref, "sigma_11", "sigma_21", "sigma_22")
+        )
+
+        # Number of names corresponds to the number of parameters
+        my_model <- distributed_lag(d = 3, k = 2, lag = 2)
+        expect_equal(
+            length(parameter_names(my_model, covariance = "symmetric", parameters_only = FALSE)),
+            count_parameters(my_model, covariance = "symmetric", parameters_only = FALSE)
+        )
+
+        # Explicit lags: One dimension, one predictor
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 1, k = 1, lag = 0),
+                parameters_only = FALSE
+            ),
+            c("alpha_1", "beta_11_0", "sigma_11")
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 1, k = 1, lag = 1),
+                parameters_only = FALSE
+            ),
+            c("alpha_1", "beta_11_0", "beta_11_1", "sigma_11")
+        )
+
+        # Explicit lags: Two dimensions, one predictor
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 2, k = 1, lag = 0),
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(
+                "alpha_1", "alpha_2", "beta_11_0", "beta_21_0", 
+                "sigma_11", "sigma_21", "sigma_22"
+            )
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 2, k = 1, lag = 1),
+                parameters_only = TRUE
+            ),
+            c(
+                "alpha_1", "alpha_2", 
+                "beta_11_0", "beta_21_0", "beta_11_1", "beta_21_1"
+            )
+        )
+        expect_equal(
+            parameter_names(
+                distributed_lag(d = 2, k = 1, lag = 1),
+                covariance = "symmetric",
+                parameters_only = FALSE
+            ),
+            c(
+                "alpha_1", "alpha_2", 
+                "beta_11_0", "beta_21_0", "beta_11_1", "beta_21_1",
+                "sigma_11", "sigma_21", "sigma_22"
+            )
+        )
+    }
+)
+
 
 
 ################################################################################
@@ -4727,6 +5840,74 @@ test_that(
         expect_equal(
             parameters(model, dynamics = "isotropic", covariance = "isotropic"),
             1:13
+        )
+    }
+)
+
+test_that(
+    "Check the output of parameters: Distributed lag",
+    {
+        # Symmetric
+        model <- fill(
+            distributed_lag(d = 2, k = 2, lag = 1),
+            1:13,
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, covariance = "symmetric"),
+            1:13
+        )
+
+        # Isotropic
+        model <- fill(
+            distributed_lag(d = 2, k = 2, lag = 1),
+            1:12,
+            covariance = "isotropic",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, covariance = "isotropic"),
+            1:12
+        )
+
+        # Only the parameters
+        model <- fill(
+            distributed_lag(d = 2, k = 2, lag = 1),
+            1:10,
+            parameters_only = TRUE
+        )
+        expect_equal(
+            parameters(model, parameters_only = TRUE),
+            1:10
+        )
+
+        # Explicit lags: lag = 0
+        model <- fill(
+            distributed_lag(d = 2, k = 1, lag = 0),
+            1:7,
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, covariance = "symmetric"),
+            1:7
+        )
+
+        # Explicit lags: lag = 1
+        model <- fill(
+            distributed_lag(d = 2, k = 1, lag = 1),
+            1:9,
+            covariance = "symmetric",
+            parameters_only = FALSE,
+            cholesky = FALSE
+        )
+        expect_equal(
+            parameters(model, covariance = "symmetric"),
+            1:9
         )
     }
 )
