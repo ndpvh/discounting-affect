@@ -444,3 +444,168 @@ setMethod(
         return(fitobj)
     }
 )
+
+#' @param deterministic_fit Logical denoting whether to estimate the parameters 
+#' of the distributed lag model through the analytic least-squares solution 
+#' (\code{TRUE}) or through the numerical optimization used for the other 
+#' models (\code{FALSE}). Only used for the 
+#' \code{\link[discounting]{distributed_lag-class}}. When \code{TRUE}, the 
+#' arguments \code{dynamics}, \code{optimizer}, \code{lower}, \code{upper}, 
+#' \code{method}, and \code{...} are ignored, as no numerical optimization 
+#' (and therefore no bounds) is involved. Defaults to \code{FALSE}.
+#' 
+#' @rdname fit
+#' @export  
+setMethod(
+    "fit",
+    c("distributed_lag", "dataset"),
+    function(model, 
+             data, 
+             deterministic_fit = FALSE,
+             dynamics = "isotropic",
+             covariance = "symmetric",
+             optimizer = "optim",
+             lower = NULL, 
+             upper = NULL,
+             method = "Nelder-Mead",
+             na.rm = TRUE,
+             ...) {
+
+        # If no deterministic fit is requested, default to the numerical 
+        # optimization defined for all models
+        if(!deterministic_fit) {
+            return(
+                callNextMethod(
+                    model, 
+                    data, 
+                    dynamics = dynamics,
+                    covariance = covariance,
+                    optimizer = optimizer,
+                    lower = lower,
+                    upper = upper,
+                    method = method,
+                    na.rm = na.rm,
+                    ...
+                )
+            )
+        }
+
+        # Extract the dimensionalities of the model
+        d <- model@d
+        k <- model@k
+        lag <- model@lag
+
+        # Extract the data and check whether these are consistent with the 
+        # model
+        X <- data@X
+        Y <- data@Y
+
+        if(ncol(X) != k) {
+            stop("Number of independent variables in the data does not match k of the model.")
+        }
+
+        if(ncol(Y) != d) {
+            stop("Number of dependent variables in the data does not match d of the model.")
+        }
+
+        # Create the design matrix containing an intercept and the lagged 
+        # values of the independent variables. This is done in the same way as
+        # in `predict`: Values before the start of the data are assumed to be 
+        # 0, and the history is reset whenever the independent variables 
+        # contain an NA. The ordering of the columns follows the ordering of 
+        # the columns in beta, namely B = [B_0, B_1, ..., B_lag].
+        Z <- matrix(0, nrow = data@N, ncol = 1 + k * (lag + 1))
+        H <- matrix(0, nrow = k, ncol = lag + 1)
+
+        for(i in seq_len(data@N)) {
+            if(any(is.na(X[i, ]))) {
+                Z[i, ] <- NA
+                H[] <- 0
+
+                next
+            }
+
+            H <- cbind(X[i, ], H[, seq_len(lag), drop = FALSE])
+            Z[i, ] <- c(1, as.numeric(H))
+        }
+
+        # Only use the complete cases for the estimation
+        idx <- stats::complete.cases(Z, Y)
+        if(sum(idx) < ncol(Z)) {
+            stop("Not enough complete observations to estimate the parameters of the model.")
+        }
+
+        # Compute the analytic least-squares solution
+        Z_c <- Z[idx, , drop = FALSE]
+        Y_c <- Y[idx, , drop = FALSE]
+        coefficients <- solve(t(Z_c) %*% Z_c) %*% t(Z_c) %*% Y_c
+        
+        # Put the estimated parameters in the model. Ordering of the parameters
+        # follows the conventions of `fill` and `index`
+        model@parameters[["alpha"]] <- as.numeric(coefficients[1, ])
+        model@parameters[["beta"]] <- t(coefficients[-1, , drop = FALSE])
+
+        parameters <- c(
+            model@parameters[["alpha"]], 
+            as.numeric(model@parameters[["beta"]])
+        )
+
+        # Compute the residuals and the objective function
+        residuals <- Y - predict(model, data)@Y
+        objective <- sum(residuals^2, na.rm = na.rm)
+
+        # Estimate the covariance matrix according to the structure of the 
+        # model
+        non_missing_residuals <- residuals[!is.na(rowSums(residuals)), , drop = FALSE]
+
+        if(covariance == "symmetric") {
+            v <- cov(non_missing_residuals)
+
+            model@covariance <- as.matrix(v)
+            parameters <- c(parameters, v[lower.tri(v, diag = TRUE)])
+
+        } else if(covariance == "isotropic") {
+            v <- sapply(
+                seq_len(ncol(non_missing_residuals)),
+                \(i) var(non_missing_residuals[, i])
+            )
+
+            model@covariance[] <- 0
+            diag(model@covariance) <- v
+            parameters <- c(parameters, v)
+
+        } else {
+            stop(
+                paste(
+                    "Structure for covariance is not know.",
+                    "Please use \"isotropic\" or \"symmetric\"."
+                )
+            )
+        }
+
+        # Define the number of parameters of the model and adjust accordingly
+        model@n <- count_parameters(
+            model,
+            covariance = covariance,
+            parameters_only = FALSE
+        )
+
+        # Add context to the vector of parameters of the model.
+        names(parameters) <- parameter_names(
+            model,
+            covariance = covariance,
+            parameters_only = FALSE
+        )
+
+        # Join everything together in a named list and return
+        fitobj <- list(
+            "model" = model,
+            "fit" = coefficients,
+            "objective" = objective,
+            "residuals" = residuals,
+            "parameters" = parameters
+        )
+
+        return(fitobj)
+    }
+)
