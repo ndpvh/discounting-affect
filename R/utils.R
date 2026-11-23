@@ -2064,11 +2064,15 @@ setMethod(
             function(i) model@parameters[[i]][indexed@parameters[[i]] != 0]
         )
 
-        # Add the covariances into the mix
-        params <- append(
-            params,
-            model@covariance[indexed@covariance != 0]
-        )
+        # Add the covariances into the mix, but only when requested. Note that
+        # when `parameters_only = TRUE`, `index` leaves the covariance matrix
+        # untouched, so that it cannot be used to select the covariances.
+        if(!parameters_only) {
+            params <- append(
+                params,
+                model@covariance[indexed@covariance != 0]
+            )
+        }
 
         # Unlist these parameters into a single vector
         params <- unlist(params)

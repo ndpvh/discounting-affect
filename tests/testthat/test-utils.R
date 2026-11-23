@@ -5911,3 +5911,60 @@ test_that(
         )
     }
 )
+
+test_that(
+    "Check that parameters does not return covariances when parameters_only = TRUE",
+    {
+        # Models with non-zero covariance matrices
+        my_models <- list(
+            exponential(
+                parameters = list(
+                    "alpha" = c(1, -1),
+                    "beta" = matrix(2, nrow = 2, ncol = 1),
+                    "gamma" = diag(2) * 0.5
+                ),
+                covariance = matrix(c(1, 0.25, 0.25, 1), nrow = 2, ncol = 2)
+            ),
+            distributed_lag(
+                lag = 1,
+                parameters = list(
+                    "alpha" = c(1, -1),
+                    "beta" = cbind(diag(2), diag(2) * 0.5)
+                ),
+                covariance = matrix(c(1, 0.25, 0.25, 1), nrow = 2, ncol = 2)
+            )
+        )
+
+        # Only the deterministic parameters are returned
+        expect_equal(
+            parameters(my_models[[1]], parameters_only = TRUE),
+            c(1, -1, 2, 2, 0.5, 0.5)
+        )
+        expect_equal(
+            parameters(my_models[[2]], parameters_only = TRUE),
+            c(1, -1, 1, 0, 0, 1, 0.5, 0, 0, 0.5)
+        )
+
+        # The covariances are still included when parameters_only = FALSE
+        expect_equal(
+            parameters(my_models[[1]], parameters_only = FALSE),
+            c(1, -1, 2, 2, 0.5, 0.5, 1, 0.25, 1)
+        )
+        expect_equal(
+            parameters(my_models[[2]], parameters_only = FALSE),
+            c(1, -1, 1, 0, 0, 1, 0.5, 0, 0, 0.5, 1, 0.25, 1)
+        )
+
+        # The number of parameters corresponds to count_parameters
+        for(my_model in my_models) {
+            expect_equal(
+                length(parameters(my_model, parameters_only = TRUE)),
+                count_parameters(my_model, parameters_only = TRUE)
+            )
+            expect_equal(
+                length(parameters(my_model, parameters_only = FALSE)),
+                count_parameters(my_model, parameters_only = FALSE)
+            )
+        }
+    }
+)
