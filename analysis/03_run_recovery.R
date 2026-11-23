@@ -1,273 +1,219 @@
 ################################################################################
-# PURPOSE:
+# PARAMETER RECOVERY
 #
-# Run the computationally expensive recovery study for the discounting models
-# defined in this package and save the raw recovery result objects as .Rds files.
-# The recovery study also requests fit statistics such as AIC and BIC, together
-# with checks of the residual structure, so these diagnostics are stored in the
-# saved recovery objects for later analysis.
+# A priori:     random parameters and predictors (d = 1:2, k = 1:2).
+# A posteriori: empirical parameters and predictors from VANHASBROECK_2024
+#               (d = 1:2, k = 1), preserving missingness and clipping to [0,1].
 #
-# This script performs recovery GENERATION ONLY. The inexpensive downstream
-# recovery summaries and simulated-vs-estimated recovery figures are generated
-# from the saved .Rds files by analysis/09_summarize_recovery.R.
-################################################################################
-################################################################################
-# SOURCE SHARED INFRASTRUCTURE
+# Run from the repository root:
+#   Rscript analysis/03_run_recovery.R pilot             # both pilots
+#   Rscript analysis/03_run_recovery.R apriori           # a priori only
+#   Rscript analysis/03_run_recovery.R aposteriori pilot # a posteriori pilot
+#   Rscript analysis/03_run_recovery.R                   # both full studies
 #
-# Works from either the repository root or the analysis/ directory.
+# Functions recovery() and recovery_realistic() live in R/recovery.R.
 ################################################################################
 
-config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
-  file.path("analysis", "_config.R")
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) > 2L || any(!args %in% c("pilot", "apriori", "aposteriori")) ||
+    sum(args == "pilot") > 1L || sum(args %in% c("apriori", "aposteriori")) > 1L) {
+  stop("Usage: Rscript analysis/03_run_recovery.R [pilot] [apriori|aposteriori]")
+}
+pilot <- "pilot" %in% args
+studies <- intersect(args, c("apriori", "aposteriori"))
+if (!length(studies)) studies <- c("apriori", "aposteriori")
+
+config_file <- if (file.exists("analysis/_config.R")) {
+  "analysis/_config.R"
 } else if (file.exists("_config.R")) {
   "_config.R"
 } else {
-  stop(
-    "Could not find analysis/_config.R. ",
-    "Run this script from the repository root or analysis/ directory."
-  )
+  stop("Run from the repository root or the analysis/ directory.")
 }
 source(config_file)
 source(file.path(PATHS$analysis, "_helpers.R"))
-rm(config_file)
-
-################################################################################
-# PRELIMINARIES
-
 devtools::load_all(PROJECT_ROOT)
 
-# Define the number of recoveries `iterations` and the number of datapoints `N`
-iterations <- 1000
-N <- 140
-
-# Define the models to use for the recovery study
-fx <- list(
-    "exponential" = exponential, 
-    "quasi_hyperbolic" = quasi_hyperbolic,
-    "double_exponential" = double_exponential
+models <- list(
+  exponential = exponential,
+  quasi_hyperbolic = quasi_hyperbolic,
+  double_exponential = double_exponential
 )
-dims <- expand.grid(1:2, 1:2)
 
-models <- list()
-for(i in seq_len(nrow(dims))) {
-    for(j in seq_along(fx)) {
-        id <- paste0(
-            names(fx)[j], 
-            "_",
-            dims$Var1[i],
-            dims$Var2[i]
-        )
+# Same global + local optimization settings as participant estimation.
+optimizer <- function(obj, lower, upper, algorithm = "NLOPT_LN_BOBYQA",
+                      maxeval = 1e3, ftol_abs = 1e-15, xtol_abs = 1e-15,
+                      print_level = 0, ...) {
+  global <- DEoptim::DEoptim(
+    obj, lower, upper, control = DEoptim::DEoptim.control(...)
+  )
+  local <- nloptr::nloptr(
+    global$optim$bestmem, obj, lb = lower, ub = upper,
+    opts = list(algorithm = algorithm, maxeval = maxeval,
+                ftol_abs = ftol_abs, xtol_abs = xtol_abs,
+                print_level = print_level)
+  )
+  list(parameters = local$solution, objective = local$objective)
+}
 
-        models[[id]] <- fx[[j]](d = dims$Var1[i], k = dims$Var2[i])
+fit_settings <- list(
+  dynamics = "isotropic", covariance = "symmetric",
+  itermax = 1e3, NP = 150, CR = 0.75, strategy = 6,
+  p = 0.8, reltol = 1e-15, steptol = 100, trace = FALSE,
+  maxeval = 1e5, xtol_abs = 1e-20, ftol_abs = 1e-20,
+  print_level = 0
+)
+
+destination <- function(study) {
+  path <- file.path(PATHS$recovery, study, if (pilot) "pilot" else "full")
+  dir.create(path, recursive = TRUE, showWarnings = FALSE)
+  path
+}
+
+# A PRIORI --------------------------------------------------------------------
+run_apriori <- function() {
+  out <- destination("apriori")
+  scenarios <- merge(expand.grid(d = 1:2, k = 1:2),
+                     data.frame(model = names(models)), by = NULL)
+  iterations <- if (pilot) 2L else 1000L
+
+  for (j in seq_len(nrow(scenarios))) {
+    scenario <- scenarios[j, ]
+    name <- as.character(scenario$model)
+    d <- scenario$d
+    k <- scenario$k
+    set.seed(1000L + j)
+    message("A priori: ", name, " d=", d, " k=", k)
+
+    xfun <- if (k == 1L) {
+      function(n) runif(n, -2, 2)
+    } else {
+      list(function(n) runif(n, -2, 2), function(n) runif(n, -2, 2))
     }
+    result <- do.call(recovery, c(
+      list(sim_model = models[[name]](d = d, k = k),
+           iterations = iterations, N = 140L, Xfun = xfun,
+           fx = list(aic = aic, bic = bic,
+                     autocorrelation = autocorrelation, bias = bias),
+           optimizer = optimizer, print_iteration = TRUE),
+      fit_settings
+    ))
+    result$settings <- list(study = "apriori", model = name, d = d, k = k,
+                            iterations = iterations, N = 140L,
+                            pilot = pilot, seed = 1000L + j)
+    saveRDS(result, file.path(out, paste0(name, "_d", d, "_k", k, ".Rds")))
+  }
 }
 
-# Define functions for generating the values of X in the simulation. The index
-# in the list communicates the number of dimensions the X should take (i.e., 
-# how many predictors there are)
-x_function <- list(
-    \(x) runif(x, min = -2, max = 2),
-    list(
-        \(x) runif(x, min = -2, max = 2),
-        \(x) runif(x, min = -2, max = 2)
-    )
-)
+# A POSTERIORI ----------------------------------------------------------------
+run_aposteriori <- function() {
+  out <- destination("aposteriori")
+  base <- "VANHASBROECK_2024"
+  files <- sort(list.files(file.path(PATHS$processed_data, base),
+                           pattern = "\\.rds$", full.names = TRUE,
+                           ignore.case = TRUE))
+  if (!length(files)) stop("No processed participant data found for ", base)
 
-# Define the different functions that you want to perform on the fitobj
-fx <- list(
-    "aic" = aic,
-    "bic" = bic,
-    "autocorrelation" = autocorrelation,
-    "bias" = bias
-)
+  # The realistic recovery function itself validates covariance, missingness,
+  # observed response range, and generating/recovered parameter pairing.
+  for (d in 1:2) {
+    matching <- Filter(function(path) {
+      ds <- readRDS(path)
+      ncol(ds@Y) == d && ncol(ds@X) == 1L
+    }, files)
+    if (!length(matching)) stop("No participants for d=", d, ", k=1")
 
-# Define a function that will make use of multiple nloptr optimizers as specified 
-# by the user. These can then be varied so that different combinations are tried
-# out, typically combining a global optimizer with a local one.
-#
-# Assumption: We use the same control parameters for both estimation procedures.
-optimizer <- function(obj, 
-                      lower, 
-                      upper,
-                      algorithm = "NLOPT_LN_BOBYQA", 
-                      maxeval = 1e3, 
-                      ftol_abs = 1e-15, 
-                      xtol_abs = 1e-15, 
-                      print_level = 0,
-                      ...) {
-    
-    # Perform estimation using DEoptim. This will serve as the global 
-    # optimization procedure, allowing us to get in the ballpark of where it 
-    # should be right.
-    result <- DEoptim::DEoptim(
-        obj, 
-        lower,
-        upper,
-        control = DEoptim::DEoptim.control(
-            ...
-        )
-    )
+    for (j in seq_along(models)) {
+      name <- names(models)[j]
+      empty <- models[[name]](d = d, k = 1)
+      pnames <- parameter_names(empty, dynamics = "isotropic",
+                                covariance = "symmetric", parameters_only = FALSE)
+      mean_names <- parameter_names(empty, dynamics = "isotropic",
+                                    covariance = "symmetric", parameters_only = TRUE)
+      estimate_path <- file.path(PATHS$estimation,
+                                 paste0(base, "_", d, "_", name, ".csv"))
+      if (!file.exists(estimate_path)) stop("Missing estimates: ", estimate_path)
+      estimates <- read.csv(estimate_path, check.names = FALSE)
+      if (!all(c("participant_id", pnames) %in% names(estimates)) ||
+          anyNA(estimates$participant_id) || anyDuplicated(estimates$participant_id)) {
+        stop("Invalid participant IDs or missing parameter columns: ", estimate_path)
+      }
 
-    # Extract the result of this estimation procedure and save it as an 
-    # initial condition
-    x0 <- result$optim$bestmem
+      message("A posteriori: ", name, " d=", d, " k=1")
+      results <- list()
+      status <- list()
+      for (i in seq_along(matching)) {
+        path <- matching[i]
+        id <- tools::file_path_sans_ext(basename(path))
+        row <- match(id, estimates$participant_id)
+        one <- tryCatch({
+          if (is.na(row)) stop("No matching estimates")
+          ds <- readRDS(path)
+          pars <- as.numeric(unlist(estimates[row, pnames, drop = FALSE],
+                                    use.names = FALSE))
+          names(pars) <- pnames
+          if (any(!is.finite(pars))) stop("Non-finite estimates")
 
-    # Perform an additional estimation procedure with nloptr. Ideally, this is 
-    # just through a local optimizer, but in theory, it can be another global one 
-    # as well
-    result <- nloptr::nloptr(
-        x0,
-        obj,
-        lb = lower, 
-        ub = upper, 
-        opts = list(
-            algorithm = algorithm, 
-            maxeval = maxeval, 
-            ftol_abs = ftol_abs, 
-            xtol_abs = xtol_abs, 
-            print_level = print_level
-        )
-    )
-    
-    # Return the results in a named list, as required by the fit function
-    return(
-        list(
-            "parameters" = result$solution, 
-            "objective" = result$objective
-        )
-    )
+          # Catch mismatched processed data and estimation files before recovery.
+          if ("objective_sse" %in% names(estimates) &&
+              is.finite(estimates$objective_sse[row])) {
+            sse <- objective_function(empty, ds, pars[mean_names],
+                                      dynamics = "isotropic")
+            if (!isTRUE(all.equal(sse, estimates$objective_sse[row],
+                                  tolerance = 1e-6, check.attributes = FALSE))) {
+              stop("Saved estimates do not match the processed data (SSE)")
+            }
+          }
+
+          do.call(recovery_realistic, c(
+            list(sim_model = empty, data = ds, estimated_parameters = pars,
+                 participant_id = id, iterations = 1L,
+                 seed = 20261105L + d * 100000L + j * 10000L + i,
+                 fx = list(), optimizer = optimizer,
+                 print_iteration = FALSE),
+            fit_settings
+          ))
+        }, error = function(e) conditionMessage(e))
+
+        if (is.character(one)) {
+          status[[length(status) + 1L]] <- data.frame(
+            participant_id = id, status = "skipped", reason = one)
+        } else {
+          results[[length(results) + 1L]] <- one
+          status[[length(status) + 1L]] <- data.frame(
+            participant_id = id, status = "ok", reason = "")
+          if (pilot && length(results) == 2L) break
+        }
+      }
+
+      prefix <- paste0(base, "_d", d, "_", name)
+      status <- do.call(rbind, status)
+      write.csv(status, file.path(out, paste0(prefix, "_status.csv")),
+                row.names = FALSE)
+      if (!length(results)) stop("No valid recovery cases for ", prefix)
+      if (pilot && length(results) < 2L) {
+        stop("Pilot requires two valid participants for ", prefix)
+      }
+
+      result <- list(
+        simulate = do.call(rbind, lapply(results, `[[`, "simulate")),
+        fit = do.call(rbind, lapply(results, `[[`, "fit")),
+        metadata = do.call(rbind, lapply(results, `[[`, "metadata")),
+        participant_status = status,
+        settings = list(study = "aposteriori", dataset = base, model = name,
+                        d = d, k = 1L, iterations = 1L, pilot = pilot)
+      )
+      rownames(result$simulate) <- NULL
+      rownames(result$fit) <- NULL
+      rownames(result$metadata) <- NULL
+      saveRDS(result, file.path(out, paste0(prefix, ".Rds")))
+      message("Saved ", prefix, ": ", nrow(result$fit), " recovery rows")
+    }
+  }
 }
 
-
-
-################################################################################
-# PERFORM THE RECOVERY
-
-# Ensure the recovery-result directory exists before anything is written.
-# Done once in the parent process rather than inside the parallel worker.
-ensure_dir(PATHS$recovery)
-
-# A full recovery rerun should never mix new and stale model results. Remove the
-# expected result files first; if a worker later fails, the script stops and the
-# missing file makes the incomplete rerun visible.
-expected_recovery_files <- file.path(
-    PATHS$recovery, paste0(names(models), ".Rds")
-)
-unlink(expected_recovery_files[file.exists(expected_recovery_files)])
-
-# Numeric summaries and recovery figures are derived from the raw recovery RDS
-# files. Invalidate those downstream artifacts when a fresh generation starts so
-# an interrupted recovery run cannot leave old summaries/figures looking current.
-recovery_summary_dir <- file.path(PATHS$recovery, "summary")
-if (dir.exists(recovery_summary_dir)) {
-    old_summary_files <- list.files(recovery_summary_dir, full.names = TRUE)
-    if (length(old_summary_files) > 0) unlink(old_summary_files, recursive = TRUE)
+for (study in studies) {
+  if (study == "apriori") run_apriori() else run_aposteriori()
 }
-recovery_figure_dir <- file.path(PATHS$figures, "recovery")
-if (dir.exists(recovery_figure_dir)) {
-    old_recovery_figures <- list.files(
-        recovery_figure_dir,
-        pattern = "\\.(jpeg|jpg|png)$",
-        full.names = TRUE,
-        ignore.case = TRUE
-    )
-    if (length(old_recovery_figures) > 0) unlink(old_recovery_figures)
-}
-
-# Use all but one available core on Unix-like systems, but always leave at least
-# one worker available. Windows uses serial execution because mclapply forks are
-# not available there.
-detected_cores <- parallel::detectCores()
-if (is.na(detected_cores)) detected_cores <- 1L
-recovery_cores <- if (Sys.info()["sysname"] == "Windows") {
-    1L
-} else {
-    max(1L, as.integer(detected_cores - 1L))
-}
-
-# Loop over the models
-empty <- parallel::mclapply(
-    seq_along(models),
-    function(j) {
-        # Extract the model of choice
-        my_model <- models[[j]]
-
-        # Perform the recovery for the specified combination of functions,
-        # providing them to the optimizer
-        result <- recovery(
-            my_model,
-            iterations = iterations,
-            fx = fx,
-
-            # Simulation characteristics
-            Xfun = x_function[[as.integer(my_model@k)]],
-            N = N,
-
-            # Model characteristics
-            dynamics = "isotropic",
-            covariance = "symmetric",
-
-            # Additional stuff
-            print_iteration = TRUE,
-            print_content = paste(
-                names(models)[j], 
-                ": isotropic - symmetric",
-                sep = ""
-            ),
-
-            # Optimization characteristics
-            optimizer = function(obj, lower, upper, ...) optimizer(
-                obj, 
-                lower,
-                upper,
-                ...
-            ),
-                
-            # DEoptim arguments
-            itermax = 1e3,
-            NP = 150,
-            CR = 0.75,
-            strategy = 6, 
-            p = 0.8,
-            reltol = 1e-15, 
-            steptol = 100,
-            trace = FALSE,
-
-            # nloptr arguments
-            maxeval = 1e5,
-            xtol_abs = 1e-20,
-            ftol_abs = 1e-20,
-            print_level = 0
-        )
-
-        # Save the result
-        saveRDS(
-            result,
-            file.path(
-                PATHS$recovery,
-                paste0(
-                    names(models)[j], 
-                    ".Rds"
-                )
-            )
-        )
-
-        cat("\n")
-
-        return(NULL)
-    },
-    mc.cores = recovery_cores
-)
-
-worker_failures <- which(vapply(
-    empty, function(x) inherits(x, "try-error"), logical(1)
-))
-if (length(worker_failures) > 0) {
-    stop(
-        "Recovery worker failure(s) for model index/indices: ",
-        paste(worker_failures, collapse = ", "),
-        ". The recovery result set is incomplete."
-    )
-}
-
-cat("\n")
+message("Completed: ", paste(studies, collapse = ", "),
+        if (pilot) " (pilot)" else " (full)")
