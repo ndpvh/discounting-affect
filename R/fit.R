@@ -452,7 +452,12 @@ setMethod(
 #' \code{\link[discounting]{distributed_lag-class}}. When \code{TRUE}, the 
 #' arguments \code{dynamics}, \code{optimizer}, \code{lower}, \code{upper}, 
 #' \code{method}, and \code{...} are ignored, as no numerical optimization 
-#' (and therefore no bounds) is involved. Defaults to \code{FALSE}.
+#' (and therefore no bounds) is involved. Defaults to the value of the option
+#' \code{"discounting.deterministic_fit"}, or \code{FALSE} if this option is not
+#' set. Setting \code{options(discounting.deterministic_fit = TRUE)} therefore 
+#' makes all fits of the distributed lag model analytic, including those 
+#' performed inside of other functions (e.g., \code{\link[discounting]{recovery}}),
+#' while the other models remain estimated through numerical optimization.
 #' 
 #' @rdname fit
 #' @export  
@@ -461,7 +466,7 @@ setMethod(
     c("distributed_lag", "dataset"),
     function(model, 
              data, 
-             deterministic_fit = FALSE,
+             deterministic_fit = getOption("discounting.deterministic_fit", FALSE),
              dynamics = "isotropic",
              covariance = "symmetric",
              optimizer = "optim",
