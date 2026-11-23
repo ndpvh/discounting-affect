@@ -1080,3 +1080,271 @@ test_that(
         expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
     }
 )
+test_that(
+    "Test the specialized errors for the distributed lag model",
+    {
+        # Not all parameters are defined
+        expect_error(distributed_lag(parameters = list("alpha" = 1)))
+        expect_error(distributed_lag(parameters = list("beta" = 1)))
+        expect_error(distributed_lag(parameters = list("alpha" = 1, "gamma" = 1)))
+
+        # Covariance should be a matrix and cannot be corrected to one
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = diag(2)
+        )
+        expect_error(distributed_lag(parameters = params, covariance = c(1, 1)))
+
+        # Dimensionality doesn't match up with the parameters: Error in d, k
+        correct <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 5)
+        )
+
+        params <- correct
+        expect_error(distributed_lag(d = 1, parameters = params, covariance = diag(2)))
+        expect_error(distributed_lag(k = 4, parameters = params, covariance = diag(2)))
+
+        # Dimensionality doesn't match up with parameters: Error in parameters
+        params[["alpha"]] <- numeric(1)
+        expect_error(distributed_lag(d = 2, parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["beta"]] <- matrix(1, nrow = 1, ncol = 5)
+        expect_error(distributed_lag(d = 2, k = 5, parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["beta"]] <- matrix(1, nrow = 2, ncol = 4)
+        expect_error(distributed_lag(d = 2, k = 5, parameters = params, covariance = diag(2)))
+
+        params <- correct
+        expect_error(distributed_lag(d = 2, k = 5, parameters = params, covariance = diag(1)))
+
+        # Dimensionality doesn't match up with parameters: Error in inconsistency
+        params <- correct
+        params[["alpha"]] <- numeric(1)
+        expect_error(distributed_lag(parameters = params, covariance = diag(2)))
+
+        params <- correct
+        params[["beta"]] <- matrix(1, nrow = 1, ncol = 5)
+        expect_error(distributed_lag(parameters = params, covariance = diag(2)))
+
+        params <- correct
+        expect_error(distributed_lag(parameters = params, covariance = diag(1)))
+
+        # Dimensionality of beta doesn't match up with the number of lags
+        correct <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 2 * 3)
+        )
+
+        params <- correct
+        expect_error(distributed_lag(d = 2, k = 2, lag = 1, parameters = params, covariance = diag(2)))
+        expect_error(distributed_lag(d = 2, k = 2, lag = 3, parameters = params, covariance = diag(2)))
+        expect_error(distributed_lag(d = 2, k = 3, lag = 2, parameters = params, covariance = diag(2)))
+
+        params[["beta"]] <- matrix(1, nrow = 2, ncol = 5)
+        expect_error(distributed_lag(d = 2, k = 2, lag = 2, parameters = params, covariance = diag(2)))
+        expect_error(distributed_lag(lag = 2, parameters = params, covariance = diag(2)))
+    }
+)
+
+test_that(
+    "Test the specialized warnings for the distributed lag model",
+    {
+        # Too many parameters are defined
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 3),
+            "tst" = diag(2)
+        )
+        expect_warning(distributed_lag(parameters = params, covariance = diag(2)))
+
+        tst <- distributed_lag(parameters = params, covariance = diag(2)) |>
+            suppressWarnings()
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@lag, 0)
+        expect_equal(tst@parameters[["alpha"]], numeric(2))
+        expect_equal(tst@parameters[["beta"]], matrix(1, nrow = 2, ncol = 3))
+        expect_equal(names(tst@parameters), c("alpha", "beta"))
+        expect_equal(tst@covariance, diag(2))
+
+        # Beta should be a matrix, but can have one column
+        params <- list(
+            "alpha" = numeric(10),
+            "beta" = numeric(10)
+        )
+        expect_warning(distributed_lag(parameters = params, covariance = diag(10)))
+
+        tst <- distributed_lag(parameters = params, covariance = diag(10)) |>
+            suppressWarnings()
+        expect_equal(tst@d, 10)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 10, ncol = 1))
+
+        # Covariance should be a matrix, but one value is defined
+        params <- list(
+            "alpha" = numeric(1),
+            "beta" = diag(1)
+        )
+        expect_warning(distributed_lag(parameters = params, covariance = 1))
+
+        tst <- distributed_lag(parameters = params, covariance = 1) |>
+            suppressWarnings()
+        expect_equal(tst@d, 1)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@covariance, diag(1))
+    }
+)
+
+test_that(
+    "Check properties of the distributed lag model when constructed", 
+    {
+        # Check the prototype
+        tst <- new("distributed_lag")
+        ref <- list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1)
+        )
+        expect_equal(tst@d, 1)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@n, 3)
+        expect_equal(tst@lag, 0)
+        expect_equal(tst@parameters, ref)
+        expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
+
+        # Check one that is created by the user without lags
+        ref <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(5, nrow = 2, ncol = 5)
+        )
+        tst <- distributed_lag(
+            d = 2, 
+            k = 5,
+            parameters = ref,
+            covariance = diag(2)
+        )
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 5)
+        expect_equal(tst@lag, 0)
+        expect_equal(tst@n, 2 + 2 * 5 + 3)
+        expect_equal(tst@parameters, ref)
+        expect_equal(tst@covariance, diag(2))
+
+        # Check one that is created by the user with lags
+        ref <- list(
+            "alpha" = numeric(2),
+            "beta" = cbind(
+                diag(2) * 2,
+                diag(2) * 1
+            )
+        )
+        tst <- distributed_lag(
+            d = 2, 
+            k = 2,
+            lag = 1,
+            parameters = ref,
+            covariance = diag(2)
+        )
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 2)
+        expect_equal(tst@lag, 1)
+        expect_equal(tst@n, 2 + 2 * 2 * 2 + 3)
+        expect_equal(tst@parameters, ref)
+        expect_equal(tst@covariance, diag(2))
+
+        # Check the implied one by the defaults of the function
+        tst <- distributed_lag()
+        ref <- list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1)
+        )
+        expect_equal(tst@d, 1)
+        expect_equal(tst@k, 1)
+        expect_equal(tst@n, 3)
+        expect_equal(tst@lag, 0)
+        expect_equal(tst@parameters, ref)
+        expect_equal(tst@covariance, matrix(0, nrow = 1, ncol = 1))
+
+        # Dimensionality can be correctly inferred from the parameters
+        params <- list(
+            "alpha" = numeric(10),
+            "beta" = matrix(1, nrow = 10, ncol = 3)
+        )
+        covariance <- diag(10)
+
+        tst <- distributed_lag(parameters = params, covariance = covariance)
+        expect_equal(tst@d, 10)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@lag, 0)
+        expect_equal(tst@n, 10 + 10 * 3 + 110 / 2)
+
+        # Dimensionality can be correctly inferred from the parameters when 
+        # there are lags
+        params <- list(
+            "alpha" = numeric(10),
+            "beta" = matrix(1, nrow = 10, ncol = 3 * 3)
+        )
+
+        tst <- distributed_lag(lag = 2, parameters = params, covariance = covariance)
+        expect_equal(tst@d, 10)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@lag, 2)
+        expect_equal(tst@n, 10 + 10 * 3 * 3 + 110 / 2)
+
+        # Check whether the Cholesky decomposition works
+        params <- list(
+            "alpha" = numeric(2),
+            "beta" = matrix(1, nrow = 2, ncol = 3)
+        )
+        ref <- diag(2)
+        ref[c(2, 3)] <- 0.25
+
+        G <- chol(ref) |>
+            t()
+
+        tst <- distributed_lag(parameters = params, covariance = G, cholesky = TRUE)
+        expect_equal(
+            tst@covariance, 
+            ref,
+            tolerance = 1e-2
+        )
+
+        # Check the class of the model
+        expect_equal(class(tst), "distributed_lag")
+        expect_s4_class(tst, "model")
+
+        # Check whether parameters are put in the correct order
+        params <- list(
+            "beta" = as.matrix(1),
+            "alpha" = 1
+        )
+
+        tst <- distributed_lag(parameters = params, covariance = as.matrix(1))
+        expect_equal(names(tst@parameters), c("alpha", "beta"))
+
+        # Check the empty version of the models for a specified dimensionality
+        tst <- distributed_lag(d = 2, k = 3)
+
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@lag, 0)
+        expect_equal(tst@n, 2 + 2 * 3 + 3)
+        expect_equal(tst@parameters[["alpha"]], numeric(2))
+        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 2, ncol = 3))
+        expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
+
+        # Check the empty version of the models for a specified dimensionality 
+        # and number of lags
+        tst <- distributed_lag(d = 2, k = 3, lag = 2)
+
+        expect_equal(tst@d, 2)
+        expect_equal(tst@k, 3)
+        expect_equal(tst@lag, 2)
+        expect_equal(tst@n, 2 + 2 * 3 * 3 + 3)
+        expect_equal(tst@parameters[["alpha"]], numeric(2))
+        expect_equal(tst@parameters[["beta"]], matrix(0, nrow = 2, ncol = 3 * 3))
+        expect_equal(tst@covariance, matrix(0, nrow = 2, ncol = 2))
+    }
+)

@@ -1305,3 +1305,310 @@ double_exponential <- function(d = NA,
 
     return(.Object)
 }
+
+#' Distributed Lag Class
+#' 
+#' Class for the distributed lag model. Follows a similar structure to the 
+#' \code{\link[discounting]{model-class}}.
+#' 
+#' @slot d Integer denoting the number of dimensions of the model
+#' @slot k Integer denoting the number of independent variables
+#' @slot n Integer denoting the number of parameters
+#' @slot lag Integer denoting the number of lags in the model. Having lag at 
+#' `0` is equivalent a linear regression with no lagged covariates.
+#' @slot parameters List containing the parameters relevant to a particular 
+#' model instance
+#' @slot covariance Numeric matrix denoting the residual covariance of the 
+#' model
+#' 
+#' @seealso 
+#' \code{\link[discounting]{distributed_lag}}
+#' 
+#' @concept models
+#' 
+#' @export 
+setClass(
+    "distributed_lag",
+    slots = c(
+        d = "numeric",
+        k = "numeric",
+        n = "numeric",
+        lag = "numeric",
+        parameters = "list",
+        covariance = "matrix"
+    ),
+    prototype = list(
+        d = as.integer(1),
+        k = as.integer(1), 
+        n = 3,
+        lag = as.integer(0),
+        parameters = list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1)
+        ),
+        covariance = matrix(0, nrow = 1, ncol = 1)
+    ),
+    contains = "model"
+)
+
+#' Constructor for the \code{\link[discounting]{distributed_lag-class}}
+#' 
+#' Defines an instance of the \code{\link[discounting]{distributed_lag-class}}, 
+#' that is the class defining the distributed lag model. For the mathematical 
+#' equations and how to specify them in this constructor, users can look at the
+#' details. For more information on the model itself, see the 
+#' vignette on the model definitions.
+#' 
+#' @details 
+#' Compared to the discounting models defined in this package, the distributed 
+#' lag model is a completely free model, assuming that the stimuli have an effect
+#' that lasts until a particular `lag` is reached, after which the effect 
+#' reduces to zero. Before that lag, the model allows for complete flexibility in
+#' the effect the stimuli may have on current affect, therefore not restricting
+#' potential decay of such influence to a particular shape (unlike the 
+#' discounting models). The model can be defined as:
+#' 
+#' \deqn{\boldsymbol{y}_t = \boldsymbol{\alpha} + \sum_{j = 0}^t B_j 
+#' \boldsymbol{x}_{t - j} + \boldsymbol{\epsilon}_t}
+#' 
+#' where \eqn{\boldsymbol{\alpha}} is a \eqn{d}-dimensional vector 
+#' representing the mean of the process \eqn{\boldsymbol{y}}, \eqn{B_j} is a 
+#' \eqn{d \times k} matrix containing the slopes of the independent variables 
+#' \eqn{\boldsymbol{x}} at time \eqn{t - j}, and \eqn{\boldsymbol{\epsilon}} 
+#' represents the residuals of the system. Within this package, we assume that:
+#' 
+#' \deqn{\boldsymbol{\epsilon} \overset{iid}{\sim} N(\boldsymbol{0}, \Sigma)}
+#' 
+#' where \eqn{\Sigma} is a \eqn{d \times d} matrix representing the residual 
+#' covariance matrix. 
+#' 
+#' To define the model, one should minimally define the parameters of the model
+#' through \code{parameters} and \code{covariance}. In \code{covariance}, one 
+#' either provides the \eqn{d \times d} residual covariance matrix \eqn{\Sigma}
+#' (\code{cholesky = FALSE}) or a lower-triangular \eqn{d \times d} matrix 
+#' \eqn{G} that represents part of the decomposition of this matrix 
+#' (\code{cholesky = TRUE}), so that we can retrieve the covariance matrix as:
+#' 
+#' \deqn{\Sigma = G G^T}
+#' 
+#' The latter option ensures that the covariance matrix \eqn{\Sigma} defined 
+#' within the model is positive-definite, but may require some additional 
+#' thinking on the side of the user.
+#' 
+#' In \code{parameters}, one should provide a named list with instances 
+#' \code{"alpha"} and \code{"beta"}, each defining the respective parameters 
+#' \eqn{\boldsymbol{\alpha}} and \eqn{B}, where:
+#' 
+#' \deqn{B = \left[ B_0, B_1, \cdots, B_{lag} \right]}
+#' 
+#' In other words, the provided value to \eqn{"beta"} is a 
+#' \eqn{d \times (lag + 1) * k} matrix, ordering the slopes in function of 
+#' lag and independent variables. For example, for a model with \eqn{d = 2}, 
+#' \eqn{k = 2}, and \code{lag = 1}, the \eqn{B} matrix is defined as:
+#' 
+#' \deqn{B = 
+#'  \begin{bmatrix} 
+#'      \beta_{1, 1, 0} & \beta_{1, 2, 0} & \beta_{1, 1, 1} & \beta_{1, 2, 1} \\
+#'      \beta_{2, 1, 0} & \beta_{2, 2, 0} & \beta_{2, 1, 1} & \beta_{2, 2, 1} 
+#'  \end{bmatrix}
+#' }
+#' 
+#' where \eqn{\beta_{i, j, l}} denotes the slope of the independent variable 
+#' \eqn{j} on the dependent variable \eqn{i} at lag \eqn{l}. 
+#' 
+#' There are some important restrictions to take into account when defining the 
+#' model:
+#' \itemize{
+#'   \item{The covariance matrix \eqn{\Sigma} should be positive definite, as 
+#'         explained above}
+#' }
+#' 
+#' @param d Integer denoting the number of dimensions of the model. Defaults to 
+#' \code{NA}, in which case this dimensionality is inferred from the parameters.
+#' Note that if \code{d} and \code{k} are both defined while \code{parameters}
+#' is left unspecified, then the model will automatically create an empty 
+#' model of the specified dimensionality.
+#' @param k Integer denoting the number of independent variables. Defaults to 
+#' \code{NA}, in which case this dimensionality is inferred from the parameters.
+#' @param lag Integer denoting the number of lags in the model. Having lag at 
+#' `0` is equivalent a linear regression with no lagged covariates. Defaults to
+#' `0`.
+#' @param parameters List containing the parameters relevant to a particular 
+#' model instance. Defaults to \code{NULL}, creating an empty model with 
+#' \eqn{d = 1} and \eqn{k = 1} (unless \code{d} and \code{k} are specified).
+#' @param covariance Numeric matrix denoting the residual covariance of the 
+#' model. Default to \code{NULL}, creating a matrix of \code{0}s with the 
+#' dimensionality implied by \code{d}.
+#' @param cholesky Logical denoting whether \code{covariance} is a 
+#' lower-triangular decomposition matrix instead of an actual covariance matrix.
+#' Defaults to \code{FALSE}.
+#' 
+#' @return Instance of \code{\link[discounting]{double_exponential-class}}. 
+#' Note that if the eigenvalues of \eqn{\Gamma} are larger than those of \eqn{N}, 
+#' the two are switched in order and \eqn{\omega} is adjusted to fit this switch
+#' 
+#' @examples 
+#' distributed_lag(
+#'   d = 2,
+#'   k = 2,
+#'   lag = 1,
+#'   parameters = list(
+#'     "alpha" = numeric(2),
+#'     "beta" = cbind(
+#'        diag(2) * 2,
+#'        diag(2) * 1
+#'     )
+#'   ),
+#'   covariance = diag(2)
+#' )
+#' 
+#' distributed_lag(
+#'   d = 2,
+#'   k = 2,
+#'   lag = 1
+#' )
+#' 
+#' @seealso 
+#' \code{\link[discounting]{model-class}}
+#' \code{\link[discounting]{exponential-class}}
+#' \code{\link[discounting]{quasi_hyperbolic-class}}
+#' \code{\link[discounting]{double_exponential-class}}
+#' \code{\link[discounting]{distributed_lag-class}}
+#' 
+#' @concept models
+#' 
+#' @export 
+distributed_lag <- function(d = NA, 
+                            k = NA,
+                            lag = 0,
+                            parameters = NULL, 
+                            covariance = NULL,
+                            cholesky = FALSE) {
+    
+    # If the parameters and covariances are NULL, and if the dimensionalities
+    # are provided, then we return an empty exponential model of the speciifed
+    # size.
+    if(!is.na(d) & !is.na(k) & is.null(parameters) & is.null(covariance)) {
+        # Create a new model and change its class to exponential. This ensures some
+        # additional checks are performed
+        .Object <- model(
+            d = d,
+            k = k,
+            n = d + d * k * (lag + 1) + d * (d + 1) / 2,
+            parameters = list(
+                "alpha" = numeric(d),
+                "beta" = matrix(0, nrow = d, ncol = k * (lag + 1))
+            ),
+            covariance = matrix(0, nrow = d, ncol = d)
+        )
+        class(.Object) <- "distributed_lag"
+        
+        .Object@lag <- lag
+
+        return(.Object)
+    }
+        
+    # Check if the parameters are NULL. If so, then we invoke the default 
+    # parameter set
+    if(is.null(parameters)) {
+        parameters <- list(
+            "alpha" = 0,
+            "beta" = matrix(0, nrow = 1, ncol = 1)
+        )
+    }
+
+    # Check if the covariances are NULL. If so, then we invoke the default 
+    # covariances
+    if(is.null(covariance)) {
+        covariance <- matrix(0, nrow = 1, ncol = 1)
+    }
+
+    # Check whether all parameters are defined in the list of parameters
+    if(!all(c("alpha", "beta") %in% names(parameters))) {
+        stop(
+            paste(
+                "Not all parameters are defined in the list.",
+                "Ensure that the list contains slots",
+                "\"alpha\" and \"beta\"."
+            )
+        )
+    }
+
+    # Check whether too many parameters are defined in the list. If so, delete 
+    # them from the list
+    if(length(names(parameters)) > 2) {
+        warning(
+            paste(
+                "Too many different parameters provided to `parameters`.",
+                "Deleting the redundant ones."
+            )
+        )
+
+        idx <- names(parameters) %in% c("alpha", "beta")
+        parameters <- parameters[idx]
+    }
+
+    # Parameter should be of the correct type
+    if(!is.matrix(parameters[["beta"]])) {
+        warning(
+            paste(
+                "The parameter \"beta\" should be a matrix:",
+                "Changing type assuming a single independent variable."
+            )
+        )
+
+        parameters[["beta"]] <- matrix(parameters[["beta"]], ncol = 1)
+    }
+
+    if(!is.matrix(covariance) & length(covariance) == 1) {
+        warning("The argument \"covariance\" should be a matrix: Changing type.")
+        covariance <- as.matrix(covariance)
+
+    } else if(!is.matrix(covariance)) {
+        stop("The argument \"covariance\" should be a matrix.")
+    }
+
+    # If the dimensionalities d and/or k are not defined, try to derive them 
+    # from the parameters that were given.
+    if(is.na(d)) {
+        d <- length(parameters[["alpha"]])
+    }
+
+    if(is.na(k)) {
+        k <- ncol(parameters[["beta"]]) / (lag + 1)
+    }
+
+    # Check for inconsistencies in the parameter dimensions and whatever
+    # dimensionalities have been provided.
+    if(length(parameters[["alpha"]]) != d) {
+        stop("Dimensionality d is not in accord with the dimensionality of \"alpha\".")
+    }
+
+    if(any(dim(parameters[["beta"]]) != c(d, k * (lag + 1)))) {
+        stop("Dimensionalities d and/or k are not in accord with the dimensionalilty of \"beta\".")
+    }
+
+    # Check whether the covariance matrix needs to be derived through the 
+    # Cholesky decomposition
+    if(cholesky) {
+        covariance <- covariance %*% t(covariance)
+    }
+
+    # Move the parameters around so that they follow a fixed structure
+    parameters <- parameters[c("alpha", "beta")]
+    
+    # Create a new model and change its class to distributed_lag. This ensures 
+    # some additional checks are performed
+    .Object <- model(
+        d = d,
+        k = k,
+        n = d + d * k * (lag + 1) + d * (d + 1) / 2,
+        parameters = parameters,
+        covariance = covariance
+    )
+    class(.Object) <- "distributed_lag"
+
+    .Object@lag <- lag
+
+    return(.Object)
+}
