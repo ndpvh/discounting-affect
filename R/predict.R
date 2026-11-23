@@ -191,3 +191,56 @@ setMethod(
         return(data)
     }
 )
+
+#' @rdname predict
+#' @export 
+setMethod(
+    "predict",
+    "distributed_lag",
+    function(object, 
+             data) {
+        
+        # Extract the values of the independent variables
+        X <- data@X
+
+        # Extract the parameters and dimensionalities
+        params <- object@parameters
+        k <- object@k
+        lag <- object@lag
+
+        # Reserve memory for the output variable Y
+        Y <- matrix(0, nrow = data@N, ncol = object@d)
+
+        # Reserve memory for the history of the independent variables. Column 
+        # j + 1 contains the values of the independent variables at time t - j, 
+        # so that vectorizing this matrix corresponds to the ordering of the 
+        # columns in beta, namely B = [B_0, B_1, ..., B_lag]. Values before the 
+        # start of the data are assumed to be 0.
+        H <- matrix(0, nrow = k, ncol = lag + 1)
+
+        # Loop over the values of X and define compute the values of Y
+        for(i in seq_len(data@N)) {
+            # If the current value of the predictor variables is NA, then we 
+            # have to restart the history we were keeping. No value for Y[i, ]
+            # exists here, and so the prediction will be NA as well.
+            if(any(is.na(X[i, ]))) {
+                Y[i, ] <- NA
+                H[] <- 0
+
+                next
+            }
+
+            # Update the history with the current values of the predictors, 
+            # dropping the values that fall outside of the lag window
+            H <- cbind(X[i, ], H[, seq_len(lag), drop = FALSE])
+
+            # Create the value for the output variable Y
+            Y[i, ] <- params[["alpha"]] + params[["beta"]] %*% as.numeric(H)
+        }
+
+        # Update the slot Y in the `dataset` class
+        data@Y <- Y 
+
+        return(data)
+    }
+)

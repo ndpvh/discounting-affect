@@ -660,6 +660,224 @@ test_that(
 )
 
 test_that(
+    "Predictions for the distributed lag model hold up",
+    {
+
+        # Create an impulse dataset for dimensions k = 1, k = 2
+        impulse <- c(1, rep(0, 9))
+        impulse_1 <- dataset(X = matrix(impulse, ncol = 1))
+        impulse_2 <- dataset(X = cbind(impulse, impulse))
+
+        # Create a non-impulse dataset for dimensions k = 1, k = 2
+        stimuli <- 1:10
+        stimuli_1 <- dataset(X = matrix(stimuli, ncol = 1))
+        stimuli_2 <- dataset(X = cbind(stimuli, stimuli))
+
+        # Function to shift a vector by j time points, assuming values of 0 
+        # before the start of the data
+        shift <- function(x, j) {
+            if(j == 0) {
+                return(x)
+            }
+            return(c(rep(0, j), x[1:(length(x) - j)]))
+        }
+
+        ########################################################################
+        # d = 1, k = 1, lag = 0
+
+        # Create the parameters
+        my_model <- distributed_lag(
+            lag = 0,
+            parameters = list(
+                "alpha" = 1,
+                "beta" = matrix(2, nrow = 1, ncol = 1)
+            ),
+            covariance = matrix(0, nrow = 1, ncol = 1)
+        )
+
+        # Perform the test with impulse-response sets
+        tst <- predict(my_model, impulse_1)
+        expect_equal(tst@X, impulse_1@X)
+        expect_equal(tst@Y, matrix(1 + 2 * impulse, ncol = 1))
+
+        # Perform the test with stimuli instead
+        tst <- predict(my_model, stimuli_1)
+        expect_equal(tst@X, stimuli_1@X)
+        expect_equal(tst@Y, matrix(1 + 2 * stimuli, ncol = 1))
+
+        ########################################################################
+        # d = 1, k = 1, lag = 1
+
+        # Create the parameters
+        my_model <- distributed_lag(
+            lag = 1,
+            parameters = list(
+                "alpha" = 1,
+                "beta" = matrix(c(2, 1), nrow = 1, ncol = 2)
+            ),
+            covariance = matrix(0, nrow = 1, ncol = 1)
+        )
+
+        # Perform the test with impulse-response sets
+        tst <- predict(my_model, impulse_1)
+        expect_equal(tst@X, impulse_1@X)
+        expect_equal(tst@Y, matrix(1 + c(2, 1, rep(0, 8)), ncol = 1))
+
+        # Perform the test with stimuli instead
+        tst <- predict(my_model, stimuli_1)
+        expect_equal(tst@X, stimuli_1@X)
+        expect_equal(
+            tst@Y, 
+            matrix(1 + 2 * stimuli + 1 * shift(stimuli, 1), ncol = 1)
+        )
+
+        ########################################################################
+        # d = 1, k = 1, lag = 2
+
+        # Create the parameters
+        my_model <- distributed_lag(
+            lag = 2,
+            parameters = list(
+                "alpha" = 1,
+                "beta" = matrix(c(2, 1, 0.5), nrow = 1, ncol = 3)
+            ),
+            covariance = matrix(0, nrow = 1, ncol = 1)
+        )
+
+        # Perform the test with impulse-response sets
+        tst <- predict(my_model, impulse_1)
+        expect_equal(tst@X, impulse_1@X)
+        expect_equal(tst@Y, matrix(1 + c(2, 1, 0.5, rep(0, 7)), ncol = 1))
+
+        # Perform the test with stimuli instead
+        tst <- predict(my_model, stimuli_1)
+        expect_equal(tst@X, stimuli_1@X)
+        expect_equal(
+            tst@Y, 
+            matrix(
+                1 + 2 * stimuli + 1 * shift(stimuli, 1) + 0.5 * shift(stimuli, 2), 
+                ncol = 1
+            )
+        )
+
+        ########################################################################
+        # d = 2, k = 1, lag = 1
+
+        # Create the parameters
+        my_model <- distributed_lag(
+            lag = 1,
+            parameters = list(
+                "alpha" = c(1, -1),
+                "beta" = cbind(c(2, 3), c(1, -1))
+            ),
+            covariance = matrix(0, nrow = 2, ncol = 2)
+        )
+
+        # Perform the test with impulse-response sets
+        tst <- predict(my_model, impulse_1)
+        expect_equal(tst@X, impulse_1@X)
+        expect_equal(
+            tst@Y, 
+            cbind(
+                1 + c(2, 1, rep(0, 8)),
+                -1 + c(3, -1, rep(0, 8))
+            )
+        )
+
+        # Perform the test with stimuli instead
+        tst <- predict(my_model, stimuli_1)
+        expect_equal(tst@X, stimuli_1@X)
+        expect_equal(
+            tst@Y, 
+            cbind(
+                1 + 2 * stimuli + 1 * shift(stimuli, 1),
+                -1 + 3 * stimuli - 1 * shift(stimuli, 1)
+            )
+        )
+
+        ########################################################################
+        # d = 1, k = 2, lag = 1
+
+        # Create the parameters. Columns are ordered as [B_0, B_1]
+        B <- matrix(c(2, 1, 0.5, 0.25), nrow = 1, ncol = 4)
+
+        my_model <- distributed_lag(
+            lag = 1,
+            parameters = list(
+                "alpha" = 1,
+                "beta" = B
+            ),
+            covariance = matrix(0, nrow = 1, ncol = 1)
+        )
+
+        # Perform the test with impulse-response sets
+        tst <- predict(my_model, impulse_2)
+        expect_equal(tst@X, impulse_2@X)
+        expect_equal(
+            tst@Y, 
+            matrix(1 + c(sum(B[1:2]), sum(B[3:4]), rep(0, 8)), ncol = 1)
+        )
+
+        # Perform the test with stimuli instead, using different stimuli for 
+        # both predictors
+        X <- cbind(stimuli, rev(stimuli))
+        data <- dataset(X = X)
+
+        tst <- predict(my_model, data)
+        expect_equal(tst@X, data@X)
+        expect_equal(
+            tst@Y, 
+            matrix(
+                1 + 
+                    B[1] * X[, 1] + B[2] * X[, 2] + 
+                    B[3] * shift(X[, 1], 1) + B[4] * shift(X[, 2], 1),
+                ncol = 1
+            )
+        )
+
+        ########################################################################
+        # d = 2, k = 2, lag = 1
+
+        # Create the parameters. Columns are ordered as [B_0, B_1]
+        B0 <- matrix(c(2, 1, 1, 2), nrow = 2, ncol = 2)
+        B1 <- matrix(c(0.5, -0.5, 0.25, 0), nrow = 2, ncol = 2)
+
+        my_model <- distributed_lag(
+            lag = 1,
+            parameters = list(
+                "alpha" = c(1, -1),
+                "beta" = cbind(B0, B1)
+            ),
+            covariance = matrix(0, nrow = 2, ncol = 2)
+        )
+
+        # Perform the test with impulse-response sets
+        tst <- predict(my_model, impulse_2)
+        expect_equal(tst@X, impulse_2@X)
+        expect_equal(
+            tst@Y, 
+            cbind(
+                1 + c(sum(B0[1, ]), sum(B1[1, ]), rep(0, 8)),
+                -1 + c(sum(B0[2, ]), sum(B1[2, ]), rep(0, 8))
+            )
+        )
+
+        # Perform the test with stimuli instead, using different stimuli for 
+        # both predictors
+        X <- cbind(stimuli, rev(stimuli))
+        X_lag <- apply(X, 2, shift, j = 1)
+        data <- dataset(X = X)
+
+        tst <- predict(my_model, data)
+        expect_equal(tst@X, data@X)
+        expect_equal(
+            tst@Y, 
+            cbind(1, -1)[rep(1, 10), ] + X %*% t(B0) + X_lag %*% t(B1)
+        )
+    }
+)
+
+test_that(
     "Test the robustness against NAs in the predictor variables",
     {
         # Create a dataset to consider in which NAs are introduced
@@ -745,6 +963,60 @@ test_that(
         expect_equal(
             as.numeric(y@Y),
             rep(c(2, 3.375, 4.34375, NA), times = 3)
+        )
+
+        # Create a distributed lag model without lags
+        model <- distributed_lag(
+            lag = 0,
+            parameters = list(
+                "alpha" = 0, 
+                "beta" = matrix(1, nrow = 1, ncol = 2)
+            )
+        )
+
+        # Without lags, the prediction only depends on the current stimuli 
+        # (1, 1), so that we expect 2 everywhere except for where there are NAs
+        y <- predict(model, data)
+        expect_equal(
+            as.numeric(y@Y),
+            rep(c(2, 2, 2, NA), times = 3)
+        )
+
+        # Create a distributed lag model with a single lag
+        model <- distributed_lag(
+            lag = 1,
+            parameters = list(
+                "alpha" = 0, 
+                "beta" = matrix(1, nrow = 1, ncol = 4)
+            )
+        )
+
+        # With two stimuli 1 and beta's 1, then at the first iteration, we 
+        # expect a value of 2 = 1 + 1, as there are no previous stimuli. At the
+        # second iteration, the previous stimuli are added as well, making 
+        # 4 = 1 + 1 + 1 + 1. At the third iteration, this remains 4. After an
+        # NA, the history is reset, so that we start at 2 again.
+        y <- predict(model, data)
+        expect_equal(
+            as.numeric(y@Y),
+            rep(c(2, 4, 4, NA), times = 3)
+        )
+
+        # Create a distributed lag model with two lags
+        model <- distributed_lag(
+            lag = 2,
+            parameters = list(
+                "alpha" = 0, 
+                "beta" = matrix(1, nrow = 1, ncol = 6)
+            )
+        )
+
+        # Same logic as before, but now the third iteration also includes the 
+        # stimuli at lag 2, making 6.
+        y <- predict(model, data)
+        expect_equal(
+            as.numeric(y@Y),
+            rep(c(2, 4, 6, NA), times = 3)
         )
     }
 )
