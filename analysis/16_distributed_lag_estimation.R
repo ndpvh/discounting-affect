@@ -269,6 +269,8 @@ run_replication <- function(lag, rep_id) {
     n_parameters = n_par,
     sse_analytic = fit_analytic$objective,
     sse_approximate = if (is.null(fit_approximate)) NA_real_ else fit_approximate$objective,
+    rsquared_analytic = rsquared(fit_analytic, data),
+    rsquared_approximate = if (is.null(fit_approximate)) NA_real_ else rsquared(fit_approximate, data),
     time_analytic = time_analytic,
     time_approximate = time_approximate,
     analytic_in_bounds = in_bounds
@@ -382,13 +384,32 @@ summary_estimates <- do.call(
 summary_estimates <- summary_estimates[order(summary_estimates$type, summary_estimates$lag), ]
 rownames(summary_estimates) <- NULL
 
+# Summary of the R^2 of both approaches per lag (mean, median, SD, minimum, 
+# maximum, and 2.5% and 97.5% quantiles; see `summarize_rsquared` in 
+# _helpers.R)
+summary_rsquared <- do.call(
+  rbind,
+  lapply(
+    split(fits, fits$lag),
+    function(x) {
+      rbind(
+        data.frame(lag = x$lag[1], estimation = "analytic", summarize_rsquared(x$rsquared_analytic)),
+        data.frame(lag = x$lag[1], estimation = "approximate", summarize_rsquared(x$rsquared_approximate))
+      )
+    }
+  )
+)
+rownames(summary_rsquared) <- NULL
+
 write.csv(estimates, file.path(output_dir, "estimates.csv"), row.names = FALSE)
 write.csv(fits, file.path(output_dir, "fits.csv"), row.names = FALSE)
 write.csv(summary_fits, file.path(output_dir, "summary_fits.csv"), row.names = FALSE)
 write.csv(summary_estimates, file.path(output_dir, "summary_estimates.csv"), row.names = FALSE)
+write.csv(summary_rsquared, file.path(output_dir, "summary_rsquared.csv"), row.names = FALSE)
 
 print(summary_fits, digits = 3)
 print(summary_estimates, digits = 3)
+print(summary_rsquared, digits = 3)
 
 
 ################################################################################

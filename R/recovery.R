@@ -18,10 +18,13 @@
 #' @param iterations Integer denoting the number of iterations to run for the 
 #' recovery/distinguishability study. Defaults to \code{100}.
 #' @param fx Named list of functions that take the output of the estimation 
-#' procedure and summarize it in a way. The function should only take in a 
-#' single argument, it being the output of\code{\link[discounting]{fit}}, and 
-#' should return a single value. Examples of functions that may be useful to 
-#' include are estimates of \eqn{AIC} and \eqn{BIC}. Defaults to an empty list. 
+#' procedure and summarize it in a way. The function should take in the output
+#' of \code{\link[discounting]{fit}} as its first argument and should return a
+#' single value. If the function additionally has an argument \code{data}, the
+#' simulated dataset on which the model was estimated is passed to it as well
+#' (e.g., \code{\link[discounting]{rsquared}}). Examples of functions that may 
+#' be useful to include are estimates of \eqn{AIC} and \eqn{BIC}. Defaults to 
+#' an empty list. 
 #' @param dynamics,sim_dynamics,fit_dynamics Character denoting the structure of 
 #' the dynamic parameters of the models. See \code{\link[discounting]{fill}} for 
 #' guidance on their potential values. By default, both the simulation and 
@@ -223,9 +226,15 @@ setMethod(
 
             # Peform the functions on the fitobj to summarize the output 
             # except for only the parameter values
+            # Functions that have a `data` argument (e.g., `rsquared`) also 
+            # receive the simulated data on which the model was estimated
             summarized <- sapply(
                 seq_along(fx),
-                \(i) fx[[i]](fitobj)
+                \(i) if("data" %in% names(formals(fx[[i]]))) {
+                    fx[[i]](fitobj, data = data)
+                } else {
+                    fx[[i]](fitobj)
+                }
             )
 
             # Put everything in the result list

@@ -161,3 +161,60 @@ for (dataset_name in dataset_names) {
 }
 
 
+
+
+################################################################################
+# R-SQUARED SUMMARY
+#
+# Summarize the proportion of explained variance (R^2) of each model per 
+# dataset across participants, as computed in 02_estimate_models.R. For 
+# multivariate datasets, the R^2 of a participant is the average R^2 across the
+# dependent variables (see `rsquared`). The summary contains the mean, median,
+# standard deviation, minimum, maximum, and 2.5% and 97.5% quantiles.
+################################################################################
+
+rsquared_rows <- list()
+
+result <- lapply(
+  dataset_names, 
+  function(x) { 
+    result <- lapply(
+      MODEL_COMPARISON_ORDER, 
+      function(y) {
+        df <- data[[x]][[y]]
+
+        if (is.null(df)) {
+          return(NULL)
+        }
+
+        if (!"rsquared" %in% names(df)) {
+          return(NULL)
+        }
+
+        return(
+          data.frame(
+            dataset = x,
+            model = y,
+            summarize_rsquared(df$rsquared)
+          )
+        )
+      }
+    )
+
+    return(do.call("rbind", result))
+  }
+)
+
+if (length(result) > 0) {
+  rsquared_summary <- do.call("rbind", result)
+  rownames(rsquared_summary) <- NULL
+
+  write.csv(
+    rsquared_summary,
+    file.path(comparison_output_dir, "rsquared_summary.csv"),
+    row.names = FALSE
+  )
+
+  cat("\n=== R^2 per dataset and model ===\n")
+  print(rsquared_summary, digits = 3, row.names = FALSE)
+}

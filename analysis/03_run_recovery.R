@@ -84,7 +84,8 @@ fx <- list(
     "aic" = aic,
     "bic" = bic,
     "autocorrelation" = autocorrelation,
-    "bias" = bias
+    "bias" = bias,
+    "rsquared" = rsquared
 )
 
 # Define a function that will make use of multiple nloptr optimizers as specified 

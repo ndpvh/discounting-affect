@@ -161,13 +161,45 @@ summarize_distinguishability <- function(fits) {
       where(is.numeric), ~ replace(.x, is.nan(.x), NA_real_)
     ))
 
-  list(
+  # Summary of the R^2 of each fitted model (mean, median, SD, minimum, 
+  # maximum, and 2.5% and 97.5% quantiles). Results created before the R^2 was
+  # added to 14_run_distinguishability.R do not contain it and are skipped.
+  # Computed inline rather than through `summarize_rsquared` in _helpers.R, as
+  # the helpers are only sourced locally in run_distinguishability_summary().
+  if ("rsquared" %in% names(fits)) {
+    rsquared <-fits |>
+      group_by(study, dataset, d, k, generating_model, fitted_model) |>
+      summarise(
+        n = sum(is.finite(rsquared)),
+        n_missing = sum(!is.finite(rsquared)),
+        mean = mean(rsquared[is.finite(rsquared)]),
+        median = median(rsquared[is.finite(rsquared)]),
+        sd = sd(rsquared[is.finite(rsquared)]),
+        min = min(rsquared[is.finite(rsquared)]),
+        max = max(rsquared[is.finite(rsquared)]),
+        q025 = quantile(rsquared, 0.025),
+        q975 = quantile(rsquared, 0.975),
+        .groups = "drop"
+      ) |>
+      mutate(across(
+        where(is.numeric), ~ replace(.x, is.nan(.x), NA_real_)
+      ))
+  } else {
+    rsquared <- NULL
+  }
+
+  summaries <- list(
     accuracy = accuracy,
     confusion = confusion,
     differences = differences,
     failures = failures,
     goodness_of_fit = goodness_of_fit
   )
+  if (!is.null(rsquared)) {
+    summaries$rsquared <- rsquared
+  }
+
+  summaries
 }
 
 

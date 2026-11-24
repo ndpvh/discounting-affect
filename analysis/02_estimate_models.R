@@ -217,6 +217,11 @@ fit_participant <- function(data,
         ...
       )
 
+      # Proportion of explained variance. Computed before the residuals are 
+      # filtered below, as `rsquared` requires the residuals to align with the
+      # rows of the data. Missing values are ignored within `rsquared`.
+      r2 <- rsquared(fitobj, data)
+
       # Missing-response structure differs across datasets.
       #
       # VANHASBROECK_2021 deliberately observes affect only on a subset of
@@ -254,6 +259,7 @@ fit_participant <- function(data,
         bic             = bic(fitobj),
         autocorrelation = residual_ac,
         bias            = bias(fitobj),
+        rsquared        = r2,
         objective_sse   = fitobj$objective
       )
 

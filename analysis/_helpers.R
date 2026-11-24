@@ -208,3 +208,55 @@ load_estimation_data <- function(dir, model_types) {
 
   data
 }
+
+
+################################################################################
+# 5. R-SQUARED SUMMARY
+################################################################################
+
+#' Summarize a vector of R^2 values.
+#'
+#' Used by the scripts that inspect estimation results (model comparison,
+#' recovery, distinguishability, and the distributed lag estimation check) so
+#' that the R^2 is summarized consistently throughout the workflow.
+#'
+#' Non-finite values (e.g., from failed estimations) are removed before the
+#' summary is computed; their number is reported in `n_missing`.
+#'
+#' @param x Numeric vector of R^2 values.
+#' @return A one-row data.frame with the number of (missing) values, the mean,
+#'         median, standard deviation, minimum, maximum, and the 2.5% and 97.5%
+#'         quantiles (i.e., the bounds of the central 95% of the values).
+summarize_rsquared <- function(x) {
+  x <- as.numeric(x)
+  n_missing <- sum(!is.finite(x))
+  x <- x[is.finite(x)]
+
+  if (length(x) == 0L) {
+    return(
+      data.frame(
+        n = 0L, 
+        n_missing = n_missing,
+        mean = NA_real_, 
+        median = NA_real_, 
+        sd = NA_real_,
+        min = NA_real_, 
+        max = NA_real_,
+        q025 = NA_real_, 
+        q975 = NA_real_
+      )
+    )
+  }
+
+  data.frame(
+    n = length(x),
+    n_missing = n_missing,
+    mean = mean(x),
+    median = median(x),
+    sd = if (length(x) > 1L) sd(x) else NA_real_,
+    min = min(x),
+    max = max(x),
+    q025 = quantile(x, probs = 0.025),
+    q975 = quantile(x, probs = 0.975)
+  )
+}

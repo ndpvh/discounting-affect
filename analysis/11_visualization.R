@@ -79,7 +79,7 @@ metrics <- c("aic", "bic")
 
 # Statistics columns that are NOT parameters — we need to separate these
 # when drawing parameter histograms
-stat_cols <- c("aic", "bic", "autocorrelation", "bias", "objective_sse")
+stat_cols <- c("aic", "bic", "autocorrelation", "bias", "rsquared", "objective_sse")
 
 # ── Load all CSVs into one combined data.frame ────────────────────────────────
 # bind_rows() is used instead of rbind() because different models/datasets can
@@ -241,7 +241,7 @@ curve_shapes <- c(16, 17, 15)  # circle, triangle, square
 # PARAMETER HISTOGRAMS
 #
 # For each model, we identify which columns are parameters (i.e., not
-# participant_id, dataset, model, or one of the five stat_cols) and draw
+# participant_id, dataset, model, or one of the stat_cols) and draw
 # one histogram per parameter, split into panels by dataset.
 #
 # Description:

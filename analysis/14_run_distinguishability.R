@@ -98,6 +98,7 @@ fit_candidate_models <- function(data, models, settings, study, dataset,
           list(
             aic = aic(fitted),
             bic = bic(fitted),
+            rsquared = rsquared(fitted, data),
             objective_sse = fitted$objective,
             rmse = sqrt(mean(residual^2)),
             mae = mean(abs(residual)),
@@ -111,7 +112,7 @@ fit_candidate_models <- function(data, models, settings, study, dataset,
     }
 
     metrics <- c(
-      "aic", "bic", "objective_sse", "rmse", "mae", "bias",
+      "aic", "bic", "rsquared", "objective_sse", "rmse", "mae", "bias",
       "autocorrelation"
     )
     for (metric in metrics) {
@@ -131,6 +132,7 @@ fit_candidate_models <- function(data, models, settings, study, dataset,
       n_clipped = n_clipped,
       aic = values$aic,
       bic = values$bic,
+      rsquared = values$rsquared,
       objective_sse = values$objective_sse,
       rmse = values$rmse,
       mae = values$mae,

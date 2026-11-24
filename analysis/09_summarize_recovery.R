@@ -60,7 +60,7 @@ ensure_dir(output_dir)
 ensure_dir(figure_dir)
 
 # Diagnostics requested in 03_run_recovery.R
-requested_diagnostics <- c("aic", "bic", "autocorrelation", "bias")
+requested_diagnostics <- c("aic", "bic", "autocorrelation", "bias", "rsquared")
 
 
 ################################################################################
@@ -594,6 +594,8 @@ for (file_index in seq_along(recovery_files)) {
         median = NA_real_,
         min = NA_real_,
         max = NA_real_,
+        q025 = NA_real_,
+        q975 = NA_real_,
         mean_absolute = NA_real_,
         stringsAsFactors = FALSE
       )
@@ -612,6 +614,8 @@ for (file_index in seq_along(recovery_files)) {
         median = safe_median(values),
         min = safe_min(values),
         max = safe_max(values),
+        q025 = quantile(values, 0.025),
+        q975 = quantile(values, 0.975),
         mean_absolute = safe_mean(abs(values)),
         stringsAsFactors = FALSE
       )

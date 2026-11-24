@@ -132,6 +132,7 @@ STAT_COLS <- c(
   "bic",
   "autocorrelation",
   "bias",
+  "rsquared",
   "objective_sse"
 )
 
