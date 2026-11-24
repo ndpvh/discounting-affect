@@ -56,24 +56,29 @@ test_that(
                 suppressWarnings()
         )@Y
 
-        # Compute the total sum of squares error of the signal in each dimension.
-        # This will be used to scale the residuals to achieve a known R^2 in 
-        # each dimension. Allowing us to test the efficacy of the function
-        MSE_total <- matrixStats::colSds(signal)^2
-
         # Function to create a fit object and data for a given R^2 per
-        # dimension. The residual variance is based on the variance of the
-        # process without errors: For an R^2 of r, the residual sum of squares
-        # should be (1 - r) / r times the signal sum of squares, i.e., 0, 1/3,
-        # 1, and 3 times the signal variance for r = 1, 0.75, 0.5, and 0.25.
-        create_case <- function(r2) {
-            MSE_residual <- MSE_total * (1 - r2) / r2
+        # dimension. Now also imputes some missing values in both the residuals
+        # and the data
+        create_case <- function(r2, per_dimension = FALSE) {
             residuals <- rnorm(N, mean = 0, sd = 1) |>
                 matrix(nrow = N / 2, ncol = 2, byrow = TRUE)
 
             # Ensure they are scaled with the correct variances
-            residuals[, 1] <- residuals[, 1] * sqrt(MSE_residual[1])
-            residuals[, 2] <- residuals[, 2] * sqrt(MSE_residual[2])
+            if(per_dimension) {
+                MSE_total <- matrixStats::colSds(signal)^2
+                MSE_residual <- MSE_total * (1 - r2) / r2
+
+                residuals[, 1] <- residuals[, 1] * sqrt(MSE_residual[1])
+                residuals[, 2] <- residuals[, 2] * sqrt(MSE_residual[2])
+            } else {
+                MSE_total <- var(as.vector(signal))
+                MSE_residual <- MSE_total * (1 - r2) / r2
+
+                residuals <- residuals * sqrt(MSE_residual)
+            }
+
+            # Impute missing values
+            residuals[seq(1, N / 2, by = 50), ] <- NA
 
             list(
                 fitobj = list(
@@ -87,17 +92,19 @@ test_that(
             )
         }
 
-        # Increasing residual variance
+        # Loop over several different values and compute the R^2
         for(r2 in c(1, 0.75, 0.5, 0.25)) {
-            tst <- create_case(r2)
+            tst <- create_case(r2, per_dimension = FALSE)
             expect_equal(
-                rsquared(tst$fitobj, tst$data), 
+                rsquared(tst$fitobj, tst$data),
                 r2,
                 tolerance = 0.1
             )
+
+            tst <- create_case(r2, per_dimension = TRUE)
             expect_equal(
                 rsquared(tst$fitobj, tst$data, per_dimension = TRUE), 
-                c(r2, r2),
+                c(r2, r2), 
                 tolerance = 0.1
             )
         }
@@ -106,6 +113,7 @@ test_that(
         # two dimensions. Ensures that we can adequately measure the R^2 per 
         # dimension
         create_case <- function(r2_1, r2_2) {
+            MSE_total <- matrixStats::colSds(signal)^2
             MSE_residual <- MSE_total * (1 - c(r2_1, r2_2)) / c(r2_1, r2_2)
             residuals <- rnorm(N, mean = 0, sd = 1) |>
                 matrix(nrow = N / 2, ncol = 2, byrow = TRUE)
@@ -167,22 +175,26 @@ test_that(
                 suppressWarnings()
         )@Y
 
-        # Compute the total sum of squares error of the signal in each dimension.
-        # This will be used to scale the residuals to achieve a known R^2 in 
-        # each dimension. Allowing us to test the efficacy of the function
-        MSE_total <- matrixStats::colSds(signal)^2
-
         # Function to create a fit object and data for a given R^2 per
         # dimension. Now also imputes some missing values in both the residuals
         # and the data
-        create_case <- function(r2) {
-            MSE_residual <- MSE_total * (1 - r2) / r2
+        create_case <- function(r2, per_dimension = FALSE) {
             residuals <- rnorm(N, mean = 0, sd = 1) |>
                 matrix(nrow = N / 2, ncol = 2, byrow = TRUE)
 
             # Ensure they are scaled with the correct variances
-            residuals[, 1] <- residuals[, 1] * sqrt(MSE_residual[1])
-            residuals[, 2] <- residuals[, 2] * sqrt(MSE_residual[2])
+            if(per_dimension) {
+                MSE_total <- matrixStats::colSds(signal)^2
+                MSE_residual <- MSE_total * (1 - r2) / r2
+
+                residuals[, 1] <- residuals[, 1] * sqrt(MSE_residual[1])
+                residuals[, 2] <- residuals[, 2] * sqrt(MSE_residual[2])
+            } else {
+                MSE_total <- var(as.vector(signal))
+                MSE_residual <- MSE_total * (1 - r2) / r2
+
+                residuals <- residuals * sqrt(MSE_residual)
+            }
 
             # Impute missing values
             residuals[seq(1, N / 2, by = 50), ] <- NA
@@ -201,12 +213,14 @@ test_that(
 
         # Loop over several different values and compute the R^2
         for(r2 in c(1, 0.75, 0.5, 0.25)) {
-            tst <- create_case(r2)
+            tst <- create_case(r2, per_dimension = FALSE)
             expect_equal(
                 rsquared(tst$fitobj, tst$data),
                 r2,
                 tolerance = 0.1
             )
+
+            tst <- create_case(r2, per_dimension = TRUE)
             expect_equal(
                 rsquared(tst$fitobj, tst$data, per_dimension = TRUE), 
                 c(r2, r2), 
@@ -281,7 +295,6 @@ test_that(
                 )
 
                 expect_equal(tst, ref)
-                expect_equal(rsquared(fitobj, data), mean(ref))
             }
         }
     }

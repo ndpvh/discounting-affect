@@ -248,24 +248,34 @@ rsquared <- function(fitobj,
         stop("Dimensions of the residuals in `fitobj` do not match those of `data`.")
     }
 
-    # Loop over all of the columns and compute the R^2 for each, only using 
-    # those time points for which the residuals are available
-    output <- sapply(
-        seq_len(ncol(residuals)),
-        function(i) {
-            idx <- !is.na(residuals[, i]) & !is.na(Y[, i])
-
-            sse <- sum(residuals[idx, i]^2)
-            sst <- sum((Y[idx, i] - mean(Y[idx, i]))^2)
-
-            return(1 - sse / sst)
-        }
-    )
-
-    # Return the per-dimension values or their average
+    # Check whether you want to compute the R^2 for each dimension or to use 
+    # the total deviation instead
     if(per_dimension) {
-        return(output)
+        # Loop over all of the columns and compute the R^2 for each, only using 
+        # those time points for which the residuals are available
+        output <- sapply(
+            seq_len(ncol(residuals)),
+            function(i) {
+                idx <- !is.na(residuals[, i]) & !is.na(Y[, i])
+
+                sse <- sum(residuals[idx, i]^2)
+                sst <- sum((Y[idx, i] - mean(Y[idx, i]))^2)
+
+                return(1 - sse / sst)
+            }
+        )
+
+    } else {
+        residuals <- as.vector(residuals)
+        Y <- as.vector(Y) 
+
+        idx <- !is.na(residuals) & !is.na(Y)
+
+        sse <- sum(residuals[idx]^2)
+        sst <- sum((Y[idx] - mean(Y[idx]))^2)
+
+        output <- 1 - sse / sst
     }
 
-    return(mean(output))
+    return(output)
 }
