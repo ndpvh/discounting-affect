@@ -167,6 +167,11 @@ test_that(
                 suppressWarnings()
         )@Y
 
+        # Compute the total sum of squares error of the signal in each dimension.
+        # This will be used to scale the residuals to achieve a known R^2 in 
+        # each dimension. Allowing us to test the efficacy of the function
+        MSE_total <- matrixStats::colSds(signal)^2
+
         # Function to create a fit object and data for a given R^2 per
         # dimension. Now also imputes some missing values in both the residuals
         # and the data
