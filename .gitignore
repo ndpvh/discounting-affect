@@ -75,3 +75,5 @@ scripts/results/practical_exponential/parameter_boundary_rates.csv
 scripts/results/practical_exponential/practical_exponential_curve_level.csv
 scripts/results/practical_exponential/practical_exponential_participant_level.csv
 scripts/results/practical_exponential/practical_exponential_rates.csv
+analysis/results/distributed_lag*
+analysis/figures/distributed_lag*
