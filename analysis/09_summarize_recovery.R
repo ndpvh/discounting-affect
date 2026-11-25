@@ -1,854 +1,241 @@
 ################################################################################
-# PURPOSE:
+# PARAMETER RECOVERY: SUMMARIES AND FIGURES
 #
-# Analyze the saved .Rds output produced by the recovery-generation workflow
-# (03_run_recovery.R). This script performs inexpensive downstream recovery
-# post-processing only; it does NOT rerun recovery or model fitting.
+# Reads results from 03_run_recovery.R; does not simulate or refit models.
+# Supports both a priori and a posteriori recovery, full runs and pilots.
 #
-# The recovery study generates 12 result files:
-#   3 model types x d = 1:2 x k = 1:2
-#
-# For each file, this script:
-#   1. Summarizes parameter recovery
-#      - Pearson correlation between simulated and estimated values
-#      - parameter-estimation bias (estimated - simulated)
-#      - MAE and RMSE
-#      - regression intercept and slope (estimated ~ simulated)
-#      - number/proportion of non-finite recovery estimates
-#
-#   2. Summarizes recovery-level diagnostics saved by 03_run_recovery.R
-#      - AIC
-#      - BIC
-#      - residual autocorrelation
-#      - residual bias
-#
-#   3. Creates a compact model/dimension-level overview suitable for reporting.
-#
-#   4. Regenerates the simulated-vs-estimated recovery figures from the saved
-#      recovery objects, preserving the figures previously produced by 03.
-#
-# Outputs are written to:
-#   analysis/results/recovery/summary/   (PATHS$recovery/summary)
-#   analysis/figures/recovery/           (PATHS$figures/recovery)
-#
+# Usage (from repository root):
+#   Rscript analysis/09_summarize_recovery.R                 # both full studies
+#   Rscript analysis/09_summarize_recovery.R pilot           # both pilots
+#   Rscript analysis/09_summarize_recovery.R apriori         # only a priori
+#   Rscript analysis/09_summarize_recovery.R aposteriori pilot
 ################################################################################
 
-config_file <- if (file.exists(file.path("analysis", "_config.R"))) {
-  file.path("analysis", "_config.R")
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) > 2L || any(!args %in% c("pilot", "apriori", "aposteriori")) ||
+    sum(args == "pilot") > 1L ||
+    sum(args %in% c("apriori", "aposteriori")) > 1L) {
+  stop("Usage: Rscript analysis/09_summarize_recovery.R [pilot] [apriori|aposteriori]")
+}
+pilot <- "pilot" %in% args
+studies <- intersect(args, c("apriori", "aposteriori"))
+if (!length(studies)) studies <- c("apriori", "aposteriori")
+run_type <- if (pilot) "pilot" else "full"
+
+config_file <- if (file.exists("analysis/_config.R")) {
+  "analysis/_config.R"
 } else if (file.exists("_config.R")) {
   "_config.R"
 } else {
-  stop(
-    "Could not find analysis/_config.R. ",
-    "Run this script from the repository root or analysis/ directory."
-  )
+  stop("Run from the repository root or the analysis/ directory.")
 }
 source(config_file)
-source(file.path(PATHS$analysis, "_helpers.R"))
-rm(config_file)
 
+models <- c("exponential", "quasi_hyperbolic", "double_exponential")
 
-################################################################################
-# SETTINGS
-################################################################################
-
-input_dir <- PATHS$recovery
-output_dir <- file.path(input_dir, "summary")
-figure_dir <- file.path(PATHS$figures, "recovery")
-
-ensure_dir(output_dir)
-ensure_dir(figure_dir)
-
-# Diagnostics requested in 03_run_recovery.R
-requested_diagnostics <- c("aic", "bic", "autocorrelation", "bias")
-
-
-################################################################################
-# HELPER FUNCTIONS
-################################################################################
-
-# Parse filenames produced by recovery.R, e.g.:
-#   exponential_11.Rds
-#   quasi_hyperbolic_22.Rds
-#
-# The first digit is d and the second digit is k.
-parse_file_name <- function(path) {
-  nm <- tools::file_path_sans_ext(basename(path))
-  match <- regexec("^(.*)_([12])([12])$", nm)
-  parts <- regmatches(nm, match)[[1]]
-
-  if (length(parts) != 4) {
-    return(data.frame(
-      model = nm,
-      d = NA_integer_,
-      k = NA_integer_,
-      stringsAsFactors = FALSE
-    ))
-  }
-
-  data.frame(
-    model = parts[2],
-    d = as.integer(parts[3]),
-    k = as.integer(parts[4]),
-    stringsAsFactors = FALSE
-  )
-}
-
-
-# Safe summary functions for vectors that may contain NA/NaN/Inf.
-safe_mean <- function(x) {
+# Summary utilities -----------------------------------------------------------
+finite_mean <- function(x) {
   x <- x[is.finite(x)]
-  if (length(x) == 0) NA_real_ else mean(x)
+  if (length(x)) mean(x) else NA_real_
 }
-
-safe_sd <- function(x) {
+finite_median <- function(x) {
   x <- x[is.finite(x)]
-  if (length(x) <= 1) NA_real_ else sd(x)
+  if (length(x)) median(x) else NA_real_
 }
 
-safe_median <- function(x) {
-  x <- x[is.finite(x)]
-  if (length(x) == 0) NA_real_ else median(x)
-}
-
-safe_min <- function(x) {
-  x <- x[is.finite(x)]
-  if (length(x) == 0) NA_real_ else min(x)
-}
-
-safe_max <- function(x) {
-  x <- x[is.finite(x)]
-  if (length(x) == 0) NA_real_ else max(x)
-}
-
-
-# Recursively search a recovery object for a requested diagnostic.
-#
-# This is intentionally flexible because the exact container used by recovery()
-# for fx output can differ across package versions. It looks for:
-#   - a list element named exactly like the statistic
-#   - a matrix/data.frame column with that name
-#   - a matrix/data.frame row with that name
-#
-# The current recovery() implementation stores requested diagnostics as columns
-# in result$fit. extract_diagnostic() checks those columns explicitly first; the
-# recursive search below is retained only as a fallback for other object layouts
-# and therefore skips result$simulate/result$fit to avoid duplicate matches.
-find_diagnostic_candidates <- function(x,
-                                       target,
-                                       current_path = "result",
-                                       skip_names = c("simulate", "fit")) {
-  out <- list()
-
-  # Matrix/data.frame: search columns and rows
-  if (is.matrix(x) || is.data.frame(x)) {
-    cn <- colnames(x)
-    rn <- rownames(x)
-
-    if (!is.null(cn) && target %in% cn) {
-      out[[length(out) + 1]] <- list(
-        path = paste0(current_path, "[, '", target, "']"),
-        values = suppressWarnings(as.numeric(x[, target]))
-      )
-    }
-
-    if (!is.null(rn) && target %in% rn) {
-      out[[length(out) + 1]] <- list(
-        path = paste0(current_path, "['", target, "', ]"),
-        values = suppressWarnings(as.numeric(x[target, ]))
-      )
-    }
-
-    return(out)
-  }
-
-  # Named list: inspect direct match first, then recurse
-  if (is.list(x)) {
-    nms <- names(x)
-
-    if (!is.null(nms) && target %in% nms) {
-      value <- x[[target]]
-
-      if (is.atomic(value) || is.matrix(value) || is.data.frame(value)) {
-        vals <- suppressWarnings(as.numeric(unlist(value, use.names = FALSE)))
-        out[[length(out) + 1]] <- list(
-          path = paste0(current_path, "$", target),
-          values = vals
-        )
-      }
-    }
-
-    if (length(x) > 0) {
-      for (i in seq_along(x)) {
-        child_name <- if (!is.null(nms) && nzchar(nms[i])) nms[i] else paste0("[[", i, "]]" )
-
-        if (child_name %in% skip_names) {
-          next
-        }
-
-        child_path <- if (startsWith(child_name, "[[")) {
-          paste0(current_path, child_name)
-        } else {
-          paste0(current_path, "$", child_name)
-        }
-
-        child <- find_diagnostic_candidates(
-          x[[i]],
-          target = target,
-          current_path = child_path,
-          skip_names = skip_names
-        )
-
-        if (length(child) > 0) {
-          out <- c(out, child)
-        }
-      }
-    }
-  }
-
-  out
-}
-
-
-# Select the most plausible diagnostic vector.
-# The current package stores fx diagnostics directly as columns in result$fit,
-# so prefer that known location. The recursive search remains as a compatibility
-# fallback for recovery objects created by a different package version.
-extract_diagnostic <- function(result, target, n_iterations) {
-  if (!is.null(result$fit) &&
-      (is.matrix(result$fit) || is.data.frame(result$fit)) &&
-      target %in% colnames(result$fit)) {
-    return(list(
-      values = suppressWarnings(as.numeric(result$fit[, target])),
-      path = paste0("result$fit[, '", target, "']")
-    ))
-  }
-
-  candidates <- find_diagnostic_candidates(result, target)
-
-  if (length(candidates) == 0) {
-    return(list(values = numeric(0), path = NA_character_))
-  }
-
-  lengths <- vapply(candidates, function(z) length(z$values), integer(1))
-
-  exact <- which(lengths == n_iterations)
-  if (length(exact) > 0) {
-    chosen <- candidates[[exact[1]]]
-  } else {
-    chosen <- candidates[[which.max(lengths)]]
-  }
-
-  chosen
-}
-
-
-# Summarize one simulated/estimated parameter pair.
 summarize_parameter <- function(simulated, estimated) {
-  ok <- is.finite(simulated) & is.finite(estimated)
-
-  s <- simulated[ok]
-  e <- estimated[ok]
-
-  n_total <- length(simulated)
-  n_valid <- length(s)
-  n_failed <- n_total - n_valid
-
-  if (n_valid == 0) {
-    return(data.frame(
-      n_total = n_total,
-      n_valid = 0L,
-      n_failed = n_failed,
-      failure_percentage = 100,
-      simulated_mean = NA_real_,
-      simulated_sd = NA_real_,
-      estimated_mean = NA_real_,
-      estimated_sd = NA_real_,
-      pearson_r = NA_real_,
-      r_squared = NA_real_,
-      parameter_bias = NA_real_,
-      median_error = NA_real_,
-      mae = NA_real_,
-      rmse = NA_real_,
-      regression_intercept = NA_real_,
-      regression_slope = NA_real_
-    ))
-  }
-
+  valid <- is.finite(simulated) & is.finite(estimated)
+  s <- simulated[valid]
+  e <- estimated[valid]
   error <- e - s
+  n <- length(s)
 
-  r <- if (n_valid > 1 && sd(s) > 0 && sd(e) > 0) {
-    cor(s, e)
+  # Correlation describes between-simulation/participant rank-order recovery.
+  # For a pilot with 2 observations it is not a stable performance measure.
+  r <- if (n > 1L && stats::sd(s) > 0 && stats::sd(e) > 0) {
+    stats::cor(s, e)
   } else {
     NA_real_
   }
-
-  if (n_valid > 1 && sd(s) > 0) {
-    regression <- lm(e ~ s)
-    intercept <- unname(coef(regression)[1])
-    slope <- unname(coef(regression)[2])
+  regression <- if (n > 1L && stats::sd(s) > 0) {
+    stats::coef(stats::lm(e ~ s))
   } else {
-    intercept <- NA_real_
-    slope <- NA_real_
+    c(NA_real_, NA_real_)
   }
 
   data.frame(
-    n_total = n_total,
-    n_valid = n_valid,
-    n_failed = n_failed,
-    failure_percentage = 100 * n_failed / n_total,
-    simulated_mean = mean(s),
-    simulated_sd = if (n_valid > 1) sd(s) else NA_real_,
-    estimated_mean = mean(e),
-    estimated_sd = if (n_valid > 1) sd(e) else NA_real_,
-    pearson_r = r,
-    r_squared = ifelse(is.na(r), NA_real_, r^2),
-    parameter_bias = mean(error),
-    median_error = median(error),
-    mae = mean(abs(error)),
-    rmse = sqrt(mean(error^2)),
-    regression_intercept = intercept,
-    regression_slope = slope
+    n_total = length(simulated), n_valid = n,
+    n_failed = length(simulated) - n,
+    failure_percentage = 100 * (length(simulated) - n) / length(simulated),
+    simulated_mean = finite_mean(s),
+    simulated_sd = if (n > 1L) stats::sd(s) else NA_real_,
+    estimated_mean = finite_mean(e),
+    estimated_sd = if (n > 1L) stats::sd(e) else NA_real_,
+    pearson_r = r, r_squared = r^2,
+    parameter_bias = finite_mean(error),
+    median_error = finite_median(error),
+    mae = finite_mean(abs(error)),
+    rmse = if (n) sqrt(mean(error^2)) else NA_real_,
+    regression_intercept = unname(regression[1]),
+    regression_slope = unname(regression[2])
   )
 }
 
-
-################################################################################
-# FIND RECOVERY FILES
-################################################################################
-
-recovery_files <- list.files(
-  input_dir,
-  pattern = "\\.[Rr][Dd][Ss]$",
-  full.names = TRUE,
-  recursive = FALSE
-)
-
-if (length(recovery_files) == 0) {
-  stop("No recovery .Rds files found in: ", input_dir)
-}
-
-message("Found ", length(recovery_files), " recovery result files.")
-
-
-################################################################################
-# SUMMARIZE EACH FILE
-################################################################################
-
-parameter_rows <- list()
-diagnostic_rows <- list()
-file_rows <- list()
-
-for (file_index in seq_along(recovery_files)) {
-
-  path <- recovery_files[file_index]
-  info <- parse_file_name(path)
-
-  message(
-    "\n[", file_index, "/", length(recovery_files), "] ",
-    basename(path)
-  )
-
+# Read study/dimensionality from metadata, not filename conventions.
+read_recovery <- function(path, study) {
   result <- readRDS(path)
-
-  # The original recovery.R explicitly uses these two components when plotting.
   if (is.null(result$simulate) || is.null(result$fit)) {
-    warning(
-      "Skipping ", basename(path),
-      ": result$simulate and/or result$fit is missing."
-    )
+    stop("Missing simulate or fit table in ", path)
+  }
+  info <- result$settings
+  if (is.null(info) || !all(c("model", "d", "k") %in% names(info))) {
+    stop("Missing model/d/k in settings: ", path)
+  }
+  if (!identical(as.character(info$study), study)) {
+    stop("Unexpected study in file: ", path)
+  }
+  if (!(info$model %in% models)) stop("Unexpected model in: ", path)
+
+  simulated <- as.data.frame(result$simulate)
+  fitted <- as.data.frame(result$fit)
+  if (nrow(simulated) != nrow(fitted)) stop("Unpaired recovery rows: ", path)
+  if (!is.null(result$metadata) && nrow(result$metadata) != nrow(fitted)) {
+    stop("Unpaired metadata rows: ", path)
+  }
+  parameters <- intersect(names(simulated), names(fitted))
+  parameters <- setdiff(parameters, c("objective", "aic", "bic", "bias", "autocorrelation"))
+  if (!length(parameters)) stop("No shared parameters in: ", path)
+  for (p in parameters) {
+    if (!is.numeric(simulated[[p]]) || !is.numeric(fitted[[p]])) {
+      stop("Non-numeric parameter ", p, " in ", path)
+    }
+  }
+  list(info = info, simulate = simulated, fit = fitted,
+       metadata = result$metadata, parameters = parameters)
+}
+
+plot_recovery <- function(x, file) {
+  # One panel per parameter, same x/y limits; dashed identity line.
+  points <- do.call(rbind, lapply(x$parameters, function(p) {
+    data.frame(parameter = p, simulated = x$simulate[[p]],
+               estimated = x$fit[[p]])
+  }))
+  points <- points[is.finite(points$simulated) & is.finite(points$estimated), ]
+  if (!nrow(points)) return(invisible(NULL))
+  points$parameter <- factor(points$parameter, levels = x$parameters)
+
+  fig <- ggplot2::ggplot(points, ggplot2::aes(x = simulated, y = estimated)) +
+    ggplot2::geom_abline(intercept = 0, slope = 1, linetype = "dashed",
+                         color = "grey40") +
+    ggplot2::geom_point(alpha = 0.35, size = 1.3, color = "steelblue") +
+    ggplot2::facet_wrap(~ parameter, scales = "free", ncol = 3) +
+    ggplot2::labs(x = "Generating parameter", y = "Recovered parameter") +
+    ggplot2::theme_bw(base_size = 11) +
+    ggplot2::theme(strip.text = ggplot2::element_text(face = "bold"))
+  ggplot2::ggsave(file, fig, width = 12,
+                  height = max(4, 3.5 * ceiling(length(x$parameters) / 3)),
+                  units = "in", dpi = 300, limitsize = FALSE)
+}
+
+# Process each study ----------------------------------------------------------
+for (study in studies) {
+  input_dir <- file.path(PATHS$recovery, study, run_type)
+  if (!dir.exists(input_dir)) {
+    warning("No result directory for ", study, " / ", run_type, ": ", input_dir)
+    next
+  }
+  files <- sort(list.files(input_dir, pattern = "\\.[Rr][Dd][Ss]$",
+                           full.names = TRUE))
+  # Exclude configuration/status RDS files if present.
+  files <- files[!grepl("(run_settings|run_status)\\.[Rr][Dd][Ss]$", files)]
+  if (!length(files)) {
+    warning("No recovery result files for ", study, " / ", run_type)
     next
   }
 
-  simulate <- as.data.frame(result$simulate)
-  fit <- as.data.frame(result$fit)
+  summary_dir <- file.path(input_dir, "summary")
+  figure_dir <- file.path(PATHS$figures, "recovery", study, run_type)
+  dir.create(summary_dir, recursive = TRUE, showWarnings = FALSE)
+  dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
 
-  # Match parameter columns before plotting. result$fit can also contain the
-  # requested diagnostics, whereas result$simulate contains parameter values.
-  common_parameters <- intersect(colnames(simulate), colnames(fit))
+  parameter_rows <- list()
+  diagnostic_rows <- list()
+  overview_rows <- list()
+  clipping_rows <- list()
 
-  if (length(common_parameters) == 0) {
-    warning("No matching parameter columns in ", basename(path))
-    next
-  }
+  for (path in files) {
+    x <- read_recovery(path, study)
+    info <- x$info
+    message(study, " / ", run_type, " / ", info$model,
+            " (d=", info$d, ", k=", info$k, ")")
+    common <- list(study = study, run_type = run_type, model = info$model,
+                   d = info$d, k = info$k)
 
-  if (!identical(colnames(simulate), colnames(fit))) {
-    message(
-      "  Fit output contains additional columns (e.g. diagnostics) in ",
-      basename(path), "; parameter summaries/plots use matching columns only."
-    )
-  }
-
-  # ---------------------------------------------------------------------------
-  # RECOVERY FIGURE
-  #
-  # This plotting block was previously executed inside 03_run_recovery.R after
-  # each recovery run. It is reproduced here from the saved recovery object so
-  # the figures can be regenerated without rerunning the expensive recovery.
-  # Non-finite recovery pairs are omitted from each panel so a failed iteration
-  # cannot prevent the numeric summary from being produced.
-  # ---------------------------------------------------------------------------
-
-  recovery_id <- tools::file_path_sans_ext(basename(path))
-
-  plt <- lapply(
-    common_parameters,
-    function(col) {
-      plot_data <- data.frame(
-        x = simulate[[col]],
-        y = fit[[col]]
-      )
-      plot_data <- plot_data[
-        is.finite(plot_data$x) & is.finite(plot_data$y),
-        ,
-        drop = FALSE
-      ]
-
-      if (nrow(plot_data) == 0) {
-        return(
-          ggplot2::ggplot() +
-            ggplot2::annotate(
-              "text", x = 0, y = 0,
-              label = "No finite recovery pairs",
-              size = 5
-            ) +
-            ggplot2::labs(
-              title = col,
-              x = "Simulated",
-              y = "Estimated"
-            ) +
-            ggplot2::theme(
-              panel.background = ggplot2::element_rect(fill = "white"),
-              panel.border = ggplot2::element_rect(
-                fill = NA, color = "black", linewidth = 1
-              ),
-              axis.title = ggplot2::element_text(size = 15),
-              plot.title = ggplot2::element_text(size = 20)
-            )
-        )
-      }
-
-      limits <- range(c(plot_data$x, plot_data$y))
-      if (diff(limits) == 0) {
-        pad <- if (limits[1] == 0) 1 else abs(limits[1]) * 0.05
-        limits <- limits + c(-pad, pad)
-      }
-
-      recovery_r <- if (
-        nrow(plot_data) > 1 &&
-        stats::sd(plot_data$x) > 0 &&
-        stats::sd(plot_data$y) > 0
-      ) {
-        stats::cor(plot_data$x, plot_data$y)
-      } else {
-        NA_real_
-      }
-
-      correlation_label <- if (is.finite(recovery_r)) {
-        format(round(recovery_r, digits = 2), nsmall = 2)
-      } else {
-        "NA"
-      }
-
-      ggplot2::ggplot(
-        data = plot_data,
-        ggplot2::aes(x = x, y = y)
-      ) +
-        ggplot2::geom_abline(
-          intercept = 0,
-          slope = 1,
-          linewidth = 2,
-          color = "black"
-        ) +
-        ggplot2::geom_point(
-          shape = 21,
-          alpha = 0.25,
-          color = "black",
-          fill = "cornflowerblue",
-          size = 5
-        ) +
-        ggplot2::annotate(
-          "text",
-          x = limits[1] + 0.05 * diff(limits),
-          y = limits[1] + 0.95 * diff(limits),
-          label = correlation_label,
-          size = 5,
-          hjust = 0
-        ) +
-        ggplot2::lims(x = limits, y = limits) +
-        ggplot2::labs(
-          title = col,
-          x = "Simulated",
-          y = "Estimated"
-        ) +
-        ggplot2::theme(
-          panel.background = ggplot2::element_rect(fill = "white"),
-          panel.border = ggplot2::element_rect(
-            fill = NA,
-            color = "black",
-            linewidth = 1
-          ),
-          axis.title = ggplot2::element_text(size = 15),
-          plot.title = ggplot2::element_text(size = 20)
-        )
+    for (p in x$parameters) {
+      row <- cbind(as.data.frame(common), parameter = p,
+                   summarize_parameter(x$simulate[[p]], x$fit[[p]]))
+      parameter_rows[[length(parameter_rows) + 1L]] <- row
     }
-  )
 
-  if (length(plt) %% 2 == 1) {
-    plt[[length(plt) + 1]] <- ggplot2::ggplot() +
-      ggplot2::theme_void()
-  }
-
-  plt <- cowplot::plot_grid(
-    plotlist = plt,
-    nrow = info$d,
-    ncol = round(length(plt) / info$d),
-    byrow = FALSE
-  )
-
-  ggplot2::ggsave(
-    file.path(
-      figure_dir,
-      paste0(recovery_id, ".jpeg")
-    ),
-    plt,
-    width = ceiling(ncol(result$simulate) * 1500 / info$d),
-    height = info$d * 1550,
-    units = "px",
-    dpi = 300,
-    limitsize = FALSE
-  )
-
-  n_iterations <- nrow(simulate)
-
-  # ---------------------------------------------------------------------------
-  # 1. PARAMETER RECOVERY
-  # ---------------------------------------------------------------------------
-
-  this_parameter_rows <- lapply(
-    common_parameters,
-    function(parameter) {
-      summary <- summarize_parameter(
-        simulated = simulate[[parameter]],
-        estimated = fit[[parameter]]
-      )
-
-      cbind(
-        data.frame(
-          file = basename(path),
-          model = info$model,
-          d = info$d,
-          k = info$k,
-          parameter = parameter,
-          stringsAsFactors = FALSE
-        ),
-        summary
-      )
-    }
-  )
-
-  this_parameter_rows <- do.call(rbind, this_parameter_rows)
-  parameter_rows[[length(parameter_rows) + 1]] <- this_parameter_rows
-
-  # Complete recovery iteration = finite simulated and fitted value for every
-  # parameter in this file (Inf is treated as an incomplete recovery, not as a
-  # complete observation).
-  simulate_matrix <- as.matrix(simulate[, common_parameters, drop = FALSE])
-  fit_matrix <- as.matrix(fit[, common_parameters, drop = FALSE])
-  complete_iteration <-
-    rowSums(!is.finite(simulate_matrix)) == 0 &
-    rowSums(!is.finite(fit_matrix)) == 0
-
-  # ---------------------------------------------------------------------------
-  # 2. FIT / RESIDUAL DIAGNOSTICS
-  # ---------------------------------------------------------------------------
-
-  this_diag <- list()
-
-  for (stat in requested_diagnostics) {
-    extracted <- extract_diagnostic(
-      result,
-      target = stat,
-      n_iterations = n_iterations
-    )
-
-    values <- extracted$values
-    values <- values[is.finite(values)]
-
-    if (length(values) == 0) {
-      message(
-        "  Diagnostic '", stat,
-        "' was not located automatically in this object."
-      )
-
-      row <- data.frame(
-        file = basename(path),
-        model = info$model,
-        d = info$d,
-        k = info$k,
-        statistic = stat,
-        source_path = NA_character_,
-        n = 0L,
-        mean = NA_real_,
-        sd = NA_real_,
-        median = NA_real_,
-        min = NA_real_,
-        max = NA_real_,
-        mean_absolute = NA_real_,
-        stringsAsFactors = FALSE
-      )
-
-    } else {
-      row <- data.frame(
-        file = basename(path),
-        model = info$model,
-        d = info$d,
-        k = info$k,
-        statistic = stat,
-        source_path = extracted$path,
-        n = length(values),
-        mean = safe_mean(values),
-        sd = safe_sd(values),
-        median = safe_median(values),
-        min = safe_min(values),
-        max = safe_max(values),
-        mean_absolute = safe_mean(abs(values)),
-        stringsAsFactors = FALSE
+    # The a priori study requests fit diagnostics; the realistic study does not.
+    # Missing diagnostics are marked missing, not incorrectly treated as zero.
+    for (stat in c("aic", "bic", "autocorrelation", "bias")) {
+      vals <- if (stat %in% names(x$fit)) x$fit[[stat]] else numeric(0)
+      vals <- vals[is.finite(vals)]
+      diagnostic_rows[[length(diagnostic_rows) + 1L]] <- cbind(
+        as.data.frame(common), statistic = stat,
+        n = length(vals), mean = finite_mean(vals),
+        median = finite_median(vals),
+        mean_absolute = finite_mean(abs(vals))
       )
     }
 
-    this_diag[[length(this_diag) + 1]] <- row
+    s <- as.matrix(x$simulate[, x$parameters, drop = FALSE])
+    f <- as.matrix(x$fit[, x$parameters, drop = FALSE])
+    complete <- rowSums(!is.finite(s) | !is.finite(f)) == 0
+    this_params <- do.call(rbind, lapply(x$parameters, function(p) {
+      summarize_parameter(x$simulate[[p]], x$fit[[p]])
+    }))
+    overview_rows[[length(overview_rows) + 1L]] <- cbind(
+      as.data.frame(common), n_recoveries = nrow(f),
+      n_parameters = length(x$parameters),
+      complete_recoveries = sum(complete),
+      incomplete_percentage = 100 * mean(!complete),
+      median_parameter_r = finite_median(this_params$pearson_r),
+      mean_absolute_parameter_bias = finite_mean(abs(this_params$parameter_bias)),
+      mean_parameter_rmse = finite_mean(this_params$rmse)
+    )
+
+    if (!is.null(x$metadata) &&
+        "proportion_clipped" %in% names(x$metadata)) {
+      clipping_rows[[length(clipping_rows) + 1L]] <- cbind(
+        as.data.frame(common), n_recoveries = nrow(x$metadata),
+        mean_proportion_clipped = finite_mean(x$metadata$proportion_clipped),
+        pct_any_clipping = 100 * mean(x$metadata$proportion_clipped > 0,
+                                      na.rm = TRUE)
+      )
+    }
+
+    name <- tools::file_path_sans_ext(basename(path))
+    plot_recovery(x, file.path(figure_dir, paste0(name, ".jpeg")))
   }
 
-  this_diag <- do.call(rbind, this_diag)
-  diagnostic_rows[[length(diagnostic_rows) + 1]] <- this_diag
-
-  # ---------------------------------------------------------------------------
-  # 3. FILE-LEVEL OVERVIEW
-  # ---------------------------------------------------------------------------
-
-  valid_r <- this_parameter_rows$pearson_r[is.finite(this_parameter_rows$pearson_r)]
-  abs_bias <- abs(this_parameter_rows$parameter_bias)
-  rmse <- this_parameter_rows$rmse
-
-  get_diag_value <- function(stat, column = "mean") {
-    idx <- this_diag$statistic == stat
-    if (!any(idx)) return(NA_real_)
-    this_diag[[column]][which(idx)[1]]
+  write.csv(do.call(rbind, parameter_rows),
+            file.path(summary_dir, "parameter_recovery_summary.csv"), row.names = FALSE)
+  write.csv(do.call(rbind, diagnostic_rows),
+            file.path(summary_dir, "recovery_diagnostics_summary.csv"), row.names = FALSE)
+  overview <- do.call(rbind, overview_rows)
+  write.csv(overview, file.path(summary_dir, "recovery_overview.csv"), row.names = FALSE)
+  write.csv(overview[, c("study", "model", "d", "k", "n_recoveries",
+                         "incomplete_percentage", "median_parameter_r",
+                         "mean_absolute_parameter_bias", "mean_parameter_rmse")],
+            file.path(summary_dir, "recovery_paper_summary.csv"), row.names = FALSE)
+  if (length(clipping_rows)) {
+    write.csv(do.call(rbind, clipping_rows),
+              file.path(summary_dir, "recovery_clipping_summary.csv"), row.names = FALSE)
   }
 
-  file_rows[[length(file_rows) + 1]] <- data.frame(
-    file = basename(path),
-    model = info$model,
-    d = info$d,
-    k = info$k,
-    n_iterations = n_iterations,
-    n_parameters = length(common_parameters),
-    complete_iterations = sum(complete_iteration),
-    incomplete_iterations = sum(!complete_iteration),
-    incomplete_percentage = 100 * mean(!complete_iteration),
-    mean_parameter_r = safe_mean(valid_r),
-    median_parameter_r = safe_median(valid_r),
-    min_parameter_r = safe_min(valid_r),
-    max_parameter_r = safe_max(valid_r),
-    mean_absolute_parameter_bias = safe_mean(abs_bias),
-    mean_parameter_rmse = safe_mean(rmse),
-    mean_aic = get_diag_value("aic", "mean"),
-    mean_bic = get_diag_value("bic", "mean"),
-    mean_residual_autocorrelation = get_diag_value("autocorrelation", "mean"),
-    mean_absolute_residual_autocorrelation = get_diag_value("autocorrelation", "mean_absolute"),
-    mean_residual_bias = get_diag_value("bias", "mean"),
-    mean_absolute_residual_bias = get_diag_value("bias", "mean_absolute"),
-    stringsAsFactors = FALSE
-  )
+  cat("\n", toupper(study), " (", run_type, "): ", nrow(overview),
+      " model/dimension configurations summarized.\n",
+      "Tables: ", summary_dir, "\nFigures: ", figure_dir, "\n", sep = "")
 }
-
-
-################################################################################
-# COMBINE RESULTS
-################################################################################
-
-if (length(parameter_rows) == 0) {
-  stop("No valid recovery files could be summarized.")
-}
-
-parameter_summary <- do.call(rbind, parameter_rows)
-diagnostic_summary <- do.call(rbind, diagnostic_rows)
-file_summary <- do.call(rbind, file_rows)
-
-# Order results consistently
-model_order <- c("exponential", "quasi_hyperbolic", "double_exponential")
-
-parameter_summary$model <- factor(parameter_summary$model, levels = model_order)
-diagnostic_summary$model <- factor(diagnostic_summary$model, levels = model_order)
-file_summary$model <- factor(file_summary$model, levels = model_order)
-
-parameter_summary <- parameter_summary[
-  order(parameter_summary$model, parameter_summary$d, parameter_summary$k, parameter_summary$parameter),
-]
-
-diagnostic_summary <- diagnostic_summary[
-  order(diagnostic_summary$model, diagnostic_summary$d, diagnostic_summary$k, diagnostic_summary$statistic),
-]
-
-file_summary <- file_summary[
-  order(file_summary$model, file_summary$d, file_summary$k),
-]
-
-# Return model names to plain character before writing CSV.
-parameter_summary$model <- as.character(parameter_summary$model)
-diagnostic_summary$model <- as.character(diagnostic_summary$model)
-file_summary$model <- as.character(file_summary$model)
-
-
-################################################################################
-# SAVE TABLES
-################################################################################
-
-write.csv(
-  parameter_summary,
-  file.path(output_dir, "parameter_recovery_summary.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  diagnostic_summary,
-  file.path(output_dir, "recovery_diagnostics_summary.csv"),
-  row.names = FALSE
-)
-
-write.csv(
-  file_summary,
-  file.path(output_dir, "recovery_overview.csv"),
-  row.names = FALSE
-)
-
-
-################################################################################
-# CREATE A SMALL PAPER-FOCUSED TABLE
-################################################################################
-
-# This table keeps only the statistics that are likely to be useful in the
-# written recovery-study results. Parameter-level details remain available in
-# parameter_recovery_summary.csv.
-paper_summary <- file_summary[, c(
-  "model",
-  "d",
-  "k",
-  "n_iterations",
-  "n_parameters",
-  "incomplete_percentage",
-  "median_parameter_r",
-  "min_parameter_r",
-  "max_parameter_r",
-  "mean_absolute_parameter_bias",
-  "mean_parameter_rmse",
-  "mean_absolute_residual_autocorrelation",
-  "mean_absolute_residual_bias"
-)]
-
-write.csv(
-  paper_summary,
-  file.path(output_dir, "recovery_paper_summary.csv"),
-  row.names = FALSE
-)
-
-
-################################################################################
-# CONSOLE REPORT
-################################################################################
-
-cat("\n")
-cat("===============================================================================\n")
-cat("RECOVERY STUDY SUMMARY\n")
-cat("===============================================================================\n\n")
-cat("Recovery files processed:", nrow(file_summary), "\n")
-cat("Parameter-level rows:     ", nrow(parameter_summary), "\n")
-cat("\n")
-
-for (i in seq_len(nrow(file_summary))) {
-  x <- file_summary[i, ]
-
-  # Find the weakest recovered parameter for this model/d/k combination
-  sub <- parameter_summary[
-    parameter_summary$model == x$model &
-      parameter_summary$d == x$d &
-      parameter_summary$k == x$k,
-  ]
-
-  finite_idx <- which(is.finite(sub$pearson_r))
-  if (length(finite_idx) > 0) {
-    weakest_idx <- finite_idx[which.min(sub$pearson_r[finite_idx])]
-    weakest_parameter <- sub$parameter[weakest_idx]
-    weakest_r <- sub$pearson_r[weakest_idx]
-  } else {
-    weakest_parameter <- NA_character_
-    weakest_r <- NA_real_
-  }
-
-  cat(
-    sprintf(
-      "%s (d=%d, k=%d)\n",
-      x$model,
-      x$d,
-      x$k
-    )
-  )
-  cat(
-    sprintf(
-      "  Complete recovery iterations: %d / %d (%.1f%%)\n",
-      x$complete_iterations,
-      x$n_iterations,
-      100 - x$incomplete_percentage
-    )
-  )
-  cat(
-    sprintf(
-      "  Parameter recovery r: median = %.3f, range = %.3f to %.3f\n",
-      x$median_parameter_r,
-      x$min_parameter_r,
-      x$max_parameter_r
-    )
-  )
-  cat(
-    sprintf(
-      "  Weakest parameter: %s (r = %.3f)\n",
-      weakest_parameter,
-      weakest_r
-    )
-  )
-  cat(
-    sprintf(
-      "  Mean |parameter bias| = %.4f; mean RMSE = %.4f\n",
-      x$mean_absolute_parameter_bias,
-      x$mean_parameter_rmse
-    )
-  )
-  cat(
-    sprintf(
-      "  Mean |residual autocorrelation| = %.4f; mean |residual bias| = %.4f\n\n",
-      x$mean_absolute_residual_autocorrelation,
-      x$mean_absolute_residual_bias
-    )
-  )
-}
-
-cat("Detailed parameter recovery:\n\n")
-print(
-  parameter_summary[, c(
-    "model", "d", "k", "parameter", "n_valid",
-    "pearson_r", "parameter_bias", "mae", "rmse",
-    "regression_intercept", "regression_slope"
-  )],
-  row.names = FALSE,
-  digits = 4
-)
-
-cat("\n")
-cat("Saved summary files to:\n  ", normalizePath(output_dir, winslash = "/", mustWork = FALSE), "\n", sep = "")
-cat("\nFiles created:\n")
-cat("  - parameter_recovery_summary.csv\n")
-cat("  - recovery_diagnostics_summary.csv\n")
-cat("  - recovery_overview.csv\n")
-cat("  - recovery_paper_summary.csv\n")
-cat("===============================================================================\n")

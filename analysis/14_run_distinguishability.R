@@ -523,5 +523,3 @@ if (sys.nframe() == 0) {
   if (length(study) == 0) study <- "both"
   run_distinguishability(pilot = "pilot" %in% args, study = study)
 }
-
-
